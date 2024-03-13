@@ -1,0 +1,11 @@
+.*
+!.gitignore
+.*/
+# homwork and exam files
+*.d
+*.o
+hw0?0?
+mid0?
+fin0?
+*.in
+*.out
