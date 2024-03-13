@@ -12,3 +12,8 @@
 // Return:
 // 0: Success; -1: Error input
 int32_t calculate( char *pExpr , int32_t base, char **ppResult );
+
+static int32_t is_invalid( char *pExpr, int32_t base );
+static int32_t to_dec( char *pExpr, int32_t base );
+static char *to_base( int32_t dec, int32_t base );
+
