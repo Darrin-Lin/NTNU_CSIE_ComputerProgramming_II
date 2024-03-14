@@ -16,7 +16,11 @@ int main()
     printf("mystrpbrk: %s\n", mystrpbrk(s, "Helo, wrd")); // "ello, world!"
     printf("strstr: %s\n", strstr(s, sub)); // "world!"
     printf("mystrstr: %s\n", mystrstr(s, sub)); // "world!"
-    printf("strtok: %s\n", strtok(s, ", ")); // "Hello"
-    printf("mystrtok: %s\n", mystrtok(s, ", ")); // "Hello"
+    char st[] = "Hello, world!";
+    
+    printf("strtok: %s, %s\n", strtok(st, ", "),st); // "Hello"
+    printf("mystrtok: %s, %s\n", mystrtok(s, ", "),s); // "Hello"
+    printf("strtok: %s\n", strtok("-----6", "1-")); // "world!"
+    printf("mystrtok: %s\n", mystrtok("-----6", "1-")); // "world!" 
     return 0;
 }

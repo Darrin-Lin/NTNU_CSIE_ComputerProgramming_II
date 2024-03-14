@@ -107,6 +107,10 @@ char *mystrtok(char *str, const char *delim)
         {
             *last = '\0';
             last++;
+            while(*last != '\0' && mystrchr(delim, *last) != NULL)
+            {
+                last++;
+            }
             return start;
         }
         last++;
