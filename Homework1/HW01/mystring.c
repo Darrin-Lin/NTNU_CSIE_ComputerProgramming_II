@@ -117,18 +117,16 @@ char *mystrtok(char *str, const char *delim)
     char *start = last;
     while (*start != '\0')
     {
-        if (mystrchr(delim, *start) != NULL)
+        if (mystrchr(delim, *start) == NULL)
         {
             // fprintf(stderr, "<><><><><><><><><><><><>><<\n");
 
             while (*(start) != '\0' && mystrchr(delim, *(start)) != NULL)
                 start++;
-            // fprintf(stderr,"%c\n",*start);
             
             last = start;
             while (*(last) != '\0'  && mystrchr(delim, *(last)) == NULL)
                 last++;
-                // fprintf(stderr,"%c\n",*last);
             if (*last != '\0')
             {
                 *(last) = '\0';
@@ -143,27 +141,5 @@ char *mystrtok(char *str, const char *delim)
     }
     last = start;
     return NULL;
-    /*char *start = last;
-    while (*last != '\0')
-    {
-        if (mystrchr(delim, *last) != NULL)
-        {
-            last++;
-            while(*last != '\0' && mystrchr(delim, *last) != NULL)
-            {
-                last++;
-            }
-            start = last;
-            while (*last != '\0' && mystrchr(delim, *last) == NULL)
-            {
-                last++;
-            }
-            *(last)='\0';
-
-            return start;
-        }
-        last++;
-    }
-    last = NULL;
-    return start;*/
+    
 }

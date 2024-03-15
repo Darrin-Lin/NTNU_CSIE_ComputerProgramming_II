@@ -18,10 +18,13 @@ int main()
         // printf("%s\n", token);
         for (int i = 0; i < 212; i++)
             printf("%d", *(c + i)==*(C + i)?1:*(c+i));
+            printf("\n");   
+            for (int i = 0; i < 212; i++)
+            printf("%c", *(C + i));
             printf("\n");
-            // for (int i = 0; i < 212; i++)
-            // printf("%c", *(C + i));
-            // printf("\n");
+            for (int i = 0; i < 212; i++)
+            printf("%c", *(c + i));
+            printf("\n");
             Token=strtok(NULL,a);
         token = mystrtok(NULL, a);
         // printf("\n");
