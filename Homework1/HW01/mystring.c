@@ -78,10 +78,25 @@ char *mystrpbrk(const char *s, const char *accept)
 }
 char *mystrstr(const char *haystack, const char *needle)
 {
-    size_t needle_len = strlen(needle);
+    size_t needle_len=0;
+    char *pStr_cp = needle;
+    while(*pStr_cp != '\0')
+    {
+        pStr_cp++;
+        needle_len++ ;
+    }
     while (*haystack != '\0')
     {
-        if (strncmp(haystack, needle, needle_len) == 0)
+        // pStr_cp=haystack;
+        size_t count=0;
+        for(size_t i =0;i<=needle_len&&*(haystack+i)!='\0';i++)
+        {
+            if(*(haystack+i)==*(needle+i))
+                count++;
+            else
+                break;
+        }
+        if (count==needle_len)
         {
             return (char *)haystack;
         }
@@ -105,13 +120,13 @@ char *mystrtok(char *str, const char *delim)
     {
         if (mystrchr(delim, *last) != NULL)
         {
-            *last = '\0';
             last++;
             while(*last != '\0' && mystrchr(delim, *last) != NULL)
             {
                 last++;
             }
-            return start;
+            *(last+1)='\0';
+            return last;
         }
         last++;
     }
