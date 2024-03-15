@@ -11,6 +11,8 @@ char *mystrtok(char *str, const char *delim);
 
 char *mystrchr(const char *s, int c)
 {
+    if(s==NULL)
+        return NULL;
     while (*s != '\0')
     {
         if (*s == c)
@@ -23,6 +25,8 @@ char *mystrchr(const char *s, int c)
 }
 char *mystrrchr(const char *s, int c)
 {
+    if (s == NULL)
+        return NULL;
     char *last = NULL;
     while (*s != '\0')
     {
@@ -36,6 +40,8 @@ char *mystrrchr(const char *s, int c)
 }
 size_t mystrspn(const char *s, const char *accept)
 {
+    if (s == NULL)
+        return -1;
     size_t count = 0;
     while (*s != '\0')
     {
@@ -50,6 +56,8 @@ size_t mystrspn(const char *s, const char *accept)
 }
 size_t mystrcspn(const char *s, const char *reject)
 {
+    if (s == NULL)
+        return -1;
     size_t count = 0;
     while (*s != '\0')
     {
@@ -65,6 +73,8 @@ size_t mystrcspn(const char *s, const char *reject)
 
 char *mystrpbrk(const char *s, const char *accept)
 {
+    if (s == NULL)
+        return NULL;
     while (*s != '\0')
     {
         if (mystrchr(accept, *s) != NULL)
@@ -77,8 +87,10 @@ char *mystrpbrk(const char *s, const char *accept)
 }
 char *mystrstr(const char *haystack, const char *needle)
 {
+    if (haystack == NULL || needle == NULL)
+        return NULL;
     size_t needle_len = 0;
-    char *pStr_cp = needle;
+    const char *pStr_cp = needle;
     while (*pStr_cp != '\0')
     {
         pStr_cp++;
@@ -119,7 +131,6 @@ char *mystrtok(char *str, const char *delim)
     {
         if (mystrchr(delim, *start) == NULL)
         {
-            // fprintf(stderr, "<><><><><><><><><><><><>><<\n");
 
             while (*(start) != '\0' && mystrchr(delim, *(start)) != NULL)
                 start++;
