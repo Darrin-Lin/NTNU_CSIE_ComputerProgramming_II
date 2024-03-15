@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 char *mystrchr(const char *s, int c);
 char *mystrrchr(const char *s, int c);
 size_t mystrspn(const char *s, const char *accept);
@@ -78,25 +77,25 @@ char *mystrpbrk(const char *s, const char *accept)
 }
 char *mystrstr(const char *haystack, const char *needle)
 {
-    size_t needle_len=0;
+    size_t needle_len = 0;
     char *pStr_cp = needle;
-    while(*pStr_cp != '\0')
+    while (*pStr_cp != '\0')
     {
         pStr_cp++;
-        needle_len++ ;
+        needle_len++;
     }
     while (*haystack != '\0')
     {
         // pStr_cp=haystack;
-        size_t count=0;
-        for(size_t i =0;i<=needle_len&&*(haystack+i)!='\0';i++)
+        size_t count = 0;
+        for (size_t i = 0; i <= needle_len && *(haystack + i) != '\0'; i++)
         {
-            if(*(haystack+i)==*(needle+i))
+            if (*(haystack + i) == *(needle + i))
                 count++;
             else
                 break;
         }
-        if (count==needle_len)
+        if (count == needle_len)
         {
             return (char *)haystack;
         }
@@ -116,6 +115,35 @@ char *mystrtok(char *str, const char *delim)
         return NULL;
     }
     char *start = last;
+    while (*start != '\0')
+    {
+        if (mystrchr(delim, *start) != NULL)
+        {
+            // fprintf(stderr, "<><><><><><><><><><><><>><<\n");
+
+            while (*(start) != '\0' && mystrchr(delim, *(start)) != NULL)
+                start++;
+            // fprintf(stderr,"%c\n",*start);
+            
+            last = start;
+            while (*(last) != '\0'  && mystrchr(delim, *(last)) == NULL)
+                last++;
+                // fprintf(stderr,"%c\n",*last);
+            if (*last != '\0')
+            {
+                *(last) = '\0';
+                last++;
+            }
+            else
+                last = NULL;
+                
+            return start;
+        }
+        start++;
+    }
+    last = start;
+    return NULL;
+    /*char *start = last;
     while (*last != '\0')
     {
         if (mystrchr(delim, *last) != NULL)
@@ -125,11 +153,17 @@ char *mystrtok(char *str, const char *delim)
             {
                 last++;
             }
-            *(last+1)='\0';
-            return last;
+            start = last;
+            while (*last != '\0' && mystrchr(delim, *last) == NULL)
+            {
+                last++;
+            }
+            *(last)='\0';
+
+            return start;
         }
         last++;
     }
     last = NULL;
-    return start;
+    return start;*/
 }
