@@ -26,14 +26,15 @@ int main()
             scanf("%s", input);
             sscanf(input, "%s", inputcpy);
             char c;
-            scanf(" %c", &c);
+            scanf("%c", &c);
             compC = mystrchr(input, c);
             compS = strchr(inputcpy, c);
             printf("%s\n", *compC == *compS ? "true" : "false");
             for (size_t i = 0; i < strlen(input); i++)
             {
-                printf("%c %c\n", compC[i], compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
             break;
         case -2:
             printf("mystrrchr\n");
@@ -46,14 +47,15 @@ int main()
             scanf("%s", input);
             sscanf(input, "%s", inputcpy);
             char c2;
-            scanf(" %c", &c2);
+            scanf("%c", &c2);
             compC = mystrrchr(input, c2);
             compS = strrchr(inputcpy, c2);
             printf("%s\n", *compC == *compS ? "true" : "false");
             for (size_t i = 0; i < strlen(compC); i++)
             {
-                printf("%c %c\n", compC[i], compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
             break;
         case -3:
             printf("mystrpbrk\n");
@@ -66,13 +68,14 @@ int main()
             scanf("%s", input);
             sscanf(input, "%s", inputcpy);
             char c3[1000];
-            scanf(" %s", c3);
+            scanf("%s", c3);
             compC = mystrpbrk(input, c3);
             compS = strpbrk(inputcpy, c3);
             for (size_t i = 0; i < strlen(compC); i++)
             {
-                printf("%d\n", compC[i] == compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
             break;
         case -4:
             printf("mystrspn\n");
@@ -85,7 +88,7 @@ int main()
             scanf("%s", input);
             sscanf(input, "%s", inputcpy);
             char c4[1000];
-            scanf(" %s", c4);
+            scanf("%s", c4);
             printf("%s\n", mystrspn(input, c4) == strspn(inputcpy, c4) ? "true" : "false");
             printf("original: %s\n", input == inputcpy ? "true" : "false");
             break;
@@ -119,12 +122,14 @@ int main()
             compS = strstr(inputcpy, c6);
             for (size_t i = 0; i < strlen(compC); i++)
             {
-                printf("%d\n", compC[i] == compS[i]);
+                printf("%d", compC[i] == compS[i]);
+                printf("\n");
             }
             for (size_t i = 0; i < strlen(input); i++)
             {
-                printf("%d\n", compC[i] == compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
 
             break;
 
@@ -137,17 +142,20 @@ int main()
             scanf("%s", input);
             sscanf(input, "%s", inputcpy);
             char c7[1000];
+            scanf("%s", c7);
             compC = mystrtok(input, c7);
             compS = strtok(inputcpy, c7);
-            scanf(" %s", c7);
+
             for (size_t i = 0; i < strlen(compC); i++)
             {
-                printf("%d\n", compC[i] == compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
             for (size_t i = 0; i < strlen(input); i++)
             {
-                printf("%d\n", compC[i] == compS[i]);
+                printf("%d", compC[i] == compS[i]);
             }
+            printf("\n");
 
             break;
         default:
