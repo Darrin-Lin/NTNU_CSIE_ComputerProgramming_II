@@ -1,10 +1,10 @@
 #include "mycal.h"
 int main()
 {
-    uint64_t pass=0;
-    char * pExpr="ABC_10+-*";//error_case
-
-    sscanf(pExpr,"%*[0-9A-F_+-*]%ln",&pass);
-    if(pass!=strlen(pExpr))printf("%ld",pass);
+    char *pResult = NULL;
+    printf("%d\n",calculate("1_10 + 2_11 * 1AA_11", 10, &pResult));
+    printf("%s",pResult);
+    free(pResult);
     return 0;
+
 }
