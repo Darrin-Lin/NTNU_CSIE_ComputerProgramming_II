@@ -76,7 +76,7 @@ int8_t Vector_insert(int64_t **pVector, int64_t value, size_t index, size_t size
 }
 int8_t Vector_erase(int64_t **pVector, size_t index, size_t size)
 {
-    for (int64_t i = index; i < size; i++)
+    for (int64_t i = index; i < size-1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
     }
@@ -139,7 +139,7 @@ int8_t Vector_insert_double(double **pVector, double value, size_t index, size_t
 }
 int8_t Vector_erase_double(double **pVector, size_t index, size_t size)
 {
-    for (int64_t i = index; i < size; i++)
+    for (int64_t i = index; i < size-1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
     }
@@ -201,7 +201,7 @@ int8_t Vector_insert_ptr(void ***pVector, void *value, size_t index, size_t size
 }
 int8_t Vector_erase_ptr(void ***pVector, size_t index, size_t size)
 {
-    for (int64_t i = index; i < size; i++)
+    for (int64_t i = index; i < size-1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
     }
@@ -263,7 +263,7 @@ int8_t Vector_insert_char(char **pVector, char value, size_t index, size_t size)
 }
 int8_t Vector_erase_char(char **pVector, size_t index, size_t size)
 {
-    for (int64_t i = index; i < size; i++)
+    for (int64_t i = index; i < size-1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
     }
