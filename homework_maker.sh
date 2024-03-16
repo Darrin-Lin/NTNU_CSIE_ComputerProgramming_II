@@ -20,3 +20,5 @@ sed -i "s/hw=1/hw=${number}/g" "./Homework${number}/test_hw0${number}/hw0${numbe
 sed -i "s/hw_number = 0/hw_number = ${number}/g" "./Homework${number}/HW0${number}/Makefile"
 sed -i "s/hw0/hw0${number}/g" "./Homework${number}/HW0${number}/README.md"
 sed -i "s/HW0/HW0${number}/g" "./Homework${number}/HW0${number}/README.md"
+cp "./hw_making_tools/myvector.h" "./Homework${number}/HW0${number}/myvector.h"
+cp "./hw_making_tools/myvector.c" "./Homework${number}/HW0${number}/myvector.c"
