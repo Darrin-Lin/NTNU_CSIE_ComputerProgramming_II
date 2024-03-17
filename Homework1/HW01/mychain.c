@@ -221,7 +221,15 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         }
         merge(&Vector_ResultPowers, &Vector_ResultCoefficients, &size);
     }
-
+    for(uint32_t i = 0; i < size; i++)
+    {
+        if(Vector_ResultCoefficients[i] == 0)
+        {
+            Vector_erase(&Vector_ResultPowers, i, size);
+            Vector_erase(&Vector_ResultCoefficients, i, size);
+            size--;
+        }
+    }
     pResult->size = size;
     pResult->pPowers = (uint32_t *)malloc(size * sizeof(uint32_t));
     pResult->pCoefficients = (int32_t *)malloc(size * sizeof(int32_t));
