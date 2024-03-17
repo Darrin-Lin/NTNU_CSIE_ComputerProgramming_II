@@ -243,8 +243,8 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         }
     }
     // copy to uint32_t Power
-    uint32_t *answerPower = calloc(size, sizeof(uint32_t));
-    int32_t *answerCof = calloc(size, sizeof(int32_t));
+    uint32_t answerPower[size];
+    int32_t answerCof[size];
     for (uint32_t i = 0; i < size; i++)
     {
         answerPower[i] = (uint32_t)Vector_ResultPowers[i];
