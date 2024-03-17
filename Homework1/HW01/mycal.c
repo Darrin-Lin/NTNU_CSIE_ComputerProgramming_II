@@ -6,8 +6,7 @@
 
 #define fptf fprintf
 
-static int32_t is_invalid(char *pExpr, int32_t base);
-static int32_t to_dec(char *pNUm, int32_t base);
+static int32_t is_invalid(char *pExpr);
 static char *to_base(int32_t dec, int32_t base);
 
 // Input:
@@ -19,7 +18,7 @@ static char *to_base(int32_t dec, int32_t base);
 // 0: Success; -1: Error input
 int32_t calculate(char *pExpr, int32_t base, char **ppResult);
 
-static int32_t is_invalid(char *pExpr, int32_t base)
+static int32_t is_invalid(char *pExpr)
 {
     char *pCheck = pExpr;
     uint64_t pass = 0;
@@ -104,7 +103,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     {
         pString[i] = pExpr[i];
     }
-    if (is_invalid(pString, base) == -1)
+    if (is_invalid(pString) == -1)
         return -1;
     char **pVector_ptr = (char **)Vector_create_ptr(0);
     int64_t *pVector_num = Vector_create(0);
@@ -115,7 +114,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     size_t Vector_ptr_size = 0;
     while (pToken != NULL)
     {
-        Vector_push_back_ptr(&pVector_ptr, pToken, Vector_ptr_size);
+        Vector_push_back_ptr((void ***)&pVector_ptr, pToken, Vector_ptr_size);
         Vector_ptr_size++;
         pToken = strtok(NULL, " ");
     }
