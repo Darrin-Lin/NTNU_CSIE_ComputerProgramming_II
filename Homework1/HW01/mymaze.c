@@ -30,3 +30,23 @@ typedef struct _sPath
 // The start point is pMaze[0][0] and the exit point is pMaze[row -1][col -1]
 // If there is no path , return 0; If there is any errors in inputs , return -1; otherwise, return 1;
 int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, sPath *pMinPath);
+
+static int32_t find_path(uint8_t x, uint8_t y, int64_t *steps, const sRoom *pMaze, const uint8_t row, const uint8_t col);
+
+
+int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, sPath *pMinPath)
+{
+    if (pMaze == NULL || pMinPath == NULL || row == 0 || col == 0)
+    {
+        return -1;
+    }
+    int64_t steps[row][col];
+    for(uint8_t i = 0; i < row; i++)
+    {
+        for(uint8_t j = 0; j < col; j++)
+        {
+            steps[i][j] = (pMaze + i * col + j)->cost;
+        }
+    }
+
+}
