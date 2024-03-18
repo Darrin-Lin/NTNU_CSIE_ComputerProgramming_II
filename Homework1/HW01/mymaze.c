@@ -32,6 +32,7 @@ typedef struct _sPath
 int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, sPath *pMinPath);
 
 static int32_t find_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze, const uint8_t row, const uint8_t col);
+static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze, const uint8_t row, const uint8_t col, sPoint **ppPath, uint32_t *size);
 
 static int32_t find_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze, const uint8_t row, const uint8_t col)
 {
@@ -108,9 +109,92 @@ static int32_t find_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaz
     *(steps + y * row + x) = min + (pMaze + y * row + x)->cost;
     return min + (pMaze + y * row + x)->cost;
 }
+
+static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze, const uint8_t row, const uint8_t col, sPoint **ppPath, uint32_t *size)
+{
+    if (x < 0 || x >= col || y < 0 || y >= row)
+    {
+        return -1;
+    }
+    if (x == col - 1 && y == row - 1)
+    {
+        (*size)++;
+        sPoint *temp = NULL;
+        temp = realloc(*ppPath, sizeof(sPoint) * (*size));
+        if (temp == NULL)
+            return -1;
+        *ppPath = temp;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+
+        return 0;
+    }
+    if (*(steps + y * row + x + 1) != -1)
+    {
+        (*size)++;
+        sPoint *temp = NULL;
+        temp = realloc(*ppPath, sizeof(sPoint) * (*size));
+        if (temp == NULL)
+            return -1;
+        *ppPath = temp;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+
+        return run_path(x + 1, y, steps, pMaze, row, col, ppPath, size);
+    }
+    else if (*(steps + (y + 1) * row + x) != -1)
+    {
+        (*size)++;
+        sPoint *temp = NULL;
+        temp = realloc(*ppPath, sizeof(sPoint) * (*size));
+        if (temp == NULL)
+            return -1;
+        *ppPath = temp;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+
+        return run_path(x, y + 1, steps, pMaze, row, col, ppPath, size);
+    }
+    else if (*(steps + (y - 1) * row + x) != -1)
+    {
+        (*size)++;
+        sPoint *temp = NULL;
+        temp = realloc(*ppPath, sizeof(sPoint) * (*size));
+        if (temp == NULL)
+            return -1;
+        *ppPath = temp;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+
+        return run_path(x, y - 1, steps, pMaze, row, col, ppPath, size);
+    }
+    else if (*(steps + y * row + x - 1) != -1)
+    {
+        (*size)++;
+        sPoint *temp = NULL;
+        temp = realloc(*ppPath, sizeof(sPoint) * (*size));
+        if (temp == NULL)
+            return -1;
+        *ppPath = temp;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+        (*ppPath + *size)->col = x;
+        (*ppPath + *size)->row = y;
+
+        return run_path(x - 1, y, steps, pMaze, row, col, ppPath, size);
+    }
+    return -1;
+}
+
 int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, sPath *pMinPath)
 {
-    if (pMaze == NULL || pMinPath == NULL || row == 0 || col == 0)
+    if (pMaze == NULL || row == 0 || col == 0)
     {
         return -1;
     }
@@ -127,5 +211,20 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     {
         return 0;
     }
+    sPoint *pPath = NULL;
+    pPath = calloc(0, sizeof(sPoint));
+    uint32_t size = 0;
+    run_path(0, 0, steps, pMaze, row, col, &pPath, &size);
+    sPoint path[size];
+    for (uint32_t i = 0; i < size; i++)
+    {
+        path[i].col = (pPath + i)->col;
+        path[i].row = (pPath + i)->row;
+    }
+    free(pPath);
+    pMinPath->cost = cost;
+    pMinPath->length = size;
+    pMinPath->pPath = path;
+
     return 1;
 }
