@@ -148,8 +148,6 @@ static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze,
         *ppPath = temp;
         (*ppPath + (*size) - 1)->col = x;
         (*ppPath + (*size) - 1)->row = y;
-        (*ppPath + (*size) - 1)->col = x;
-        (*ppPath + (*size) - 1)->row = y;
 
         return run_path(x + 1, y, steps, pMaze, row, col, ppPath, size);
     }
@@ -161,8 +159,6 @@ static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze,
         if (temp == NULL)
             return -1;
         *ppPath = temp;
-        (*ppPath + (*size) - 1)->col = x;
-        (*ppPath + (*size) - 1)->row = y;
         (*ppPath + (*size) - 1)->col = x;
         (*ppPath + (*size) - 1)->row = y;
 
@@ -178,8 +174,6 @@ static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze,
         *ppPath = temp;
         (*ppPath + (*size) - 1)->col = x;
         (*ppPath + (*size) - 1)->row = y;
-        (*ppPath + (*size) - 1)->col = x;
-        (*ppPath + (*size) - 1)->row = y;
 
         return run_path(x, y - 1, steps, pMaze, row, col, ppPath, size);
     }
@@ -191,8 +185,6 @@ static int8_t run_path(int16_t x, int16_t y, int32_t *steps, const sRoom *pMaze,
         if (temp == NULL)
             return -1;
         *ppPath = temp;
-        (*ppPath + (*size) - 1)->col = x;
-        (*ppPath + (*size) - 1)->row = y;
         (*ppPath + (*size) - 1)->col = x;
         (*ppPath + (*size) - 1)->row = y;
 
