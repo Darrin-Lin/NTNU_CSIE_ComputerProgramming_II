@@ -90,7 +90,7 @@ int main()
             char c4[1000];
             scanf("%s", c4);
             printf("%s\n", mystrspn(input, c4) == strspn(inputcpy, c4) ? "true" : "false");
-            printf("original: %s\n", input == inputcpy ? "true" : "false");
+            printf("original: %s\n", strcmp(input,inputcpy)==0 ? "true" : "false");
             break;
         case -5:
             printf("mystrcspn\n");
@@ -104,7 +104,7 @@ int main()
             char c5[1000];
             scanf(" %s", c5);
             printf("%s\n", mystrcspn(input, c5) == strcspn(inputcpy, c5) ? "true" : "false");
-            printf("original: %s\n", input == inputcpy ? "true" : "false");
+            printf("original: %s\n", strcmp(input, inputcpy)==0 ? "true" : "false");
             break;
         case -6:
             printf("mystrstr\n");
@@ -135,7 +135,7 @@ int main()
 
         case -7:
             printf("mystrtok\n");
-            printf("%s\n", mystrtok("abcdedf", "ed") == strtok("abcdedf", "ed") ? "true" : "false");
+            printf("%s\n",strcmp( mystrtok("abcdedf", "ed") ,strtok("abcdedf", "ed"))==0 ? "true" : "false");
             break;
         case 7:
             printf("mystrtok\n");
