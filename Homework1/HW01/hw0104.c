@@ -1,8 +1,9 @@
 #include "mymaze.h"
 int main()
 {
-    uint8_t a = 0b11111111;
-    a = a>>6;
-    printf("%d",a);
-    return 0;
+    sRoom a[4]={{1,0},{2,0},{1,0},{1,0}};
+    printf("--%d",a->doors);
+    sPath b ;
+    printf("%d\n",find_min_path(a,2,2,&b));
+    printf("%d %d",b.cost,b.length);
 }
