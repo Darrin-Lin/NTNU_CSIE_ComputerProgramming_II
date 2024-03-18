@@ -2,8 +2,11 @@
 int main()
 {
     sRoom a[4]={{1,0},{2,0},{1,0},{1,0}};
-    printf("--%d",a->doors);
     sPath b ;
-    printf("%d\n",find_min_path(a,2,2,&b));
-    printf("%d %d",b.cost,b.length);
-}
+    printf("return: %d\n",find_min_path(a,2,2,&b));
+    printf("cost:%d length:%d\n\n",b.cost,b.length);
+    for(int i=0;i<b.length;i++)
+    {
+        printf("%d %d\n",b.pPath[i].row,b.pPath[i].col);
+    }
+}   
