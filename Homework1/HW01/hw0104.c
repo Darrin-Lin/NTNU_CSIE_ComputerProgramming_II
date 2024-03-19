@@ -9,4 +9,5 @@ int main()
     {
         printf("%d %d\n",b.pPath[i].row,b.pPath[i].col);
     }
+    free(b.pPath);
 }   
