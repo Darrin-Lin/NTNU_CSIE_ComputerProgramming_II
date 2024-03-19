@@ -90,7 +90,7 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     }
     int8_t position = 0; // 1:up 2:right 3:down 4:left
     int32_t min = up;
-    position = up==-1?0:1;
+    position = up == -1 ? 0 : 1;
     // fptf(stderr,"l:%d r:%d u:%d d:%d\n",left,right,up,down);
     if (down != 0 && (min == 0 || down < min) && down != -1)
     {
@@ -344,7 +344,14 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     pMinPath->cost = cost;
     pMinPath->length = steps[col * row - 1].length;
     pMinPath->pPath = steps[col * row - 1].pPath;
-    for (uint32_t i = 0; i < steps[col * row - 1].length; i++)
+    // sPoint path_array[steps[col * row - 1].length];
+    // for (uint32_t i = 0; i < steps[col * row - 1].length; i++)
+    // {
+    //     path_array[i].row = steps[col * row - 1].pPath[i].row;
+    //     path_array[i].col = steps[col * row - 1].pPath[i].col;
+    // }
+    // pMinPath->pPath = path_array;
+    for (uint32_t i = 0; i < col * row-1; i++)
     {
         if (steps[i].pPath != NULL)
         {
