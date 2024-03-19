@@ -8,12 +8,13 @@
 #define fptf fprintf
 
 double bpm, offset;
+uint32_t measure_beat, measure_note;
 Course taiko_course;
 
-static int8_t colon_int_value(int32_t *value);
-static int8_t colon_double_value(double *value);
+static int8_t read_int_value(int32_t *value);
+static int8_t read_double_value(double *value);
 
-static int8_t colon_int_value(int32_t *value)
+static int8_t read_int_value(int32_t *value)
 {
     char *temp;
     char *value_string = strtok(NULL, "\r\n");
@@ -24,7 +25,7 @@ static int8_t colon_int_value(int32_t *value)
     *value = int_temp;
     return 0;
 }
-static int8_t colon_double_value(double *value)
+static int8_t read_double_value(double *value)
 {
     char *temp;
     char *value_string = strtok(NULL, "\r\n");
@@ -49,14 +50,10 @@ int main()
         {
             return 0;
         }
-        if (strcmp(input, "#START\r\n") == 0)
-        {
-            break;
-        }
-        if (input[0] == '\n' || input[0] == '\r')
-        {
-            continue;
-        }
+        // if (input[0] == '\n' || input[0] == '\r')
+        // {
+        //     break;
+        // }
         if (strchr(input, ':') == NULL)
         {
             break;
@@ -70,7 +67,7 @@ int main()
         }
         if (strcmp(temp, "BPM") == 0)
         {
-            if (colon_double_value(&bpm) != 0)
+            if (read_double_value(&bpm) != 0)
                 return -1;
         }
 
@@ -80,12 +77,37 @@ int main()
         }
         else if (strcmp(temp, "OFFSET") == 0)
         {
-            if (colon_double_value(&offset) != 0)
+            if (read_double_value(&offset) != 0)
                 return -1;
             continue;
         }
-        else if (strcmp(temp, "COURSE") == 0)
+
+        else
         {
+            continue;
+        }
+    }
+    fptf(stderr, "BPM: %lf\n", bpm);
+    fptf(stderr, "OFFSET: %lf\n", offset);
+    while (1)
+    {
+        is_eof = fgets(input, 600, stdin);
+        if (is_eof == NULL)
+        {
+            return 0;
+        }
+        if (strcmp(input, "#START\r\n") == 0)
+        {
+            break;
+        }
+        temp = strtok(input, ":");
+        if (temp == NULL)
+        {
+            return -1;
+        }
+        if (strcmp(temp, "COURSE") == 0)
+        {
+
             char *course_str = strtok(NULL, "\r\n");
             if (strcmp(course_str, "Easy") == 0)
             {
@@ -132,16 +154,44 @@ int main()
                 return -1;
             }
         }
-        else
+    }
+    while (1)
+    {
+        is_eof = fgets(input, 600, stdin);
+        if (is_eof == NULL)
         {
-            continue;
+            return 0;
+        }
+        if (strchr(input, ',') != NULL)
+        {
+            break;
+        }
+        temp = strtok(input, " ");
+        if (strstr(temp, "#MEASURE") != NULL)
+        {
+            temp = strtok(NULL, "/");
+            if (temp == NULL)
+            {
+                return -1;
+            }
+            measure_beat = strtol(temp, NULL, 10);
+            temp = strtok(NULL, "\r\n");
+            if (temp == NULL)
+            {
+                return -1;
+            }
+            measure_note = strtol(temp, NULL, 10);
+        }
+        if (temp == NULL)
+        {
+            return -1;
         }
     }
-    fptf(stderr, "SUCESSS\n");
-    fptf(stderr, "BPM: %lf\n", bpm);
-    fptf(stderr, "OFFSET: %lf\n", offset);
+    // now input is the first note
+
     fptf(stderr, "COURSE: %d\n", taiko_course);
-    fgets(input, 600, stdin);
-    fptf(stderr, "%s", input);
+    fptf(stderr, "MEASURE: %d/%d\n", measure_beat, measure_note);
+    fputs(input, stderr);
+
     return 0;
 }
