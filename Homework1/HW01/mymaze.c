@@ -62,6 +62,7 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     if (y - 1 >= 0 && (((pMaze + y * row + x)->doors & (uint8_t)0b11000000) >> 6) == (((pMaze + (y - 1) * row + x)->doors & (uint8_t)0b00001100) >> 2))
     {
         // fptf(stderr, "up:%d %d\n", ((pMaze + y * row + x)->doors & (uint8_t)0b11000000) >> 6), (((pMaze + (y - 1) * row + x)->doors & (uint8_t)0b00001100) >> 2);
+
         up = find_path(x, y - 1, steps, pMaze, row, col, map);
     }
     if (x + 1 < col && (((pMaze + y * row + x)->doors & (uint8_t)0b00110000) >> 4) == (((pMaze + y * row + x + 1)->doors & (uint8_t)0b00000011)))
@@ -89,6 +90,8 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     }
     int8_t position = 0; // 1:up 2:right 3:down 4:left
     int32_t min = up;
+    position = up==-1?0:1;
+    // fptf(stderr,"l:%d r:%d u:%d d:%d\n",left,right,up,down);
     if (down != 0 && (min == 0 || down < min) && down != -1)
     {
         position = 3;
@@ -111,6 +114,7 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "err2");
         return -1;
     }
+    // fptf(stderr,"%d %d pos:%d\n",x,y,position);
     if (position == 1)
     {
         (steps + y * row + x)->length = (steps + (y - 1) * row + x)->length + 1;
@@ -315,19 +319,19 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     /*sPoint *pPath = NULL;
     pPath = calloc(0, sizeof(sPoint));
     uint32_t size = 0;*/
-    for (uint32_t i = 0; i < row; i++)
-    {
-        for (int j = 0; j < col; j++)
-        {
-            fptf(stderr, "map:%d\n", map[i * row + j]);
-            fptf(stderr, "cost:%d\n", steps[i * row + j].cost);
-            for (uint32_t k = 0; k < steps[i * row + j].length; k++)
-            {
-                fptf(stderr, "(%d,%d) \n", steps[i * row + j].pPath[k].col, steps[i * row + j].pPath[k].row);
-            }
-        }
-        fptf(stderr, "\n");
-    }
+    // for (uint32_t i = 0; i < row; i++)
+    // {
+    //     for (int j = 0; j < col; j++)
+    //     {
+    //         fptf(stderr, "map:%ld\n", map[i * row + j]);
+    //         fptf(stderr, "cost:%d\n", steps[i * row + j].cost);
+    //         for (uint32_t k = 0; k < steps[i * row + j].length; k++)
+    //         {
+    //             fptf(stderr, "(%d,%d) \n", steps[i * row + j].pPath[k].col, steps[i * row + j].pPath[k].row);
+    //         }
+    //     }
+    //     fptf(stderr, "\n");
+    // }
     /*
     run_path(0, 0, steps, pMaze, row, col, &pPath, &size);
     sPoint path[size];
