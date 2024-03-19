@@ -42,17 +42,26 @@ int main()
     char input[600];
     char *is_eof = NULL;
 
-    while (input[0] != '\r')
+    while (1)
     {
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
         {
             return 0;
         }
+        if (strcmp(input, "#START\r\n") == 0)
+        {
+            break;
+        }
+        if (input[0] == '\n' || input[0] == '\r')
+        {
+            continue;
+        }
         if (strchr(input, ':') == NULL)
         {
             break;
         }
+
         temp = strtok(input, ":");
         // fptf(stderr, "%s", temp);
         if (temp == NULL)
@@ -129,5 +138,10 @@ int main()
         }
     }
     fptf(stderr, "SUCESSS\n");
+    fptf(stderr, "BPM: %lf\n", bpm);
+    fptf(stderr, "OFFSET: %lf\n", offset);
+    fptf(stderr, "COURSE: %d\n", taiko_course);
+    fgets(input, 600, stdin);
+    fptf(stderr, "%s", input);
     return 0;
 }
