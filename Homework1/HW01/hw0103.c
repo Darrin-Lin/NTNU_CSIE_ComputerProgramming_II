@@ -12,6 +12,7 @@ int main()
         printf("pResult.pPowers[%d] = %d\n", i, pResult.pPowers[i]);
         printf("pResult.pCoefficients[%d] = %d\n", i, pResult.pCoefficients[i]);
     }
-
+    free(pResult.pPowers);
+    free(pResult.pCoefficients);
     return 0;
 }
