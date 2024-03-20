@@ -26,8 +26,8 @@ Sheet sheets[5];
 
 static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(double *value);
-static int8_t read_measure_bpmchange(char **input);
-static int8_t read_chart(char **input);
+static int8_t read_measure_bpmchange(char input[600]);
+static int8_t read_chart(char input[600]);
 static int32_t gcd(int32_t a, int32_t b);
 static int32_t lcm(int32_t a, int32_t b);
 
@@ -64,7 +64,7 @@ static int8_t read_double_value(double *value)
     return 0;
 }
 
-static int8_t read_measure_bpmchange(char **input)
+static int8_t read_measure_bpmchange(char input[600])
 {
     char *temp;
     char *is_eof = NULL;
@@ -72,7 +72,7 @@ static int8_t read_measure_bpmchange(char **input)
     while (!feof(stdin)) // get measure and bpm change
     {
 
-        temp = strtok(*input, " ");
+        temp = strtok(input, " ");
         if (temp == NULL)
         {
             return -2;
@@ -104,19 +104,19 @@ static int8_t read_measure_bpmchange(char **input)
                 return -2;
             }
         }
-        is_eof = fgets(*input, 600, stdin);
+        is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
         {
             return -1;
         }
-        if (strchr(*input, ',') != NULL)
+        if (strchr(input, ',') != NULL)
         {
             break;
         }
     }
     return 0;
 }
-static int8_t read_chart(char **input)
+static int8_t read_chart(char input[600])
 {
     char *temp;
     char *is_eof = NULL;
@@ -124,11 +124,11 @@ static int8_t read_chart(char **input)
     {
         // code
         uint32_t chart_size = 0;
-        if (*input == "\r\n" || *input == "\n")
+        if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0)
         {
             continue;
         }
-        *temp = strtok(*input, ",");
+        temp = strtok(input, ",");
         chart_size = strlen(temp);
 
         double length = 0;
@@ -137,7 +137,7 @@ static int8_t read_chart(char **input)
         {
             length = lcm(chart_size, measure_beat);
             duration = (60 / bpm) * (4 / measure_note) * (measure_beat / length);
-            for (int i = 0; i < chart_size; i++)
+            for (uint32_t i = 0; i < chart_size; i++)
             {
                 if (temp[i] == '0')
                 {
@@ -157,12 +157,12 @@ static int8_t read_chart(char **input)
         {
             time += ((60 / bpm) * (4 / measure_note)) * measure_beat;
         }
-        is_eof = fgets(*input, 600, stdin);
+        is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
         {
             return -1;
         }
-        if (strchr(*input, '#') != NULL)
+        if (strchr(input, '#') != NULL)
         {
             break;
         }
@@ -177,8 +177,9 @@ int main()
     char *is_eof = NULL;
     int8_t status = 0;
     time = 0;
-
-    for (int i = 0; i < 5; i++)
+    char oreder[10];
+    int8_t oreder_count = 0;
+    for (int32_t i = 0; i < 5; i++)
     {
         sheets[i].hits = NULL;
         sheets[i].size = 0;
@@ -298,9 +299,12 @@ int main()
                 }
             }
         }
+        oreder[oreder_count] = taiko_course + '0';
+        oreder_count++;
+
         while (1)
         {
-            status = read_measure_bpmchange(&input);
+            status = read_measure_bpmchange(input);
             if (status == EOF)
             {
                 goto generate;
@@ -315,7 +319,7 @@ int main()
                 return -1;
             }
             // now input is the first note
-            status = read_chart(&input);
+            status = read_chart(input);
             if (status == EOF)
             {
                 goto generate;
@@ -335,6 +339,30 @@ int main()
     }
 
 generate:
-    
+    printf("{\n \"data\": [\n");
+    for (int32_t i = 0; i < 5; i++)
+    {
+        if (sheets[i].size == 0)
+        {
+            continue;
+        }
+        printf("{\n   \"course\": %d,\n", i);
+        printf("  chart: [\n");
+        for (uint32_t j = 0; j < sheets[i].size; j++)
+        {
+            printf("    [%d, %lf],\n", sheets[i].hits[j].note, sheets[i].hits[j].time);
+        }
+        printf("  ]\n  }");
+        oreder_count--;
+        if (oreder_count != 0)
+        {
+            printf(",\n");
+        }
+        else
+        {
+            printf("\n");
+        }
+    }
+    printf("]\n}");
     return 0;
 }
