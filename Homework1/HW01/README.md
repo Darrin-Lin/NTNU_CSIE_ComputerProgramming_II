@@ -76,3 +76,6 @@ hw01
 
 #### 3/19 Start
 開始找 C23 的 BitInt，但我還沒找到 manual 及執行方法。
+
+#### 3/20 Finish
+找到相關[資料](https://web.archive.org/web/20240318001749/https://open-std.org/JTC1/SC22/WG14/www/docs/n2763.pdf)了，不過有些是用 C 本身的規範來解的，而且發現好像可以用 _BitInt(N) 的 gcc 還沒 release。
