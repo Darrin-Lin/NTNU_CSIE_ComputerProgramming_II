@@ -7,12 +7,14 @@
 
 #define fptf fprintf
 
-double bpm, offset;
+double bpm, offset, time;
 uint32_t measure_beat, measure_note;
 Course taiko_course;
 
 static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(double *value);
+static int8_t read_measure_bpmchange(char **input);
+static int8_t read_chart(char **input, Chart *chart);
 
 static int8_t read_int_value(int32_t *value)
 {
@@ -37,13 +39,98 @@ static int8_t read_double_value(double *value)
     return 0;
 }
 
+static int8_t read_measure_bpmchange(char **input)
+{
+    char *temp;
+    char *is_eof = NULL;
+
+    while (1) // get measure and bpm change
+    {
+
+        temp = strtok(*input, " ");
+        if (temp == NULL)
+        {
+            return -1;
+        }
+        if (strcmp(temp, "#END") == 0)
+        {
+            return 1;
+        }
+        else if (strcmp(temp, "#MEASURE") == 0)
+        {
+            temp = strtok(NULL, "/");
+            if (temp == NULL)
+            {
+                return -1;
+            }
+            measure_beat = strtol(temp, NULL, 10);
+            temp = strtok(NULL, "\r\n");
+            if (temp == NULL)
+            {
+                return -1;
+            }
+            measure_note = strtol(temp, NULL, 10);
+        }
+        else if (strcmp(temp, "#BPMCHANGE") == 0)
+        {
+            temp = strtok(NULL, "\r\n");
+            if (temp == NULL)
+            {
+                return -1;
+            }
+        }
+        is_eof = fgets(*input, 600, stdin);
+        if (is_eof == NULL)
+        {
+            return 2;
+        }
+        if (strchr(*input, ',') != NULL)
+        {
+            break;
+        }
+    }
+    return 0;
+}
+static int8_t read_chart(char **input, Chart *chart)
+{
+    char *temp;
+    char *is_eof = NULL;
+    uint64_t measure_size = 0;
+    while (1) // get chart
+    {
+        // code
+        uint32_t chart_size = 0;
+        if (*input == "\r\n" || *input == "\n")
+        {
+            continue;
+        }
+        *temp = strtok(*input, ",");
+        chart_size = strlen(temp);
+
+        /*
+        code
+        */
+        is_eof = fgets(*input, 600, stdin);
+        if (is_eof == NULL)
+        {
+            return 2;
+        }
+        if (strchr(*input, '#') != NULL)
+        {
+            break;
+        }
+    }
+    return 0;
+}
+
 int main()
 {
     char *temp = NULL;
     char input[600];
     char *is_eof = NULL;
-
-    while (1)
+    int8_t status = 0;
+    time = 0;
+    while (1) // get global value
     {
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
@@ -89,7 +176,8 @@ int main()
     }
     fptf(stderr, "BPM: %lf\n", bpm);
     fptf(stderr, "OFFSET: %lf\n", offset);
-    while (1)
+    time = -offset;
+    while (1) // get course
     {
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
@@ -155,43 +243,28 @@ int main()
             }
         }
     }
-    while (1)
+
+    status = read_measure_bpmchange(&input);
+    if (status == 2)
     {
-        is_eof = fgets(input, 600, stdin);
-        if (is_eof == NULL)
-        {
-            return 0;
-        }
-        if (strchr(input, ',') != NULL)
-        {
-            break;
-        }
-        temp = strtok(input, " ");
-        if (strstr(temp, "#MEASURE") != NULL)
-        {
-            temp = strtok(NULL, "/");
-            if (temp == NULL)
-            {
-                return -1;
-            }
-            measure_beat = strtol(temp, NULL, 10);
-            temp = strtok(NULL, "\r\n");
-            if (temp == NULL)
-            {
-                return -1;
-            }
-            measure_note = strtol(temp, NULL, 10);
-        }
-        if (temp == NULL)
-        {
-            return -1;
-        }
+        goto generate;
+    }
+    else if (status == 1)
+    {
+        goto song_end;
+    }
+    else if (status == -1)
+    {
+        return -1;
     }
     // now input is the first note
 
     fptf(stderr, "COURSE: %d\n", taiko_course);
     fptf(stderr, "MEASURE: %d/%d\n", measure_beat, measure_note);
     fputs(input, stderr);
+song_end:
 
+    time = -offset;
+generate:
     return 0;
 }
