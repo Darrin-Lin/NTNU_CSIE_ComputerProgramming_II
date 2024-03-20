@@ -6,16 +6,41 @@
 #include "taiko.h"
 
 #define fptf fprintf
+#define END_tag 1
+
+typedef struct _hit
+{
+    double time;
+    TaikoNote note;
+} Hit;
+typedef struct _sheet
+{
+    Hit *hits;
+    uint32_t size;
+} Sheet;
 
 double bpm, offset, time;
 uint32_t measure_beat, measure_note;
 Course taiko_course;
+Sheet sheets[5];
 
 static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(double *value);
 static int8_t read_measure_bpmchange(char **input);
-static int8_t read_chart(char **input, Chart *chart);
+static int8_t read_chart(char **input);
+static int32_t gcd(int32_t a, int32_t b);
+static int32_t lcm(int32_t a, int32_t b);
 
+static int32_t gcd(int32_t a, int32_t b)
+{
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
+}
+static int32_t lcm(int32_t a, int32_t b)
+{
+    return a * b / gcd(a, b);
+}
 static int8_t read_int_value(int32_t *value)
 {
     char *temp;
@@ -50,7 +75,7 @@ static int8_t read_measure_bpmchange(char **input)
         temp = strtok(*input, " ");
         if (temp == NULL)
         {
-            return -1;
+            return -2;
         }
         if (strcmp(temp, "#END") == 0)
         {
@@ -61,13 +86,13 @@ static int8_t read_measure_bpmchange(char **input)
             temp = strtok(NULL, "/");
             if (temp == NULL)
             {
-                return -1;
+                return -2;
             }
             measure_beat = strtol(temp, NULL, 10);
             temp = strtok(NULL, "\r\n");
             if (temp == NULL)
             {
-                return -1;
+                return -2;
             }
             measure_note = strtol(temp, NULL, 10);
         }
@@ -76,13 +101,13 @@ static int8_t read_measure_bpmchange(char **input)
             temp = strtok(NULL, "\r\n");
             if (temp == NULL)
             {
-                return -1;
+                return -2;
             }
         }
         is_eof = fgets(*input, 600, stdin);
         if (is_eof == NULL)
         {
-            return 2;
+            return -1;
         }
         if (strchr(*input, ',') != NULL)
         {
@@ -91,11 +116,10 @@ static int8_t read_measure_bpmchange(char **input)
     }
     return 0;
 }
-static int8_t read_chart(char **input, Chart *chart)
+static int8_t read_chart(char **input)
 {
     char *temp;
     char *is_eof = NULL;
-    uint64_t measure_size = 0;
     while (!feof(stdin)) // get chart
     {
         // code
@@ -107,13 +131,36 @@ static int8_t read_chart(char **input, Chart *chart)
         *temp = strtok(*input, ",");
         chart_size = strlen(temp);
 
-        /*
-        code
-        */
+        double length = 0;
+        double duration = 0;
+        if (chart_size != 0)
+        {
+            length = lcm(chart_size, measure_beat);
+            duration = (60 / bpm) * (4 / measure_note) * (measure_beat / length);
+            for (int i = 0; i < chart_size; i++)
+            {
+                if (temp[i] == '0')
+                {
+                    time += duration;
+                }
+                else
+                {
+                    sheets[taiko_course].size++;
+                    sheets[taiko_course].hits = (Hit *)realloc(sheets[taiko_course].hits, (sheets[taiko_course].size) * sizeof(Hit));
+                    sheets[taiko_course].hits[sheets[taiko_course].size - 1].time = time;
+                    sheets[taiko_course].hits[sheets[taiko_course].size - 1].note = temp[i] - '0';
+                    time += duration * (length / chart_size);
+                }
+            }
+        }
+        else
+        {
+            time += ((60 / bpm) * (4 / measure_note)) * measure_beat;
+        }
         is_eof = fgets(*input, 600, stdin);
         if (is_eof == NULL)
         {
-            return 2;
+            return -1;
         }
         if (strchr(*input, '#') != NULL)
         {
@@ -130,6 +177,12 @@ int main()
     char *is_eof = NULL;
     int8_t status = 0;
     time = 0;
+
+    for (int i = 0; i < 5; i++)
+    {
+        sheets[i].hits = NULL;
+        sheets[i].size = 0;
+    }
     while (!feof(stdin)) // get global value
     {
         is_eof = fgets(input, 600, stdin);
@@ -177,94 +230,111 @@ int main()
     fptf(stderr, "BPM: %lf\n", bpm);
     fptf(stderr, "OFFSET: %lf\n", offset);
     time = -offset;
-    while (!feof(stdin)) // get course
+    while (!feof(stdin))
     {
-        is_eof = fgets(input, 600, stdin);
-        if (is_eof == NULL)
+        while (!feof(stdin)) // get course
         {
-            return 0;
-        }
-        if (strcmp(input, "#START\r\n") == 0)
-        {
-            break;
-        }
-        temp = strtok(input, ":");
-        if (temp == NULL)
-        {
-            return -1;
-        }
-        if (strcmp(temp, "COURSE") == 0)
-        {
-
-            char *course_str = strtok(NULL, "\r\n");
-            if (strcmp(course_str, "Easy") == 0)
+            is_eof = fgets(input, 600, stdin);
+            if (is_eof == NULL)
             {
-                taiko_course = EASY;
+                return 0;
             }
-            else if (strcmp(course_str, "Normal") == 0)
+            if (strcmp(input, "#START\r\n") == 0)
             {
-                taiko_course = NORMAL;
+                break;
             }
-            else if (strcmp(course_str, "Hard") == 0)
-            {
-                taiko_course = HARD;
-            }
-            else if (strcmp(course_str, "Oni") == 0)
-            {
-                taiko_course = ONI;
-            }
-            else if (strcmp(course_str, "Edit") == 0)
-            {
-                taiko_course = EDIT;
-            }
-            else if (strcmp(course_str, "0") == 0)
-            {
-                taiko_course = EASY;
-            }
-            else if (strcmp(course_str, "1") == 0)
-            {
-                taiko_course = NORMAL;
-            }
-            else if (strcmp(course_str, "2") == 0)
-            {
-                taiko_course = HARD;
-            }
-            else if (strcmp(course_str, "3") == 0)
-            {
-                taiko_course = ONI;
-            }
-            else if (strcmp(course_str, "4") == 0)
-            {
-                taiko_course = EDIT;
-            }
-            else
+            temp = strtok(input, ":");
+            if (temp == NULL)
             {
                 return -1;
             }
+            if (strcmp(temp, "COURSE") == 0)
+            {
+
+                char *course_str = strtok(NULL, "\r\n");
+                if (strcmp(course_str, "Easy") == 0)
+                {
+                    taiko_course = EASY;
+                }
+                else if (strcmp(course_str, "Normal") == 0)
+                {
+                    taiko_course = NORMAL;
+                }
+                else if (strcmp(course_str, "Hard") == 0)
+                {
+                    taiko_course = HARD;
+                }
+                else if (strcmp(course_str, "Oni") == 0)
+                {
+                    taiko_course = ONI;
+                }
+                else if (strcmp(course_str, "Edit") == 0)
+                {
+                    taiko_course = EDIT;
+                }
+                else if (strcmp(course_str, "0") == 0)
+                {
+                    taiko_course = EASY;
+                }
+                else if (strcmp(course_str, "1") == 0)
+                {
+                    taiko_course = NORMAL;
+                }
+                else if (strcmp(course_str, "2") == 0)
+                {
+                    taiko_course = HARD;
+                }
+                else if (strcmp(course_str, "3") == 0)
+                {
+                    taiko_course = ONI;
+                }
+                else if (strcmp(course_str, "4") == 0)
+                {
+                    taiko_course = EDIT;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
         }
+        while (1)
+        {
+            status = read_measure_bpmchange(&input);
+            if (status == EOF)
+            {
+                goto generate;
+            }
+            else if (status == END_tag)
+            {
+                break;
+                // goto song_end;
+            }
+            else if (status == -2)
+            {
+                return -1;
+            }
+            // now input is the first note
+            status = read_chart(&input);
+            if (status == EOF)
+            {
+                goto generate;
+            }
+            else if (status == -2)
+            {
+                return -1;
+            }
+            else if (status == END_tag)
+            {
+                break;
+                // goto song_end;
+            }
+        }
+        // song_end:
+        time = -offset;
     }
 
-    status = read_measure_bpmchange(&input);
-    if (status == 2)
-    {
-        goto generate;
-    }
-    else if (status == 1)
-    {
-        goto song_end;
-    }
-    else if (status == -1)
-    {
-        return -1;
-    }
-    // now input is the first note
-
-    fptf(stderr, "COURSE: %d\n", taiko_course);
-    fptf(stderr, "MEASURE: %d/%d\n", measure_beat, measure_note);
-    fputs(input, stderr);
-song_end:
-
-    time = -offset;
 generate:
+    
     return 0;
 }
