@@ -44,7 +44,7 @@ static int8_t read_measure_bpmchange(char **input)
     char *temp;
     char *is_eof = NULL;
 
-    while (1) // get measure and bpm change
+    while (!feof(stdin)) // get measure and bpm change
     {
 
         temp = strtok(*input, " ");
@@ -96,7 +96,7 @@ static int8_t read_chart(char **input, Chart *chart)
     char *temp;
     char *is_eof = NULL;
     uint64_t measure_size = 0;
-    while (1) // get chart
+    while (!feof(stdin)) // get chart
     {
         // code
         uint32_t chart_size = 0;
@@ -130,7 +130,7 @@ int main()
     char *is_eof = NULL;
     int8_t status = 0;
     time = 0;
-    while (1) // get global value
+    while (!feof(stdin)) // get global value
     {
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
@@ -177,7 +177,7 @@ int main()
     fptf(stderr, "BPM: %lf\n", bpm);
     fptf(stderr, "OFFSET: %lf\n", offset);
     time = -offset;
-    while (1) // get course
+    while (!feof(stdin)) // get course
     {
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
