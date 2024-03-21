@@ -221,6 +221,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         goto err_free;
     *ppResult = to_base(pVector_num[0], base);
     Vector_free(pVector_num);
+    Vector_free(pVector_op);
     Vector_free_ptr((void **)pVector_ptr);
     free(pString);
     fptf(stderr, "end\n");
