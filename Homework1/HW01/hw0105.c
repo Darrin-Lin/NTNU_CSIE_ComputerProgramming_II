@@ -109,7 +109,7 @@ static int8_t read_measure_bpmchange(char input[600])
         {
             return -1;
         }
-        if (strstr(input,",\r\n")!=NULL)
+        if (strstr(input, ",\r\n") != NULL)
         {
             break;
         }
@@ -124,39 +124,48 @@ static int8_t read_chart(char input[600])
     {
         // code
         uint32_t chart_size = 0;
-        temp = strtok(input, ",");
-        chart_size = strlen(temp);
-        // fptf(stderr, "%d\n", chart_size);
-        long double length = 0;
-        long double duration = 0;
-        if (chart_size != 0)
+        if (input[0] == ',')
         {
-            length = lcm(chart_size, measure_beat);
-            duration = (60.0 / bpm) * (4.0 / measure_note) * (measure_beat / length);
-            for (uint32_t i = 0; i < chart_size; i++)
-            {
-                if (temp[i] == '0' || (temp[i] - '0' > 4 && temp[i] - '9' <= 0))
-                {
-                    time_now += duration;
-                }
-                else if(temp[i]-'0'>0&&temp[i]-'0'<5)
-                {
-                    sheets[taiko_course].size++;
-                    sheets[taiko_course].hits = (Hit *)realloc(sheets[taiko_course].hits, (sheets[taiko_course].size) * sizeof(Hit));
-                    sheets[taiko_course].hits[sheets[taiko_course].size - 1].time = time_now;
-                    sheets[taiko_course].hits[sheets[taiko_course].size - 1].note = temp[i] - '0';
-                    if (temp[i] - '0' < 0)
-                    {
-                        // fptf(stderr, "%c", temp[i]);
-                        fptf(stderr, "%s", temp);
-                    }
-                    time_now += duration * (length / chart_size);
-                }
-            }
+            time_now += ((60.0 / bpm) * (4.0 / measure_note)) * measure_beat;
         }
         else
         {
-            time_now += ((60.0 / bpm) * (4.0 / measure_note)) * measure_beat;
+            temp = strtok(input, ",");
+            chart_size = strlen(temp);
+            if (chart_size == 0)
+                fptf(stderr, "A");
+            // fptf(stderr, "%d\n", chart_size);
+            long double length = 0;
+            long double duration = 0;
+            if (chart_size != 0)
+            {
+                length = lcm(chart_size, measure_beat);
+                duration = (60.0 / bpm) * (4.0 / measure_note) * (measure_beat / length);
+                for (uint32_t i = 0; i < chart_size; i++)
+                {
+                    if (temp[i] == '0' || (temp[i] - '0' > 4 && temp[i] - '9' <= 0))
+                    {
+                        time_now += duration;
+                    }
+                    else if (temp[i] - '0' > 0 && temp[i] - '0' < 5)
+                    {
+                        sheets[taiko_course].size++;
+                        sheets[taiko_course].hits = (Hit *)realloc(sheets[taiko_course].hits, (sheets[taiko_course].size) * sizeof(Hit));
+                        sheets[taiko_course].hits[sheets[taiko_course].size - 1].time = time_now;
+                        sheets[taiko_course].hits[sheets[taiko_course].size - 1].note = temp[i] - '0';
+                        if (temp[i] - '0' < 0)
+                        {
+                            // fptf(stderr, "%c", temp[i]);
+                            fptf(stderr, "%s", temp);
+                        }
+                        time_now += duration * (length / chart_size);
+                    }
+                }
+            }
+            else
+            {
+                time_now += ((60.0 / bpm) * (4.0 / measure_note)) * measure_beat;
+            }
         }
         is_eof = fgets(input, 600, stdin);
         if (is_eof == NULL)
@@ -169,8 +178,12 @@ static int8_t read_chart(char input[600])
         // fptf(stderr,"%d",strcmp(input,"\r\n"));
         if (strchr(input, '#') != NULL)
         {
+            if (strcmp(input, "#END\r\n") == 0)
+                return 1;
             return 0;
         }
+        if (strcmp(input, "#END\r\n") == 0)
+            fptf(stderr, "A");
         if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0)
         {
             while (!feof(stdin) && (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0))
@@ -182,6 +195,8 @@ static int8_t read_chart(char input[600])
                 }
                 if (strchr(input, '#') != NULL)
                 {
+                    if (strcmp(input, "#END\r\n") == 0)
+                        return 1;
                     return 0;
                 }
             }
@@ -339,7 +354,9 @@ int main()
             }
             else if (status == END_tag)
             {
+                fptf(stderr, "END\n");
                 break;
+
                 // goto song_end;
             }
             else if (status == -2)
@@ -371,7 +388,7 @@ int main()
 
 generate:
     printf("{\n \"data\": [\n");
-    for (int32_t i = 0; i < 5; i++)
+    for (int32_t i = 4; i >= 0; i--)
     {
         if (sheets[i].size == 0)
         {
