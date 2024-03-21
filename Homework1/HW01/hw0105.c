@@ -140,7 +140,8 @@ static int8_t read_chart(char input[600])
             if (chart_size != 0)
             {
                 length = lcm(chart_size, measure_beat);
-                duration = (60.0 / bpm) * (4.0 / measure_note) * (measure_beat / length);
+                // duration = (60.0 / bpm) * (4.0 / measure_note) * (measure_beat / length);
+                duration = ((60.0 / bpm) * (4.0 / measure_note)) * ((long double)measure_beat / chart_size);
                 for (uint32_t i = 0; i < chart_size; i++)
                 {
                     if (temp[i] == '0' || (temp[i] - '0' > 4 && temp[i] - '9' <= 0))
@@ -158,7 +159,8 @@ static int8_t read_chart(char input[600])
                             // fptf(stderr, "%c", temp[i]);
                             fptf(stderr, "%s", temp);
                         }
-                        time_now += duration * (length / chart_size);
+                        // time_now += duration * (length / chart_size);
+                        time_now += duration;
                     }
                 }
             }
