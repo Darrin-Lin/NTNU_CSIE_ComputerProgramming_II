@@ -98,6 +98,10 @@ static char *to_base(int32_t dec, int32_t base)
 
 int32_t calculate(char *pExpr, int32_t base, char **ppResult)
 {
+    if(pExpr == NULL || ppResult == NULL)
+        return -1;
+    if(base < 2 || base > 16)
+        return -1;
     char *pString = calloc(strlen(pExpr) + 1, sizeof(char));
     for (size_t i = 0; i < strlen(pExpr); i++)
     {

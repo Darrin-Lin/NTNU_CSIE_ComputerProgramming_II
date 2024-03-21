@@ -351,7 +351,7 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     //     path_array[i].col = steps[col * row - 1].pPath[i].col;
     // }
     // pMinPath->pPath = path_array;
-    for (uint32_t i = 0; i < col * row-1; i++)
+    for (uint8_t i = 0; i < col * row-1; i++)
     {
         if (steps[i].pPath != NULL)
         {

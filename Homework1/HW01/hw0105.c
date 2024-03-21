@@ -24,13 +24,14 @@ uint32_t measure_beat, measure_note;
 Course taiko_course;
 Sheet sheets[5];
 
-static int8_t read_int_value(int32_t *value);
+// static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(long double *value);
 static int8_t read_measure_bpmchange(char input[600]);
 static int8_t read_chart(char input[600]);
-static int32_t gcd(int32_t a, int32_t b);
-static int32_t lcm(int32_t a, int32_t b);
+// static int32_t gcd(int32_t a, int32_t b);
+// static int32_t lcm(int32_t a, int32_t b);
 
+/*
 static int32_t gcd(int32_t a, int32_t b)
 {
     if (b == 0)
@@ -41,6 +42,8 @@ static int32_t lcm(int32_t a, int32_t b)
 {
     return a * b / gcd(a, b);
 }
+*/
+/*
 static int8_t read_int_value(int32_t *value)
 {
     char *temp;
@@ -52,6 +55,7 @@ static int8_t read_int_value(int32_t *value)
     *value = int_temp;
     return 0;
 }
+*/
 static int8_t read_double_value(long double *value)
 {
     char *temp;
@@ -135,11 +139,11 @@ static int8_t read_chart(char input[600])
             if (chart_size == 0)
                 fptf(stderr, "A");
             // fptf(stderr, "%d\n", chart_size);
-            long double length = 0;
+            // long double length = 0;
             long double duration = 0;
             if (chart_size != 0)
             {
-                length = lcm(chart_size, measure_beat);
+                // length = lcm(chart_size, measure_beat);
                 // duration = (60.0 / bpm) * (4.0 / measure_note) * (measure_beat / length);
                 duration = ((60.0 / bpm) * (4.0 / measure_note)) * ((long double)measure_beat / chart_size);
                 for (uint32_t i = 0; i < chart_size; i++)
