@@ -92,6 +92,20 @@ static char *to_base(int32_t dec, int32_t base)
         pResult[i] = pResult[result_size - i - 1];
         pResult[result_size - i - 1] = temp;
     }
+    Vector_push_back_char(&pResult, '_', result_size);
+    result_size++;
+    if(base < 10)
+    {
+        Vector_push_back_char(&pResult, base + '0', result_size);
+        result_size++;
+    }
+    else
+    {
+        Vector_push_back_char(&pResult, '0', result_size);
+        result_size++;
+        Vector_push_back_char(&pResult, (base%10) +'0', result_size);
+        result_size++;
+    }
     Vector_push_back_char(&pResult, '\0', result_size);
     return pResult;
 }
