@@ -2,7 +2,7 @@
 #include <string.h>
 int main()
 {
-
+    // 1: mystrchr 2: mystrrchr 3: mystrpbrk 4: mystrspn 5: mystrcspn 6: mystrstr 7: mystrtok
     while (1)
     {
         int type = 0;
@@ -130,6 +130,10 @@ int main()
             scanf(" %s", c6);
             compC = mystrstr(input, c6);
             compS = strstr(inputcpy, c6);
+            if(compC==NULL && compS==NULL){
+                printf("true\n");
+                break;
+            }
             for (size_t i = 0; i < strlen(compC); i++)
             {
                 printf("%d", compC[i] == compS[i]);
@@ -155,7 +159,10 @@ int main()
             scanf("%s", c7);
             compC = mystrtok(input, c7);
             compS = strtok(inputcpy, c7);
-
+            if(compC==NULL && compS==NULL){
+                printf("true\n");
+                break;
+            }
             for (size_t i = 0; i < strlen(compC); i++)
             {
                 printf("%d", compC[i] == compS[i]);
