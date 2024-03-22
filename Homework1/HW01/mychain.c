@@ -76,21 +76,7 @@ static int8_t merge(int64_t **pTargetPowers, int64_t **pTargetCoefficients, uint
     // merge the same powers
     for (uint32_t i = 0; i < *targetSize; i++)
     {
-        // remove coefficient 0
-        if (*(*pTargetCoefficients + i) == 0)
-        {
-            if (Vector_erase(pTargetPowers, i, *targetSize) == -1)
-            {
-                return -1;
-            }
-            if (Vector_erase(pTargetCoefficients, i, *targetSize) == -1)
-            {
-                return -1;
-            }
-            (*targetSize)--;
-            i--;
-            continue;
-        }
+        
         for (uint32_t j = i + 1; j < *targetSize; j++)
         {
             if (*(*pTargetPowers + i) == *(*pTargetPowers + j))
@@ -106,6 +92,23 @@ static int8_t merge(int64_t **pTargetPowers, int64_t **pTargetCoefficients, uint
             }
         }
     }
+    // remove coefficient 0
+    for(uint32_t i = 0; i < *targetSize; i++)
+    {
+        if (*(*pTargetCoefficients + i) == 0)
+        {
+            if (Vector_erase(pTargetPowers, i, *targetSize) == -1)
+            {
+                return -1;
+            }
+            if (Vector_erase(pTargetCoefficients, i, *targetSize) == -1)
+            {
+                return -1;
+            }
+            (*targetSize)--;
+            i--;
+        }
+    }
     return 0;
 }
 
@@ -119,7 +122,25 @@ static int8_t ytox(int64_t **pVResultPowers, int64_t **pVResultCoefficients, uin
     {
         Vector_push_back(pVResultPowers, 0, *size);
         Vector_push_back(pVResultCoefficients, ycof, *size);
+        (*size)++;
         return 0;
+    }
+    if (xsize == 1 && pXPowers[0] == 1)
+    {
+        if (pXCoefficients[0] == 1)
+        {
+            Vector_push_back(pVResultPowers, power, *size);
+            Vector_push_back(pVResultCoefficients, ycof, *size);
+            (*size)++;
+            return 0;
+        }
+        if (pXCoefficients[0] == -1)
+        {
+            Vector_push_back(pVResultPowers, power, *size);
+            Vector_push_back(pVResultCoefficients, -1 * (power % 2 ? ycof : -ycof), *size);
+            (*size)++;
+            return 0;
+        }
     }
     // if (power == 1)
     // {
@@ -250,6 +271,19 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         *(Vector_yP_coefficients + i) = (int64_t) * (pFy->pCoefficients + i);
     }
     merge(&Vector_yP_powers, &Vector_yP_coefficients, &ypsize);
+    if (ypsize == 0)
+    {
+        pResult->size = 1;
+        pResult->pPowers = calloc(1, sizeof(uint32_t));
+        pResult->pCoefficients = calloc(1, sizeof(int32_t));
+        // free
+        // if (Vector_yP_powers != NULL)
+        //     Vector_free(Vector_yP_powers);
+        // if (Vector_yP_coefficients != NULL)
+        //     Vector_free(Vector_yP_coefficients);
+
+        return 0;
+    }
     for (uint32_t i = 0; i < ypsize; i++)
     {
         if (Vector_yP_powers[i] == 0)
@@ -281,6 +315,23 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         *(Vector_xP_coefficients + i) = (int64_t) * (pFx->pCoefficients + i);
     }
     merge(&Vector_xP_powers, &Vector_xP_coefficients, &xpsize);
+    if (xpsize == 0)
+    {
+        pResult->size = 1;
+        pResult->pPowers = calloc(1, sizeof(uint32_t));
+        pResult->pCoefficients = calloc(1, sizeof(int32_t));
+        // free
+        // if (Vector_yP_powers != NULL)
+        //     Vector_free(Vector_yP_powers);
+        // if (Vector_yP_coefficients != NULL)
+        //     Vector_free(Vector_yP_coefficients);
+        // if (Vector_xP_powers != NULL)
+        //     Vector_free(Vector_xP_powers);
+        // if (Vector_xP_coefficients != NULL)
+        //     Vector_free(Vector_xP_coefficients);
+
+        return 0;
+    }
     for (uint32_t i = 0; i < xpsize; i++)
     {
         if (Vector_xP_powers[i] == 0)
@@ -313,6 +364,27 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         *(Vector_x_coefficients + i) = (int64_t) * (pFx->pCoefficients + i);
     }
     merge(&Vector_x_powers, &Vector_x_coefficients, &xsize);
+    if (xsize == 0)
+    {
+        pResult->size = 1;
+        pResult->pPowers = calloc(1, sizeof(uint32_t));
+        pResult->pCoefficients = calloc(1, sizeof(int32_t));
+        // free
+        // if (Vector_yP_powers != NULL)
+        //     Vector_free(Vector_yP_powers);
+        // if (Vector_yP_coefficients != NULL)
+        //     Vector_free(Vector_yP_coefficients);
+        // if (Vector_xP_powers != NULL)
+        //     Vector_free(Vector_xP_powers);
+        // if (Vector_xP_coefficients != NULL)
+        //     Vector_free(Vector_xP_coefficients);
+        // if (Vector_x_powers != NULL)
+        //     Vector_free(Vector_x_powers);
+        // if (Vector_x_coefficients != NULL)
+        //     Vector_free(Vector_x_coefficients);
+
+        return 0;
+    }
     // print all the powers and coefficients
     if (DEBUG)
     {
@@ -332,6 +404,8 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     int64_t *Vector_ResultPowers = Vector_create(0);
     int64_t *Vector_ResultCoefficients = Vector_create(0);
     uint32_t size = 0;
+    
+
     for (uint32_t i = 0; i < ypsize; i++)
     {
         if (ytox(&Vector_ResultPowers, &Vector_ResultCoefficients, &size, Vector_x_powers, Vector_x_coefficients, xsize, Vector_yP_powers[i], Vector_yP_coefficients[i], Vector_xP_powers, Vector_xP_coefficients, xpsize) == -1)
@@ -359,6 +433,31 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
             size--;
         }
     }
+    if (size == 0)
+    {
+        pResult->size = 1;
+        pResult->pPowers = calloc(1, sizeof(uint32_t));
+        pResult->pCoefficients = calloc(1, sizeof(int32_t));
+        // free
+        // if (Vector_yP_powers != NULL)
+        //     Vector_free(Vector_yP_powers);
+        // if (Vector_yP_coefficients != NULL)
+        //     Vector_free(Vector_yP_coefficients);
+        // if (Vector_xP_powers != NULL)
+        //     Vector_free(Vector_xP_powers);
+        // if (Vector_xP_coefficients != NULL)
+        //     Vector_free(Vector_xP_coefficients);
+        // if (Vector_x_powers != NULL)
+        //     Vector_free(Vector_x_powers);
+        // if (Vector_x_coefficients != NULL)
+        //     Vector_free(Vector_x_coefficients);
+        // if (Vector_ResultPowers != NULL)
+        //     Vector_free(Vector_ResultPowers);
+        // if (Vector_ResultCoefficients != NULL)
+        //     Vector_free(Vector_ResultCoefficients);
+        return 0;
+
+    }
     // copy to uint32_t Power
     uint32_t *answerPower = calloc(size, sizeof(uint32_t));
     int32_t *answerCof = calloc(size, sizeof(int32_t));
@@ -377,6 +476,7 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     Vector_free(Vector_x_coefficients);
     Vector_free(Vector_ResultPowers);
     Vector_free(Vector_ResultCoefficients);
+
     pResult->size = size;
     pResult->pPowers = answerPower;
     pResult->pCoefficients = answerCof;
