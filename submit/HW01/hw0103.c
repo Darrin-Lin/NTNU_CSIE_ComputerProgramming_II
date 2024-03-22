@@ -5,8 +5,8 @@ int main()
     sPoly pFy; 
     sPoly pFx;
     sPoly pResult;
-    int32_t y_size = 0;
-    int32_t x_size = 0;
+    uint32_t y_size = 0;
+    uint32_t x_size = 0;
     scanf("%d", &y_size);
     pFy.size = y_size;
     scanf("%d", &x_size);

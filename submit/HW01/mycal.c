@@ -37,9 +37,9 @@ static int32_t is_invalid(char *pExpr)
     {
         if (*pCheck == '+' || *pCheck == '-' || *pCheck == '*')
         {
-            if (*(pCheck + 1) != ' ')
+            if (pCheck <= pExpr || *(pCheck + 1) != ' ')
                 return -1;
-            if (*(pCheck - 1) != ' ')
+            if (pCheck >= (strlen(pExpr) + pExpr -1) || *(pCheck - 1) != ' ')
                 return -1;
         }
         pCheck++;
@@ -56,7 +56,7 @@ static char *to_base(int32_t dec, int32_t base)
     {
         char *pZero = calloc(1, sizeof(char));
         pZero[0] = '0';
-        size_t zero_size=1;
+        size_t zero_size = 1;
         Vector_push_back_char(&pZero, '_', zero_size);
         zero_size++;
         if (base < 10)
@@ -132,6 +132,9 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         return -1;
     if (base < 2 || base > 16)
         return -1;
+    int64_t *pVector_num = NULL;
+    int64_t *pVector_op = NULL;
+    char **pVector_ptr = NULL;
     char *pString = calloc(strlen(pExpr) + 1, sizeof(char));
     for (size_t i = 0; i < strlen(pExpr); i++)
     {
@@ -139,9 +142,9 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     }
     if (is_invalid(pString) == -1)
         goto err_free;
-    char **pVector_ptr = (char **)Vector_create_ptr(0);
-    int64_t *pVector_num = Vector_create(0);
-    int64_t *pVector_op = Vector_create(0);
+    pVector_ptr = (char **)Vector_create_ptr(0);
+    pVector_num = Vector_create(0);
+    pVector_op = Vector_create(0);
     char *pToken = strtok(pString, " ");
     size_t Vector_num_size = 0;
     size_t Vector_op_size = 0;
@@ -158,6 +161,10 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         {
             Vector_push_back(&pVector_op, pVector_ptr[i][0], Vector_op_size);
             Vector_op_size++;
+            if (Vector_num_size == 0)
+            {
+                goto err_free;
+            }
         }
         else
         {
@@ -196,10 +203,10 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
             Vector_num_size++;
         }
     }
-    if(Vector_op_size==0)
+    if (Vector_op_size == 0)
     {
         Vector_free(pVector_op);
-        pVector_op=NULL;
+        pVector_op = NULL;
     }
     // for (size_t i = 0; i < Vector_num_size; i++)
     // {
@@ -209,6 +216,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     {
         if (pVector_op[i] == '*')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] * pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
@@ -221,6 +230,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     {
         if (pVector_op[i] == '+')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] + pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
@@ -230,6 +241,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         }
         else if (pVector_op[i] == '-')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] - pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
@@ -257,7 +270,6 @@ err_free:
     if (pVector_op != NULL)
         Vector_free(pVector_op);
     if (pVector_ptr != NULL)
-
         Vector_free_ptr((void **)pVector_ptr);
     if (pString != NULL)
         free(pString);
