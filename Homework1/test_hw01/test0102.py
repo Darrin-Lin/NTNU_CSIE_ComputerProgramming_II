@@ -129,7 +129,7 @@ for i in range(18,19):
         f.write('\n')
 for i in range(19,20):
     with open('./0'+str(HW_PART)+'/in/hw0'+str(HW)+'0'+str(HW_PART)+"_"+str(i)+'.in', 'w') as f:
-        f.write('1_2 + 123_4 + 1_1')
+        f.write('1_2 + 123_4  + 1_12')
         f.write('\n')
         f.write(str(r.randint(2,16)))
         f.write('\n')
