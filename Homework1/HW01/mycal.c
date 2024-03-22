@@ -37,9 +37,9 @@ static int32_t is_invalid(char *pExpr)
     {
         if (*pCheck == '+' || *pCheck == '-' || *pCheck == '*')
         {
-            if (pCheck <= 0 || *(pCheck + 1) != ' ')
+            if (pCheck <= pExpr || *(pCheck + 1) != ' ')
                 return -1;
-            if (pCheck >= strlen(pExpr) - 1 || *(pCheck - 1) != ' ')
+            if (pCheck >= (strlen(pExpr) + pExpr -1) || *(pCheck - 1) != ' ')
                 return -1;
         }
         pCheck++;
@@ -161,7 +161,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         {
             Vector_push_back(&pVector_op, pVector_ptr[i][0], Vector_op_size);
             Vector_op_size++;
-            if (pVector_num == 0)
+            if (Vector_num_size == 0)
             {
                 goto err_free;
             }
@@ -216,6 +216,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     {
         if (pVector_op[i] == '*')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] * pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
@@ -228,6 +230,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     {
         if (pVector_op[i] == '+')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] + pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
@@ -237,6 +241,8 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         }
         else if (pVector_op[i] == '-')
         {
+            if(i>=Vector_num_size-1)
+                goto err_free;
             pVector_num[i] = pVector_num[i] - pVector_num[i + 1];
             Vector_erase(&pVector_num, i + 1, Vector_num_size);
             Vector_erase(&pVector_op, i, Vector_op_size);
