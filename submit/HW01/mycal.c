@@ -52,15 +52,31 @@ static int32_t is_invalid(char *pExpr)
 static char *to_base(int32_t dec, int32_t base)
 {
     int8_t neg = 0;
-    if(dec == 0)
+    if (dec == 0)
     {
-        char *pZero = calloc(2, sizeof(char));
+        char *pZero = calloc(1, sizeof(char));
         pZero[0] = '0';
+        size_t zero_size=1;
+        Vector_push_back_char(&pZero, '_', zero_size);
+        zero_size++;
+        if (base < 10)
+        {
+            Vector_push_back_char(&pZero, base + '0', zero_size);
+            zero_size++;
+        }
+        else
+        {
+            Vector_push_back_char(&pZero, '1', zero_size);
+            zero_size++;
+            Vector_push_back_char(&pZero, (base % 10) + '0', zero_size);
+            zero_size++;
+        }
+        Vector_push_back_char(&pZero, '\0', zero_size);
         return pZero;
     }
-    if(dec < 0)
+    if (dec < 0)
     {
-        neg =1;
+        neg = 1;
     }
     char *pResult = Vector_create_char(0);
     size_t result_size = 0;
@@ -81,12 +97,12 @@ static char *to_base(int32_t dec, int32_t base)
         }
         dec = dec / base;
     }
-    if(neg)
+    if (neg)
     {
         Vector_push_back_char(&pResult, '-', result_size);
         result_size++;
     }
-    for(size_t i = 0; i < result_size / 2; i++)
+    for (size_t i = 0; i < result_size / 2; i++)
     {
         char temp = pResult[i];
         pResult[i] = pResult[result_size - i - 1];
@@ -94,16 +110,16 @@ static char *to_base(int32_t dec, int32_t base)
     }
     Vector_push_back_char(&pResult, '_', result_size);
     result_size++;
-    if(base < 10)
+    if (base < 10)
     {
         Vector_push_back_char(&pResult, base + '0', result_size);
         result_size++;
     }
     else
     {
-        Vector_push_back_char(&pResult, '0', result_size);
+        Vector_push_back_char(&pResult, '1', result_size);
         result_size++;
-        Vector_push_back_char(&pResult, (base%10) +'0', result_size);
+        Vector_push_back_char(&pResult, (base % 10) + '0', result_size);
         result_size++;
     }
     Vector_push_back_char(&pResult, '\0', result_size);
@@ -112,9 +128,9 @@ static char *to_base(int32_t dec, int32_t base)
 
 int32_t calculate(char *pExpr, int32_t base, char **ppResult)
 {
-    if(pExpr == NULL || ppResult == NULL)
+    if (pExpr == NULL || ppResult == NULL)
         return -1;
-    if(base < 2 || base > 16)
+    if (base < 2 || base > 16)
         return -1;
     char *pString = calloc(strlen(pExpr) + 1, sizeof(char));
     for (size_t i = 0; i < strlen(pExpr); i++)
@@ -122,7 +138,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
         pString[i] = pExpr[i];
     }
     if (is_invalid(pString) == -1)
-        return -1;
+        goto err_free;
     char **pVector_ptr = (char **)Vector_create_ptr(0);
     int64_t *pVector_num = Vector_create(0);
     int64_t *pVector_op = Vector_create(0);
@@ -180,10 +196,15 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
             Vector_num_size++;
         }
     }
-    for (size_t i = 0; i < Vector_num_size; i++)
+    if(Vector_op_size==0)
     {
-        fptf(stderr, "%ld\n", pVector_num[i]);
+        Vector_free(pVector_op);
+        pVector_op=NULL;
     }
+    // for (size_t i = 0; i < Vector_num_size; i++)
+    // {
+    //     fptf(stderr, "%ld\n", pVector_num[i]);
+    // }
     for (size_t i = 0; i < Vector_op_size; i++)
     {
         if (pVector_op[i] == '*')
@@ -196,7 +217,7 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
             i--;
         }
     }
-    for(size_t i = 0; i < Vector_op_size; i++)
+    for (size_t i = 0; i < Vector_op_size; i++)
     {
         if (pVector_op[i] == '+')
         {
@@ -220,15 +241,25 @@ int32_t calculate(char *pExpr, int32_t base, char **ppResult)
     if (Vector_num_size != 1 || Vector_op_size != 0)
         goto err_free;
     *ppResult = to_base(pVector_num[0], base);
-    Vector_free(pVector_num);
-    Vector_free_ptr((void **)pVector_ptr);
-    free(pString);
-    fptf(stderr, "end\n");
+    if (pVector_num != NULL)
+        Vector_free(pVector_num);
+    if (pVector_op != NULL && Vector_op_size != 0)
+        Vector_free(pVector_op);
+    if (pVector_ptr != NULL)
+        Vector_free_ptr((void **)pVector_ptr);
+    if (pString != NULL)
+        free(pString);
+    // fptf(stderr, "end\n");
     return 0;
 err_free:
-    Vector_free(pVector_num);
-    Vector_free(pVector_op);
-    Vector_free_ptr((void **)pVector_ptr);
-    free(pString);
+    if (pVector_num != NULL)
+        Vector_free(pVector_num);
+    if (pVector_op != NULL)
+        Vector_free(pVector_op);
+    if (pVector_ptr != NULL)
+
+        Vector_free_ptr((void **)pVector_ptr);
+    if (pString != NULL)
+        free(pString);
     return -1;
 }
