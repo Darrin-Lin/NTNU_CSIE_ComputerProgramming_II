@@ -5,6 +5,7 @@
 #include "myvector.h"
 
 #define fptf fprintf
+#define DEBUG 0
 
 // Polynomial structures
 // Example:
@@ -75,6 +76,21 @@ static int8_t merge(int64_t **pTargetPowers, int64_t **pTargetCoefficients, uint
     // merge the same powers
     for (uint32_t i = 0; i < *targetSize; i++)
     {
+        // remove coefficient 0
+        if (*(*pTargetCoefficients + i) == 0)
+        {
+            if (Vector_erase(pTargetPowers, i, *targetSize) == -1)
+            {
+                return -1;
+            }
+            if (Vector_erase(pTargetCoefficients, i, *targetSize) == -1)
+            {
+                return -1;
+            }
+            (*targetSize)--;
+            i--;
+            continue;
+        }
         for (uint32_t j = i + 1; j < *targetSize; j++)
         {
             if (*(*pTargetPowers + i) == *(*pTargetPowers + j))
@@ -121,34 +137,88 @@ static int8_t ytox(int64_t **pVResultPowers, int64_t **pVResultCoefficients, uin
     Vector_push_back(&vecP, 0, vsize);
     Vector_push_back(&vecC, 1, vsize);
     vsize++;
-    int8_t flag = 0;
+    // int8_t flag = 0;
     for (uint32_t i = 0; i < power; i++)
     {
         int64_t *tempP = Vector_create(0);
         int64_t *tempC = Vector_create(0);
         uint32_t tsize = 0;
+        // print before dot
+        if (DEBUG)
+        {
+            for (uint32_t j = 0; j < vsize; j++)
+            {
+                fptf(stderr, "B:vecP: %ld, vecC: %ld\n", *(vecP + j), *(vecC + j));
+            }
+            for (uint32_t j = 0; j < xsize; j++)
+            {
+                fptf(stderr, "B:pXPowers: %ld, pXCoefficients: %ld\n", *(pXPowers + j), *(pXCoefficients + j));
+            }
+        }
         dot((int64_t *)pXPowers, (int64_t *)pXCoefficients, xsize, vecP, vecC, vsize, &tempP, &tempC, &tsize);
-        for (uint32_t j = 0; j < tsize; j++)
+        // print after dot
+        if (DEBUG)
         {
-            Vector_push_back(&vecP, *(tempP + j), vsize);
-            Vector_push_back(&vecC, *(tempC + j), vsize);
-            vsize++;
+            for (uint32_t j = 0; j < tsize; j++)
+            {
+                fptf(stderr, "A:tempP: %ld, tempC: %ld\n", *(tempP + j), *(tempC + j));
+            }
+            fptf(stderr, "\n\n");
         }
-        Vector_free(tempP);
-        Vector_free(tempC);
-        if (flag == 0)
-        {
-            flag = 1;
-            Vector_erase(&vecP, 0, vsize);
-            Vector_erase(&vecC, 0, vsize);
-            vsize--;
-        }
+
+        // if (flag == 0)
+        // {
+        //     flag = 1;
+        //     if (*(vecC) == 1)
+        //     {
+        //         *(vecC) = 0;
+        //     if (Vector_erase(&vecP, 0, vsize) == -1)
+        //     {
+        //         break;
+        //     }
+        //     if (Vector_erase(&vecC, 0, vsize) == -1)
+        //     {
+        //         break;
+        //     }
+
+        // // Vector_erase(&vecP, 0, vsize);
+        // // Vector_erase(&vecC, 0, vsize);
+        // vsize--;
+        //     }
+        // }
+        // for (uint32_t j = 0; j < tsize; j++)
+        // {
+        //     Vector_push_back(&vecP, *(tempP + j), vsize);
+        //     Vector_push_back(&vecC, *(tempC + j), vsize);
+        //     vsize++;
+        // }
+        Vector_free(vecP);
+        Vector_free(vecC);
+        vecP = tempP;
+        vecC = tempC;
+        vsize = tsize;
         merge(&vecP, &vecC, &vsize);
     }
     int64_t *tempP = Vector_create(0);
     int64_t *tempC = Vector_create(0);
     uint32_t tsize = 0;
+    // print berfore dot
+    if (DEBUG)
+    {
+        for (uint32_t i = 0; i < vsize; i++)
+        {
+            fptf(stderr, "B:vecP: %ld, vecC: %ld\n", *(vecP + i), *(vecC + i));
+        }
+    }
     dot(pXpPowers, pXpCoefficients, xpsize, vecP, vecC, vsize, &tempP, &tempC, &tsize);
+    // print after dot
+    if (DEBUG)
+    {
+        for (uint32_t i = 0; i < tsize; i++)
+        {
+            fptf(stderr, "A:tempP: %ld, tempC: %ld\n", *(tempP + i), *(tempC + i));
+        }
+    }
     Vector_free(vecP);
     Vector_free(vecC);
     vecP = tempP;
@@ -184,8 +254,18 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     {
         if (Vector_yP_powers[i] == 0)
         {
-            Vector_pop_back(&Vector_yP_powers, ypsize);
-            Vector_pop_back(&Vector_yP_coefficients, ypsize);
+            if (Vector_erase(&Vector_yP_powers, i, ypsize) == -1)
+            {
+                fptf(stderr, "1Error erase\n");
+                break;
+            }
+            if (Vector_erase(&Vector_yP_coefficients, i, ypsize) == -1)
+            {
+                fptf(stderr, "2Error erase\n");
+                break;
+            }
+            // Vector_pop_back(&Vector_yP_powers, ypsize);
+            // Vector_pop_back(&Vector_yP_coefficients, ypsize);
             ypsize--;
             break;
         }
@@ -201,27 +281,54 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         *(Vector_xP_coefficients + i) = (int64_t) * (pFx->pCoefficients + i);
     }
     merge(&Vector_xP_powers, &Vector_xP_coefficients, &xpsize);
-    int64_t *Vector_x_powers = Vector_create(xpsize);
-    int64_t *Vector_x_coefficients = Vector_create(xpsize);
-    uint32_t xsize = xpsize;
-    for (uint32_t i = 0; i < xpsize; i++)
-    {
-        *(Vector_x_powers + i) = *(Vector_xP_powers + i);
-        *(Vector_x_coefficients + i) = *(Vector_xP_coefficients + i);
-    }
     for (uint32_t i = 0; i < xpsize; i++)
     {
         if (Vector_xP_powers[i] == 0)
         {
-            Vector_pop_back(&Vector_xP_powers, xpsize);
-            Vector_pop_back(&Vector_xP_coefficients, xpsize);
+            if (Vector_erase(&Vector_xP_powers, i, xpsize) == -1)
+            {
+                fptf(stderr, "3Error erase\n");
+                break;
+            }
+            if (Vector_erase(&Vector_xP_coefficients, i, xpsize) == -1)
+            {
+                fptf(stderr, "4Error erase\n");
+                break;
+            }
+            // Vector_pop_back(&Vector_xP_powers, xpsize);
+            // Vector_pop_back(&Vector_xP_coefficients, xpsize);
             xpsize--;
             break;
         }
         Vector_xP_coefficients[i] *= Vector_xP_powers[i];
         Vector_xP_powers[i]--;
     }
+    uint32_t xsize = pFx->size;
+    int64_t *Vector_x_powers = Vector_create(xsize);
+    int64_t *Vector_x_coefficients = Vector_create(xsize);
 
+    for (uint32_t i = 0; i < xsize; i++)
+    {
+        *(Vector_x_powers + i) = (int64_t) * (pFx->pPowers + i);
+        *(Vector_x_coefficients + i) = (int64_t) * (pFx->pCoefficients + i);
+    }
+    merge(&Vector_x_powers, &Vector_x_coefficients, &xsize);
+    // print all the powers and coefficients
+    if (DEBUG)
+    {
+        for (uint32_t i = 0; i < ypsize; i++)
+        {
+            fptf(stderr, "y'Powers: %ld, y'Cof: %ld\n", Vector_yP_powers[i], Vector_yP_coefficients[i]);
+        }
+        for (uint32_t i = 0; i < xpsize; i++)
+        {
+            fptf(stderr, "x'Powers: %ld, x'Cof: %ld\n", Vector_xP_powers[i], Vector_xP_coefficients[i]);
+        }
+        for (uint32_t i = 0; i < xsize; i++)
+        {
+            fptf(stderr, "xPowers: %ld, xCof: %ld\n", Vector_x_powers[i], Vector_x_coefficients[i]);
+        }
+    }
     int64_t *Vector_ResultPowers = Vector_create(0);
     int64_t *Vector_ResultCoefficients = Vector_create(0);
     uint32_t size = 0;
@@ -237,8 +344,18 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     {
         if (Vector_ResultCoefficients[i] == 0)
         {
-            Vector_erase(&Vector_ResultPowers, i, size);
-            Vector_erase(&Vector_ResultCoefficients, i, size);
+            if (Vector_erase(&Vector_ResultPowers, i, size) == -1)
+            {
+                fptf(stderr, "5Error erase\n");
+                break;
+            }
+            // Vector_erase(&Vector_ResultPowers, i, size);
+            if (Vector_erase(&Vector_ResultCoefficients, i, size) == -1)
+            {
+                fptf(stderr, "6Error erase\n");
+                break;
+            }
+            // Vector_erase(&Vector_ResultCoefficients, i, size);
             size--;
         }
     }
@@ -252,7 +369,9 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     }
     Vector_free(Vector_yP_powers);
     Vector_free(Vector_yP_coefficients);
-    Vector_free(Vector_xP_powers);
+    if (Vector_xP_powers != NULL)
+        Vector_free(Vector_xP_powers);
+    // Vector_free(Vector_xP_powers);
     Vector_free(Vector_xP_coefficients);
     Vector_free(Vector_x_powers);
     Vector_free(Vector_x_coefficients);
