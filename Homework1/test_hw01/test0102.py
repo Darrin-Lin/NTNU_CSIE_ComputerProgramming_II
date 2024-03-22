@@ -95,7 +95,7 @@ for i in range(12,13):
 for i in range(13,14):
     with open('./0'+str(HW_PART)+'/in/hw0'+str(HW)+'0'+str(HW_PART)+"_"+str(i)+'.in', 'w') as f:
         f.write('1_2 + _4')
-        f.write('\n')
+        f.write('\n'    )
         f.write(str(r.randint(2,16)))
         f.write('\n')
 for i in range(14,15):
@@ -106,7 +106,7 @@ for i in range(14,15):
         f.write('\n')
 for i in range(15,16):
     with open('./0'+str(HW_PART)+'/in/hw0'+str(HW)+'0'+str(HW_PART)+"_"+str(i)+'.in', 'w') as f:
-        f.write('1_2 + 123_4 +')
+        f.write('1_2 + 123_4 + ')
         f.write('\n')
         f.write(str(r.randint(2,16)))
         f.write('\n')
