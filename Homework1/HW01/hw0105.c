@@ -136,8 +136,6 @@ static int8_t read_chart(char input[600])
         {
             temp = strtok(input, ",");
             chart_size = strlen(temp);
-            if (chart_size == 0)
-                fptf(stderr, "A");
             // fptf(stderr, "%d\n", chart_size);
             // long double length = 0;
             long double duration = 0;
@@ -158,11 +156,6 @@ static int8_t read_chart(char input[600])
                         sheets[taiko_course].hits = (Hit *)realloc(sheets[taiko_course].hits, (sheets[taiko_course].size) * sizeof(Hit));
                         sheets[taiko_course].hits[sheets[taiko_course].size - 1].time = time_now;
                         sheets[taiko_course].hits[sheets[taiko_course].size - 1].note = temp[i] - '0';
-                        if (temp[i] - '0' < 0)
-                        {
-                            // fptf(stderr, "%c", temp[i]);
-                            fptf(stderr, "%s", temp);
-                        }
                         // time_now += duration * (length / chart_size);
                         time_now += duration;
                     }
@@ -188,8 +181,6 @@ static int8_t read_chart(char input[600])
                 return 1;
             return 0;
         }
-        if (strcmp(input, "#END\r\n") == 0)
-            fptf(stderr, "A");
         if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0)
         {
             while (!feof(stdin) && (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0))
@@ -223,8 +214,8 @@ int main()
     measure_beat = 4;
     measure_note = 4;
     taiko_course = 0;
-    char oreder[10];
-    int8_t oreder_count = 0;
+    // char order[10];
+    int8_t order_count = 0;
     for (int32_t i = 0; i < 5; i++)
     {
         sheets[i].hits = NULL;
@@ -274,13 +265,13 @@ int main()
             continue;
         }
     }
-    fptf(stderr, "BPM: %Lf\n", bpm);
-    fptf(stderr, "OFFSET: %Lf\n", offset);
+    // fptf(stderr, "BPM: %Lf\n", bpm);
+    // fptf(stderr, "OFFSET: %Lf\n", offset);
     time_now = -offset;
-    fptf(stderr, "%Lf", time_now);
+    // fptf(stderr, "%Lf", time_now);
     while (!feof(stdin))
     {
-        fptf(stderr, "%d\n", oreder_count);
+        // fptf(stderr, "%d\n", order_count);
         while (!feof(stdin)) // get course
         {
             is_eof = fgets(input, 600, stdin);
@@ -347,9 +338,9 @@ int main()
                 }
             }
         }
-        oreder[oreder_count] = taiko_course + '0';
-        oreder_count++;
-        fptf(stderr, "courese:%d\n", taiko_course);
+        // order[order_count] = taiko_course + '0';
+        order_count++;
+        // fptf(stderr, "courese:%d\n", taiko_course);
         while (!feof(stdin))
         {
             // fptf(stderr, "A");
@@ -360,7 +351,7 @@ int main()
             }
             else if (status == END_tag)
             {
-                fptf(stderr, "END\n");
+                // fptf(stderr, "END\n");
                 break;
 
                 // goto song_end;
@@ -369,7 +360,7 @@ int main()
             {
                 return -1;
             }
-            fptf(stderr, "beat:%d, note%d\n", measure_beat, measure_note);
+            // fptf(stderr, "beat:%d, note%d\n", measure_beat, measure_note);
             // now input is the first note
             // fptf(stderr,"--%s",input);
             status = read_chart(input);
@@ -410,8 +401,8 @@ generate:
         printf("    [%d, %Lf]\n", sheets[i].hits[sheets[i].size - 1].note, sheets[i].hits[sheets[i].size - 1].time);
 
         printf("  ]\n  }");
-        oreder_count--;
-        if (oreder_count != 0)
+        order_count--;
+        if (order_count != 0)
         {
             printf(",\n");
         }
