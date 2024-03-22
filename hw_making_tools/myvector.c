@@ -55,6 +55,12 @@ int8_t Vector_push_back(int64_t **pVector, int64_t value, size_t size)
 }
 int8_t Vector_pop_back(int64_t **pVector, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     int64_t *pNew = (int64_t *)realloc(*pVector, sizeof(int64_t) * (size - 1));
     if (pNew == NULL)
         return -1;
@@ -76,6 +82,12 @@ int8_t Vector_insert(int64_t **pVector, int64_t value, size_t index, size_t size
 }
 int8_t Vector_erase(int64_t **pVector, size_t index, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     for (int64_t i = index; i < (int64_t)size - 1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
@@ -118,6 +130,12 @@ int8_t Vector_push_back_double(double **pVector, double value, size_t size)
 
 int8_t Vector_pop_back_double(double **pVector, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     double *pNew = (double *)realloc(*pVector, sizeof(double) * (size - 1));
     if (pNew == NULL)
         return -1;
@@ -139,6 +157,12 @@ int8_t Vector_insert_double(double **pVector, double value, size_t index, size_t
 }
 int8_t Vector_erase_double(double **pVector, size_t index, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     for (int64_t i = index; i < (int64_t)size - 1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
@@ -180,6 +204,12 @@ int8_t Vector_push_back_ptr(void ***pVector, void *value, size_t size)
 }
 int8_t Vector_pop_back_ptr(void ***pVector, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     void **pNew = (void **)realloc(*pVector, sizeof(void *) * (size - 1));
     if (pNew == NULL)
         return -1;
@@ -201,6 +231,12 @@ int8_t Vector_insert_ptr(void ***pVector, void *value, size_t index, size_t size
 }
 int8_t Vector_erase_ptr(void ***pVector, size_t index, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     for (int64_t i = index; i < (int64_t)size - 1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
@@ -242,6 +278,12 @@ int8_t Vector_push_back_char(char **pVector, char value, size_t size)
 }
 int8_t Vector_pop_back_char(char **pVector, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     char *pNew = (char *)realloc(*pVector, sizeof(char) * (size - 1));
     if (pNew == NULL)
         return -1;
@@ -263,6 +305,12 @@ int8_t Vector_insert_char(char **pVector, char value, size_t index, size_t size)
 }
 int8_t Vector_erase_char(char **pVector, size_t index, size_t size)
 {
+    if (size == 1)
+    {
+        free(*pVector);
+        *pVector = NULL;
+        return 0;
+    }
     for (int64_t i = index; i < (int64_t)size - 1; i++)
     {
         (*pVector)[i] = (*pVector)[i + 1];
