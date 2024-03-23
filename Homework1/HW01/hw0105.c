@@ -23,6 +23,7 @@ long double bpm, offset, time_now;
 uint32_t measure_beat, measure_note;
 Course taiko_course;
 Sheet sheets[5];
+uint64_t line = 0;
 
 // static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(long double *value);
@@ -107,14 +108,18 @@ static int8_t read_measure_bpmchange(char input[600])
             {
                 return -2;
             }
+            bpm = strtod(temp, NULL);
+
         }
         is_eof = fgets(input, 600, stdin);
+        line++;
         if (is_eof == NULL)
         {
             return -1;
         }
         if (strstr(input, ",\r\n") != NULL)
         {
+            fptf(stderr, "%ld\n", line);
             break;
         }
     }
@@ -167,6 +172,7 @@ static int8_t read_chart(char input[600])
             }
         }
         is_eof = fgets(input, 600, stdin);
+        line++;
         if (is_eof == NULL)
         {
             return -1;
@@ -177,8 +183,12 @@ static int8_t read_chart(char input[600])
         // fptf(stderr,"%d",strcmp(input,"\r\n"));
         if (strchr(input, '#') != NULL)
         {
+            fptf(stderr, "-%ld\n", line);
             if (strcmp(input, "#END\r\n") == 0)
+            {
+                fptf(stderr, "#END-%ld\n", line);
                 return 1;
+            }
             return 0;
         }
         if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0)
@@ -186,6 +196,7 @@ static int8_t read_chart(char input[600])
             while (!feof(stdin) && (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0))
             {
                 is_eof = fgets(input, 600, stdin);
+                line++;
                 if (is_eof == NULL)
                 {
                     return -1;
@@ -224,6 +235,7 @@ int main()
     while (!feof(stdin)) // get global value
     {
         is_eof = fgets(input, 600, stdin);
+        line++;
         if (is_eof == NULL)
         {
             return 0;
@@ -275,6 +287,7 @@ int main()
         while (!feof(stdin)) // get course
         {
             is_eof = fgets(input, 600, stdin);
+            line++;
             if (is_eof == NULL)
             {
                 return 0;
