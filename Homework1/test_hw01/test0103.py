@@ -55,7 +55,7 @@ for i in range(6,8):
 for i in range(8,9):
     with open('./0'+str(HW_PART)+'/in/hw0'+str(HW)+'0'+str(HW_PART)+"_0"+str(i)+'.in', 'w') as f:
         ysize = r.randint(1, 10)
-        xsize = r.randint(1, 10)
+        xsize = 1
         f.write(str(ysize)+' '+str(xsize)+'\n')
         for j in range(0, ysize):
             f.write(str(r.randint(1, 1000000000))+' ')
