@@ -45,11 +45,11 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "err0");
         return -1;
     }
-    if (*(map + y * +x) != 0)
+    if (*(map + y * col +x) != 0)
     {
         if (DEBUG)
         {
-            fptf(stderr, "x:%d y:%d cost:%d\n", x, y, *(map + y * col + x));
+            fptf(stderr, "x:%d y:%d cost:%ld\n", x, y, *(map + y * col + x));
         }
         return *(map + y * col + x);
     }
@@ -65,27 +65,55 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     }
     *(map + y * col + x) = -1;
     int32_t up = 0, down = 0, left = 0, right = 0;
-    if (y - 1 >= 0 && (((pMaze + y * col + x)->doors & (uint8_t)0b11000000) >> 6) == (((pMaze + (y - 1) * col + x)->doors & (uint8_t)0b00001100) >> 2))
+    fptf(stderr, "-- x:%d y:%d %d\n", x, y, *(map + y * col + x));
+    if (y - 1 >= 0 && *(map + (y - 1) * col + x) != -1)
     {
-        // fptf(stderr, "up:%d %d\n", ((pMaze + y * col + x)->doors & (uint8_t)0b11000000) >> 6), (((pMaze + (y - 1) * col + x)->doors & (uint8_t)0b00001100) >> 2);
-
-        up = find_path(x, y - 1, steps, pMaze, row, col, map);
+        uint8_t tempNOW = (pMaze + y * col + x)->doors & (uint8_t)0b11000000;
+        uint8_t tempUP = (pMaze + (y - 1) * col + x)->doors & (uint8_t)0b00001100;
+        fptf(stderr, "up:%hhu %hhu\n", tempNOW, tempUP);
+        // fptf(stderr, "up:%hhu %hhu\n", tempNOW >> 6, tempUP >> 2);
+        // fptf(stderr, "up:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b11000000) >> 6), ((pMaze[(y - 1) * col + x].doors));
+        // fptf(stderr, "%hhu", pMaze[(y - 1) * col + x].doors);
+        fptf(stderr, "up %d %d %d\n", x, y, *(map + (y - 1) * col + x));
+        if (tempNOW >> 6 == tempUP >> 2)
+            up = find_path(x, y - 1, steps, pMaze, row, col, map);
     }
-    if (x - 1 >= 0 && (((pMaze + y * col + x)->doors & (uint8_t)0b00000011)) == (((pMaze + y * col + x - 1)->doors & (uint8_t)0b00110000) >> 4))
+    if (x - 1 >= 0 && *(map + y * col + x - 1) != -1)
     {
+        uint8_t tempNOW = (pMaze + y * col + x)->doors & (uint8_t)0b00000011;
+        uint8_t tempLEFT = (pMaze + (y * col + x - 1))->doors & (uint8_t)0b00110000;
+        fptf(stderr, "left:%hhu %hhu\n", tempNOW, tempLEFT);
+        // fptf(stderr, "left:%hhu %hhu\n", tempNOW, tempLEFT >> 4);
         // fptf(stderr,"left %p %p",(pMaze + y * col + x ),(pMaze + y * col + x - 1));
-        // fptf(stderr, "left:%d %d\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00000011)), (((pMaze + y * col + x - 1)->doors & (uint8_t)0b00110000) >> 4);
-        left = find_path(x - 1, y, steps, pMaze, row, col, map);
+        // fptf(stderr, "left:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00000011)), ((pMaze[y * col + x - 1].doors));
+        // fptf(stderr,"%hhu",pMaze[y * col + x - 1].doors);
+        fptf(stderr, "left %d %d %d\n", x, y, *(map + y * col + x - 1));
+        if (tempNOW == tempLEFT >> 4)
+            left = find_path(x - 1, y, steps, pMaze, row, col, map);
     }
-    if (x + 1 < col && (((pMaze + y * col + x)->doors & (uint8_t)0b00110000) >> 4) == (((pMaze + y * col + x + 1)->doors & (uint8_t)0b00000011)))
+    if (x + 1 < col && *(map + y * col + x + 1) != -1)
     {
-        // fptf(stderr, "right:%u %u\n", (uint8_t)((pMaze + y * col + x)->doors & (uint8_t)0b00110000) >> 4), (((pMaze + y * col + x + 1)->doors & (uint8_t)0b00000011));
-        right = find_path(x, y + 1, steps, pMaze, row, col, map);
+        uint8_t tempNOW = (pMaze + y * col + x)->doors & (uint8_t)0b00110000;
+        uint8_t tempRIGHT = (pMaze + (y * col + x + 1))->doors & (uint8_t)0b00000011;
+        fptf(stderr, "right:%hhu %hhu\n", tempNOW, tempRIGHT);
+        // fptf(stderr, "right:%hhu %hhu\n", tempNOW >> 4, tempRIGHT);
+        // fptf(stderr, "right:%hhu %hhu\n", (uint8_t)((pMaze + y * col + x)->doors & (uint8_t)0b00110000) >> 4), ((pMaze[y * col + x + 1].doors));
+        // fptf(stderr, "%hhu",pMaze[y * col + x + 1].doors);
+        fptf(stderr, "right %d %d %d\n", x, y, *(map + y * col + x + 1));
+        if (tempNOW >> 4 == tempRIGHT)
+            right = find_path(x + 1, y, steps, pMaze, row, col, map);
     }
-    if (y + 1 < row && (((pMaze + y * col + x)->doors & (uint8_t)0b00001100) >> 2) == (((pMaze + (y + 1) * col + x)->doors & (uint8_t)0b11000000) >> 6))
+    if (y + 1 < row && *(map + (y + 1) * col + x) != -1)
     {
-        // fptf(stderr, "down:%d %d\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00001100) >> 2), (((pMaze + (y + 1) * col + x)->doors & (uint8_t)0b11000000) >> 6);
-        down = find_path(x + 1, y, steps, pMaze, row, col, map);
+        uint8_t tempNOW = (pMaze + y * col + x)->doors & (uint8_t)0b00001100;
+        uint8_t tempDOWN = (pMaze + (y + 1) * col + x)->doors & (uint8_t)0b11000000;
+        fptf(stderr, "down:%hhu %hhu\n", tempNOW, tempDOWN);
+        // fptf(stderr, "down:%hhu %hhu\n", tempNOW >> 2, tempDOWN >> 6);
+        // fptf(stderr, "down:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00001100) >> 2), ((pMaze [(y + 1) * col + x].doors));
+        // fptf(stderr, "%hhu",pMaze[(y + 1) * col + x].doors);
+        fptf(stderr, "down %d %d %d\n", x, y, *(map + (y + 1) * col + x));
+        if (tempNOW >> 2 == tempDOWN >> 6)
+            down = find_path(x,y+1,steps,pMaze,row,col,map);
     }
 
     if (up == 0 && down == 0 && left == 0 && right == 0)
@@ -113,8 +141,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         position = 2;
         min = right;
     }
-    if(DEBUG)
-    {fptf(stderr, "l:%d r:%d u:%d d:%d min:%d\n", left, right, up, down, min);}
+    if (DEBUG)
+    {
+        fptf(stderr, "l:%d r:%d u:%d d:%d min:%d\n", left, right, up, down, min);
+    }
     if (min == 0)
     {
         *(map + y * col + x) = -1;
@@ -303,6 +333,13 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     if (pMaze == NULL || row == 0 || col == 0)
     {
         return -1;
+    }
+    for (uint8_t i = 0; i < row; i++)
+    {
+        for (uint8_t j = 0; j < col; j++)
+        {
+            fptf(stderr, "door:%hhu\n", (pMaze + i * col + j)->doors);
+        }
     }
     int64_t map[row * col];
     for (uint8_t i = 0; i < row; i++)
