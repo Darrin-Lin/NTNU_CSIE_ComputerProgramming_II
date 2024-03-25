@@ -76,7 +76,7 @@ static int8_t merge(int64_t **pTargetPowers, int64_t **pTargetCoefficients, uint
     // merge the same powers
     for (uint32_t i = 0; i < *targetSize; i++)
     {
-        
+
         for (uint32_t j = i + 1; j < *targetSize; j++)
         {
             if (*(*pTargetPowers + i) == *(*pTargetPowers + j))
@@ -93,7 +93,7 @@ static int8_t merge(int64_t **pTargetPowers, int64_t **pTargetCoefficients, uint
         }
     }
     // remove coefficient 0
-    for(uint32_t i = 0; i < *targetSize; i++)
+    for (uint32_t i = 0; i < *targetSize; i++)
     {
         if (*(*pTargetCoefficients + i) == 0)
         {
@@ -120,9 +120,14 @@ static int8_t ytox(int64_t **pVResultPowers, int64_t **pVResultCoefficients, uin
     }
     if (power == 0)
     {
-        Vector_push_back(pVResultPowers, 0, *size);
-        Vector_push_back(pVResultCoefficients, ycof, *size);
-        (*size)++;
+        for (uint32_t i = 0; i < xpsize; i++)
+        {
+            Vector_push_back(pVResultPowers, *(pXpPowers + i), *size);
+            Vector_push_back(pVResultCoefficients, *(pXpCoefficients + i) * ycof, *size);
+            (*size)++;
+        }
+        // Vector_push_back(pVResultPowers, 0, *size);
+        // Vector_push_back(pVResultCoefficients, ycof, *size);
         return 0;
     }
     if (xsize == 1 && pXPowers[0] == 1)
@@ -229,6 +234,10 @@ static int8_t ytox(int64_t **pVResultPowers, int64_t **pVResultCoefficients, uin
         for (uint32_t i = 0; i < vsize; i++)
         {
             fptf(stderr, "B:vecP: %ld, vecC: %ld\n", *(vecP + i), *(vecC + i));
+        }
+        for (uint32_t i = 0; i < xpsize; i++)
+        {
+            fptf(stderr, "B:pXpPowers: %ld, pXpCoefficients: %ld\n", *(pXpPowers + i), *(pXpCoefficients + i));
         }
     }
     dot(pXpPowers, pXpCoefficients, xpsize, vecP, vecC, vsize, &tempP, &tempC, &tsize);
@@ -404,7 +413,6 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
     int64_t *Vector_ResultPowers = Vector_create(0);
     int64_t *Vector_ResultCoefficients = Vector_create(0);
     uint32_t size = 0;
-    
 
     for (uint32_t i = 0; i < ypsize; i++)
     {
@@ -456,7 +464,6 @@ int32_t chain_rule(sPoly *pResult, const sPoly *pFy, const sPoly *pFx)
         // if (Vector_ResultCoefficients != NULL)
         //     Vector_free(Vector_ResultCoefficients);
         return 0;
-
     }
     // copy to uint32_t Power
     uint32_t *answerPower = calloc(size, sizeof(uint32_t));
