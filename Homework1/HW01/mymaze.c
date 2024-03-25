@@ -45,7 +45,7 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "err0");
         return -1;
     }
-    if (*(map + y * col +x) != 0)
+    if (*(map + y * col + x) != 0)
     {
         if (DEBUG)
         {
@@ -57,6 +57,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     {
         (steps + y * col + x)->cost = (pMaze + y * col + x)->cost;
         (steps + y * col + x)->length = 1;
+        if ((steps + y * col + x)->pPath != NULL)
+        {
+            free((steps + y * col + x)->pPath);
+        }
         (steps + y * col + x)->pPath = calloc(1, sizeof(sPoint));
         (steps + y * col + x)->pPath[0].col = x;
         (steps + y * col + x)->pPath[0].row = y;
@@ -75,8 +79,11 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "up:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b11000000) >> 6), ((pMaze[(y - 1) * col + x].doors));
         // fptf(stderr, "%hhu", pMaze[(y - 1) * col + x].doors);
         fptf(stderr, "up %d %d %d\n", x, y, *(map + (y - 1) * col + x));
-        if (tempNOW >> 6 == tempUP >> 2)
+        if ((tempNOW >> 6) == (tempUP >> 2))
+        {
             up = find_path(x, y - 1, steps, pMaze, row, col, map);
+            *(map + (y - 1) * col + x) = 0;
+        }
     }
     if (x - 1 >= 0 && *(map + y * col + x - 1) != -1)
     {
@@ -88,8 +95,11 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "left:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00000011)), ((pMaze[y * col + x - 1].doors));
         // fptf(stderr,"%hhu",pMaze[y * col + x - 1].doors);
         fptf(stderr, "left %d %d %d\n", x, y, *(map + y * col + x - 1));
-        if (tempNOW == tempLEFT >> 4)
+        if (tempNOW == (tempLEFT >> 4))
+        {
             left = find_path(x - 1, y, steps, pMaze, row, col, map);
+            *(map + y * col + x - 1) = 0;
+        }
     }
     if (x + 1 < col && *(map + y * col + x + 1) != -1)
     {
@@ -100,8 +110,11 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "right:%hhu %hhu\n", (uint8_t)((pMaze + y * col + x)->doors & (uint8_t)0b00110000) >> 4), ((pMaze[y * col + x + 1].doors));
         // fptf(stderr, "%hhu",pMaze[y * col + x + 1].doors);
         fptf(stderr, "right %d %d %d\n", x, y, *(map + y * col + x + 1));
-        if (tempNOW >> 4 == tempRIGHT)
+        if ((tempNOW >> 4) == tempRIGHT)
+        {
             right = find_path(x + 1, y, steps, pMaze, row, col, map);
+            *(map + y * col + x + 1) = 0;
+        }
     }
     if (y + 1 < row && *(map + (y + 1) * col + x) != -1)
     {
@@ -112,14 +125,17 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         // fptf(stderr, "down:%hhu %hhu\n", ((pMaze + y * col + x)->doors & (uint8_t)0b00001100) >> 2), ((pMaze [(y + 1) * col + x].doors));
         // fptf(stderr, "%hhu",pMaze[(y + 1) * col + x].doors);
         fptf(stderr, "down %d %d %d\n", x, y, *(map + (y + 1) * col + x));
-        if (tempNOW >> 2 == tempDOWN >> 6)
-            down = find_path(x,y+1,steps,pMaze,row,col,map);
+        if ((tempNOW >> 2) == (tempDOWN >> 6))
+        {
+            down = find_path(x, y + 1, steps, pMaze, row, col, map);
+            *(map + (y + 1) * col + x) = 0;
+        }
     }
 
     if (up == 0 && down == 0 && left == 0 && right == 0)
     {
-        *(map + y * col + x) = -1;
-        (steps + y * col + x)->cost = 0;
+        // *(map + y * col + x) = -1;
+        // (steps + y * col + x)->cost = 0;
         // fptf(stderr, "err1\n");
         return -1;
     }
@@ -147,8 +163,8 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     }
     if (min == 0)
     {
-        *(map + y * col + x) = -1;
-        (steps + y * col + x)->cost = 0;
+        // *(map + y * col + x) = -1;
+        // (steps + y * col + x)->cost = 0;
         // fptf(stderr, "err2");
         return -1;
     }
@@ -156,6 +172,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     if (position == 1)
     {
         (steps + y * col + x)->length = (steps + (y - 1) * col + x)->length + 1;
+        if ((steps + y * col + x)->pPath != NULL)
+        {
+            free((steps + y * col + x)->pPath);
+        }
         (steps + y * col + x)->pPath = calloc((steps + y * col + x)->length, sizeof(sPoint));
         for (uint32_t i = 0; i < (steps + (y - 1) * col + x)->length; i++)
         {
@@ -168,6 +188,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     else if (position == 2)
     {
         (steps + y * col + x)->length = (steps + y * col + x + 1)->length + 1;
+        if ((steps + y * col + x)->pPath != NULL)
+        {
+            free((steps + y * col + x)->pPath);
+        }
         (steps + y * col + x)->pPath = calloc((steps + y * col + x)->length, sizeof(sPoint));
         for (uint32_t i = 0; i < (steps + y * col + x + 1)->length; i++)
         {
@@ -180,6 +204,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     else if (position == 3)
     {
         (steps + y * col + x)->length = (steps + (y + 1) * col + x)->length + 1;
+        if ((steps + y * col + x)->pPath != NULL)
+        {
+            free((steps + y * col + x)->pPath);
+        }
         (steps + y * col + x)->pPath = calloc((steps + y * col + x)->length, sizeof(sPoint));
         for (uint32_t i = 0; i < (steps + (y + 1) * col + x)->length; i++)
         {
@@ -192,6 +220,10 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
     else if (position == 4)
     {
         (steps + y * col + x)->length = (steps + y * col + x - 1)->length + 1;
+        if ((steps + y * col + x)->pPath != NULL)
+        {
+            free((steps + y * col + x)->pPath);
+        }
         (steps + y * col + x)->pPath = calloc((steps + y * col + x)->length, sizeof(sPoint));
         for (uint32_t i = 0; i < (steps + y * col + x - 1)->length; i++)
         {
@@ -201,50 +233,50 @@ static int32_t find_path(int16_t x, int16_t y, sPath *steps, const sRoom *pMaze,
         (steps + y * col + x)->pPath[(steps + y * col + x)->length - 1].col = x;
         (steps + y * col + x)->pPath[(steps + y * col + x)->length - 1].row = y;
     }
-    if (up != min && y - 1 >= 0 && up != -1)
-    {
-        *(map + (y - 1) * col + x) = -1;
-        (steps + (y - 1) * col + x)->cost = 0;
-        if ((steps + (y - 1) * col + x)->pPath != NULL)
-        {
-            free((steps + (y - 1) * col + x)->pPath);
-        }
-        (steps + (y - 1) * col + x)->pPath = NULL;
-        (steps + (y - 1) * col + x)->length = 0;
-    }
-    if (right != min && x + 1 < col && right != -1)
-    {
-        *(map + y * col + x + 1) = -1;
-        (steps + y * col + x + 1)->cost = 0;
-        if ((steps + y * col + x + 1)->pPath != NULL)
-        {
-            free((steps + y * col + x + 1)->pPath);
-        }
-        (steps + y * col + x + 1)->pPath = NULL;
-        (steps + y * col + x + 1)->length = 0;
-    }
-    if (down != min && y + 1 < row && down != -1)
-    {
-        *(map + (y + 1) * col + x) = -1;
-        (steps + (y + 1) * col + x)->cost = 0;
-        if ((steps + (y + 1) * col + x)->pPath != NULL)
-        {
-            free((steps + (y + 1) * col + x)->pPath);
-        }
-        (steps + (y + 1) * col + x)->pPath = NULL;
-        (steps + (y + 1) * col + x)->length = 0;
-    }
-    if (left != min && x - 1 >= 0 && left != -1)
-    {
-        *(map + y * col + x - 1) = -1;
-        (steps + y * col + x - 1)->cost = 0;
-        if ((steps + y * col + x - 1)->pPath != NULL)
-        {
-            free((steps + y * col + x - 1)->pPath);
-        }
-        (steps + y * col + x - 1)->pPath = NULL;
-        (steps + y * col + x - 1)->length = 0;
-    }
+    // if (up != min && y - 1 >= 0 && up != -1)
+    // {
+    //     *(map + (y - 1) * col + x) = -1;
+    //     (steps + (y - 1) * col + x)->cost = 0;
+    //     if ((steps + (y - 1) * col + x)->pPath != NULL)
+    //     {
+    //         free((steps + (y - 1) * col + x)->pPath);
+    //     }
+    //     (steps + (y - 1) * col + x)->pPath = NULL;
+    //     (steps + (y - 1) * col + x)->length = 0;
+    // }
+    // if (right != min && x + 1 < col && right != -1)
+    // {
+    //     *(map + y * col + x + 1) = -1;
+    //     (steps + y * col + x + 1)->cost = 0;
+    //     if ((steps + y * col + x + 1)->pPath != NULL)
+    //     {
+    //         free((steps + y * col + x + 1)->pPath);
+    //     }
+    //     (steps + y * col + x + 1)->pPath = NULL;
+    //     (steps + y * col + x + 1)->length = 0;
+    // }
+    // if (down != min && y + 1 < row && down != -1)
+    // {
+    //     *(map + (y + 1) * col + x) = -1;
+    //     (steps + (y + 1) * col + x)->cost = 0;
+    //     if ((steps + (y + 1) * col + x)->pPath != NULL)
+    //     {
+    //         free((steps + (y + 1) * col + x)->pPath);
+    //     }
+    //     (steps + (y + 1) * col + x)->pPath = NULL;
+    //     (steps + (y + 1) * col + x)->length = 0;
+    // }
+    // if (left != min && x - 1 >= 0 && left != -1)
+    // {
+    //     *(map + y * col + x - 1) = -1;
+    //     (steps + y * col + x - 1)->cost = 0;
+    //     if ((steps + y * col + x - 1)->pPath != NULL)
+    //     {
+    //         free((steps + y * col + x - 1)->pPath);
+    //     }
+    //     (steps + y * col + x - 1)->pPath = NULL;
+    //     (steps + y * col + x - 1)->length = 0;
+    // }
 
     (steps + y * col + x)->cost = min + (pMaze + y * col + x)->cost;
     *(map + y * col + x) = (steps + y * col + x)->cost;
@@ -363,6 +395,13 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     int64_t cost = find_path(col - 1, row - 1, steps, pMaze, row, col, map);
     if (cost == -1)
     {
+        for (int32_t i = 0; i < row * col - 1; i++)
+        {
+            if (steps[i].pPath != NULL)
+            {
+                free(steps[i].pPath);
+            }
+        }
         // fptf(stderr, "aaa");
         return 0;
     }
@@ -401,7 +440,7 @@ int32_t find_min_path(const sRoom *pMaze, const uint8_t row, const uint8_t col, 
     //     path_array[i].col = steps[row * col- 1].pPath[i].col;
     // }
     // pMinPath->pPath = path_array;
-    for (uint8_t i = 0; i < row * col - 1; i++)
+    for (int32_t i = 0; i < (int32_t)row * (int32_t)col - 1; i++)
     {
         if (steps[i].pPath != NULL)
         {
