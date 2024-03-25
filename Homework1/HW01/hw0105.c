@@ -91,12 +91,14 @@ static int8_t read_measure_bpmchange(char input[600])
             temp = strtok(NULL, "/");
             if (temp == NULL)
             {
+                fptf(stderr, "measure error\n");
                 return -2;
             }
             measure_beat = strtol(temp, NULL, 10);
             temp = strtok(NULL, "\r\n");
             if (temp == NULL)
             {
+                fptf(stderr, "measure error /\n");
                 return -2;
             }
             measure_note = strtol(temp, NULL, 10);
@@ -106,10 +108,10 @@ static int8_t read_measure_bpmchange(char input[600])
             temp = strtok(NULL, "\r\n");
             if (temp == NULL)
             {
+                fptf(stderr, "bpm error\n");
                 return -2;
             }
             bpm = strtod(temp, NULL);
-
         }
         is_eof = fgets(input, 600, stdin);
         line++;
@@ -173,10 +175,10 @@ static int8_t read_chart(char input[600])
         }
         is_eof = fgets(input, 600, stdin);
         line++;
-        if (is_eof == NULL)
-        {
-            return -1;
-        }
+        // if (is_eof == NULL)
+        // {
+        //     return -1;
+        // }
         // for (int32_t i = 0; i < strlen(input); i++)
         // fptf(stderr, "%d", input[i]);
         // fptf(stderr,"\n");
@@ -197,10 +199,10 @@ static int8_t read_chart(char input[600])
             {
                 is_eof = fgets(input, 600, stdin);
                 line++;
-                if (is_eof == NULL)
-                {
-                    return -1;
-                }
+                // if (is_eof == NULL)
+                // {
+                //     return -1;
+                // }
                 if (strchr(input, '#') != NULL)
                 {
                     if (strcmp(input, "#END\r\n") == 0)
@@ -236,10 +238,11 @@ int main()
     {
         is_eof = fgets(input, 600, stdin);
         line++;
-        if (is_eof == NULL)
-        {
-            return 0;
-        }
+        // if (is_eof == NULL)
+        // {
+        //     fptf(stderr,"EOF");
+        //     return 0;
+        // }
         // if (input[0] == '\n' || input[0] == '\r')
         // {
         //     break;
@@ -253,12 +256,16 @@ int main()
         // fptf(stderr, "%s", temp);
         if (temp == NULL)
         {
+            fptf(stderr, ":error\n");
             return -1;
         }
         if (strcmp(temp, "BPM") == 0)
         {
             if (read_double_value(&bpm) != 0)
+            {
+                fptf(stderr, "bpm error\n");
                 return -1;
+            }
         }
 
         else if (strcmp(temp, "WAVE") == 0)
@@ -268,7 +275,10 @@ int main()
         else if (strcmp(temp, "OFFSET") == 0)
         {
             if (read_double_value(&offset) != 0)
+            {
+                fptf(stderr, "offset error\n");
                 return -1;
+            }
             continue;
         }
 
@@ -280,7 +290,7 @@ int main()
     // fptf(stderr, "BPM: %Lf\n", bpm);
     // fptf(stderr, "OFFSET: %Lf\n", offset);
     time_now = -offset;
-    // fptf(stderr, "%Lf", time_now);
+    fptf(stderr, "%Lf", time_now);
     while (!feof(stdin))
     {
         // fptf(stderr, "%d\n", order_count);
@@ -288,10 +298,10 @@ int main()
         {
             is_eof = fgets(input, 600, stdin);
             line++;
-            if (is_eof == NULL)
-            {
-                return 0;
-            }
+            // if (is_eof == NULL)
+            // {
+            //     return 0;
+            // }
             if (strcmp(input, "#START\r\n") == 0)
             {
                 break;
@@ -299,6 +309,7 @@ int main()
             temp = strtok(input, ":");
             if (temp == NULL)
             {
+                fptf(stderr, ":error\n");
                 return -1;
             }
             if (strcmp(temp, "COURSE") == 0)
@@ -347,6 +358,7 @@ int main()
                 }
                 else
                 {
+                    fptf(stderr, "course error\n");
                     return -1;
                 }
             }
@@ -371,6 +383,7 @@ int main()
             }
             else if (status == -2)
             {
+                fptf(stderr, "-2error\n");
                 return -1;
             }
             // fptf(stderr, "beat:%d, note%d\n", measure_beat, measure_note);
@@ -384,6 +397,7 @@ int main()
             }
             else if (status == -2)
             {
+                fptf(stderr, "-2error\n");
                 return -1;
             }
             else if (status == END_tag)
@@ -395,7 +409,7 @@ int main()
         // song_end:
         time_now = -offset;
     }
-
+    fptf(stderr, "No error\n");
 generate:
     printf("{\n \"data\": [\n");
     for (int32_t i = 4; i >= 0; i--)
@@ -415,7 +429,7 @@ generate:
 
         printf("  ]\n  }");
         order_count--;
-        if (order_count != 0)
+        if (order_count != 0&&i!=0)
         {
             printf(",\n");
         }
