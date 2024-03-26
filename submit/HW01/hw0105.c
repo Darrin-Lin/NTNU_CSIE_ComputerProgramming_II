@@ -125,34 +125,34 @@ static int8_t read_measure_bpmchange(char input[600])
             fptf(stderr, "%ld\n", line);
             break;
         }
-        // else if (input[0] >= '0' && input[0] <= '9')
-        // {
-        //     fptf(stderr, "%ld\n", line);
-        //     char *temp_buffer = strtok(input, "\r\n");
-        //     if (buffer == NULL)
-        //     {
-        //         buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
-        //         if (buffer == NULL)
-        //         {
-        //             fptf(stderr, "memory error\n");
-        //             return -1;
-        //         }
-        //         strcpy(buffer, temp_buffer);
-        //         fptf(stderr, "%s\n", buffer);
-        //     }
-        //     else
-        //     {
-        //         char *tmp = NULL;
-        //         tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
-        //         if (tmp == NULL)
-        //         {
-        //             fptf(stderr, "memory error\n");
-        //             return -1;
-        //         }
-        //         buffer = tmp;
-        //         buffer = strncat(buffer, temp_buffer, strlen(temp_buffer));
-        //     }
-        // }
+        else if (input[0] >= '0' && input[0] <= '9')
+        {
+            fptf(stderr, "%ld\n", line);
+            char *temp_buffer = strtok(input, "\r\n");
+            if (buffer == NULL)
+            {
+                buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
+                if (buffer == NULL)
+                {
+                    fptf(stderr, "memory error\n");
+                    return -1;
+                }
+                strcpy(buffer, temp_buffer);
+                fptf(stderr, "%s\n", buffer);
+            }
+            else
+            {
+                char *tmp = NULL;
+                tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
+                if (tmp == NULL)
+                {
+                    fptf(stderr, "memory error\n");
+                    return -1;
+                }
+                buffer = tmp;
+                strncat(buffer, temp_buffer, strlen(temp_buffer));
+            }
+        }
     }
     return 0;
 }
@@ -166,12 +166,18 @@ static int8_t read_chart(char input[600])
         uint32_t chart_size = 0;
         if (buffer != NULL)
         {
-            char *temp_input = NULL;
-            
-            temp_input = strncat(buffer, input, strlen(input));
-            for (size_t i = 0; i <= strlen(temp_input); i++)
+            char *tmp = NULL;
+            tmp = (char *)realloc(buffer, strlen(buffer) + strlen(input) + 1);
+            if (tmp == NULL)
             {
-                input[i] = temp_input[i];
+                fptf(stderr, "memory error\n");
+                return -1;
+            }
+            buffer = tmp;
+            strncat(buffer, input, strlen(input));
+            for (size_t i = 0; i <= strlen(buffer); i++)
+            {
+                input[i] = buffer[i];
             }
             free(buffer);
             buffer = NULL;
@@ -236,34 +242,34 @@ static int8_t read_chart(char input[600])
             }
             return 0;
         }
-        // if (input[0] >= '0' && input[0] <= '9' && strchr(input, ',') == NULL)
-        // {
-        //     fptf(stderr, "%ld\n", line);
-        //     char *temp_buffer = strtok(input, "\r\n");
-        //     if (buffer == NULL)
-        //     {
-        //         buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
-        //         if (buffer == NULL)
-        //         {
-        //             fptf(stderr, "memory error\n");
-        //             return -1;
-        //         }
-        //         strcpy(buffer, temp_buffer);
-        //     }
-        //     else
-        //     {
-        //         char *tmp = NULL;
-        //         tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
-        //         if (tmp == NULL)
-        //         {
-        //             fptf(stderr, "memory error\n");
-        //             return -1;
-        //         }
-        //         buffer = tmp;
-        //         buffer = strncat(buffer, temp_buffer, strlen(temp_buffer));
-        //     }
-        //     goto getline;
-        // }
+        if (input[0] >= '0' && input[0] <= '9' && strchr(input, ',') == NULL)
+        {
+            fptf(stderr, "%ld\n", line);
+            char *temp_buffer = strtok(input, "\r\n");
+            if (buffer == NULL)
+            {
+                buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
+                if (buffer == NULL)
+                {
+                    fptf(stderr, "memory error\n");
+                    return -1;
+                }
+                strcpy(buffer, temp_buffer);
+            }
+            else
+            {
+                char *tmp = NULL;
+                tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
+                if (tmp == NULL)
+                {
+                    fptf(stderr, "memory error\n");
+                    return -1;
+                }
+                buffer = tmp;
+                strncat(buffer, temp_buffer, strlen(temp_buffer));
+            }
+            goto getline;
+        }
         if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0)
         {
             while (!feof(stdin) && (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0))
