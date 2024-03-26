@@ -24,6 +24,7 @@ uint32_t measure_beat, measure_note;
 Course taiko_course;
 Sheet sheets[5];
 uint64_t line = 0;
+char *buffer;
 
 // static int8_t read_int_value(int32_t *value);
 static int8_t read_double_value(long double *value);
@@ -124,17 +125,57 @@ static int8_t read_measure_bpmchange(char input[600])
             fptf(stderr, "%ld\n", line);
             break;
         }
+        // else if (input[0] >= '0' && input[0] <= '9')
+        // {
+        //     fptf(stderr, "%ld\n", line);
+        //     char *temp_buffer = strtok(input, "\r\n");
+        //     if (buffer == NULL)
+        //     {
+        //         buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
+        //         if (buffer == NULL)
+        //         {
+        //             fptf(stderr, "memory error\n");
+        //             return -1;
+        //         }
+        //         strcpy(buffer, temp_buffer);
+        //         fptf(stderr, "%s\n", buffer);
+        //     }
+        //     else
+        //     {
+        //         char *tmp = NULL;
+        //         tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
+        //         if (tmp == NULL)
+        //         {
+        //             fptf(stderr, "memory error\n");
+        //             return -1;
+        //         }
+        //         buffer = tmp;
+        //         buffer = strncat(buffer, temp_buffer, strlen(temp_buffer));
+        //     }
+        // }
     }
     return 0;
 }
 static int8_t read_chart(char input[600])
 {
     char *temp;
-    char *is_eof = NULL;
+    // char *is_eof = NULL;
     while (!feof(stdin)) // get chart
     {
         // code
         uint32_t chart_size = 0;
+        if (buffer != NULL)
+        {
+            char *temp_input = NULL;
+            
+            temp_input = strncat(buffer, input, strlen(input));
+            for (size_t i = 0; i <= strlen(temp_input); i++)
+            {
+                input[i] = temp_input[i];
+            }
+            free(buffer);
+            buffer = NULL;
+        }
         if (input[0] == ',')
         {
             time_now += ((60.0 / bpm) * (4.0 / measure_note)) * measure_beat;
@@ -173,7 +214,9 @@ static int8_t read_chart(char input[600])
                 time_now += ((60.0 / bpm) * (4.0 / measure_note)) * measure_beat;
             }
         }
-        is_eof = fgets(input, 600, stdin);
+    // is_eof = fgets(input, 600, stdin);
+    getline:
+        fgets(input, 600, stdin);
         line++;
         // if (is_eof == NULL)
         // {
@@ -193,11 +236,40 @@ static int8_t read_chart(char input[600])
             }
             return 0;
         }
+        // if (input[0] >= '0' && input[0] <= '9' && strchr(input, ',') == NULL)
+        // {
+        //     fptf(stderr, "%ld\n", line);
+        //     char *temp_buffer = strtok(input, "\r\n");
+        //     if (buffer == NULL)
+        //     {
+        //         buffer = (char *)calloc(strlen(temp_buffer) + 1, sizeof(char));
+        //         if (buffer == NULL)
+        //         {
+        //             fptf(stderr, "memory error\n");
+        //             return -1;
+        //         }
+        //         strcpy(buffer, temp_buffer);
+        //     }
+        //     else
+        //     {
+        //         char *tmp = NULL;
+        //         tmp = (char *)realloc(buffer, strlen(buffer) + strlen(temp_buffer) + 1);
+        //         if (tmp == NULL)
+        //         {
+        //             fptf(stderr, "memory error\n");
+        //             return -1;
+        //         }
+        //         buffer = tmp;
+        //         buffer = strncat(buffer, temp_buffer, strlen(temp_buffer));
+        //     }
+        //     goto getline;
+        // }
         if (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0)
         {
             while (!feof(stdin) && (strcmp(input, "\r\n") == 0 || strcmp(input, "\n") == 0 || strcmp(input, "\r") == 0))
             {
-                is_eof = fgets(input, 600, stdin);
+                // is_eof = fgets(input, 600, stdin);
+                fgets(input, 600, stdin);
                 line++;
                 // if (is_eof == NULL)
                 // {
@@ -219,7 +291,7 @@ int main()
 {
     char *temp = NULL;
     char input[600];
-    char *is_eof = NULL;
+    // char *is_eof = NULL;
     int8_t status = 0;
     bpm = 0;
     time_now = 0;
@@ -227,6 +299,7 @@ int main()
     measure_beat = 4;
     measure_note = 4;
     taiko_course = 0;
+    buffer = NULL;
     // char order[10];
     int8_t order_count = 0;
     for (int32_t i = 0; i < 5; i++)
@@ -236,7 +309,8 @@ int main()
     }
     while (!feof(stdin)) // get global value
     {
-        is_eof = fgets(input, 600, stdin);
+        // is_eof = fgets(input, 600, stdin);
+        fgets(input, 600, stdin);
         line++;
         // if (is_eof == NULL)
         // {
@@ -289,14 +363,17 @@ int main()
     }
     // fptf(stderr, "BPM: %Lf\n", bpm);
     // fptf(stderr, "OFFSET: %Lf\n", offset);
+    long double G_bpm = bpm;
     time_now = -offset;
     fptf(stderr, "%Lf", time_now);
     while (!feof(stdin))
     {
+        bpm = G_bpm;
         // fptf(stderr, "%d\n", order_count);
         while (!feof(stdin)) // get course
         {
-            is_eof = fgets(input, 600, stdin);
+            // is_eof = fgets(input, 600, stdin);
+            fgets(input, 600, stdin);
             line++;
             // if (is_eof == NULL)
             // {
@@ -429,7 +506,7 @@ generate:
 
         printf("  ]\n  }");
         order_count--;
-        if (order_count != 0&&i!=0)
+        if (order_count != 0 && i != 0)
         {
             printf(",\n");
         }
