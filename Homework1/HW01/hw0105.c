@@ -83,9 +83,9 @@ static int8_t read_measure_bpmchange(char input[600])
         {
             return -2;
         }
-        if (strcmp(temp, "#END") == 0)
+        if (strstr(input, "#END") != NULL)
         {
-            return 1;
+            return END_tag;
         }
         else if (strcmp(temp, "#MEASURE") == 0)
         {
@@ -235,10 +235,10 @@ static int8_t read_chart(char input[600])
         if (strchr(input, '#') != NULL)
         {
             fptf(stderr, "-%ld\n", line);
-            if (strcmp(input, "#END\r\n") == 0)
+            if (strstr(input, "#END") != NULL)
             {
                 fptf(stderr, "#END-%ld\n", line);
-                return 1;
+                return END_tag;
             }
             return 0;
         }
@@ -283,7 +283,7 @@ static int8_t read_chart(char input[600])
                 // }
                 if (strchr(input, '#') != NULL)
                 {
-                    if (strcmp(input, "#END\r\n") == 0)
+                    if (strstr(input, "#END") != NULL)
                         return 1;
                     return 0;
                 }
@@ -367,11 +367,12 @@ int main()
             continue;
         }
     }
-    // fptf(stderr, "BPM: %Lf\n", bpm);
-    // fptf(stderr, "OFFSET: %Lf\n", offset);
+    fptf(stderr, "BPM: %Lf\n", bpm);
+    fptf(stderr, "OFFSET: %Lf\n", offset);
     long double G_bpm = bpm;
     time_now = -offset;
-    fptf(stderr, "%Lf", time_now);
+    fptf(stderr, "%Lf\n", time_now);
+    fptf(stderr, "line:%ld\n", line);
     while (!feof(stdin))
     {
         bpm = G_bpm;
@@ -385,8 +386,9 @@ int main()
             // {
             //     return 0;
             // }
-            if (strcmp(input, "#START\r\n") == 0)
+            if (strstr(input, "#START") != NULL)
             {
+                fptf(stderr, "#START:%ld\n", line);
                 break;
             }
             temp = strtok(input, ":");
@@ -448,7 +450,7 @@ int main()
         }
         // order[order_count] = taiko_course + '0';
         order_count++;
-        // fptf(stderr, "courese:%d\n", taiko_course);
+        fptf(stderr, "courese:%d\n", taiko_course);
         while (!feof(stdin))
         {
             // fptf(stderr, "A");
