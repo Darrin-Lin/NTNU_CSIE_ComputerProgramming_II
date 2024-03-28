@@ -56,11 +56,37 @@ int main()
     fread(&header, sizeof(header), 1, image_read);
     sBmpHeader header_write;
     header_write = header;
-    header_write.width = header.height / tan(angle) + header.width;
+    size_t shift = header.height / tan(angle);
+    header_write.width = shift + header.width;
     header_write.size = header.offset + header.height * header.width * 3;
     header_write.bitmap_size = header.height * header.width * 3;
     fwrite(&header, sizeof(header), 1, image_write);
+    size_t col =0;
 
+    while( !feof( image_read ) )
+    {
+
+        uint8_t	original[999] = {0};
+        uint8_t modified[999] = {0};
+
+        size_t count = fread( original, 1, 999, image_write );
+
+        for( size_t i = 0 ; i < count ; i++ )
+        {
+            modified[i] = 255 - original[i];
+            col++;
+            if(col%3==0&&col/3==header.width)
+            {
+                col =0;
+                goto blank_back;
+                // break;
+            }
+        }
+        fwrite( modified, count, 1, image_write );
+
+    }
+    fclose(image_read);
+    fclose(image_write);
     return 0;
 }
 /*
