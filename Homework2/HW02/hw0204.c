@@ -59,7 +59,7 @@ int main()
     fread(&header, sizeof(header), 1, image_read);
     sBmpHeader header_write;
     header_write = header;
-    size_t shift = header.height / tan(angle);
+    size_t shift = header.height * tan(angle);
     header_write.width = shift + header.width;
     header_write.size = header.offset + header.height * header_write.width * 3;
     header_write.bitmap_size = header.height * header_write.width * 3;
@@ -106,7 +106,7 @@ int main()
     while (!feof(image_read))
     {
         size_t blank = 0;
-        blank = (header.height - line) / tan(angle);
+        blank = (header.height - line) * tan(angle);
         blank *= 3;
         // fptf(stderr, "blank: %ld\n", blank);
         for (size_t i = 0; i < blank; i++)
