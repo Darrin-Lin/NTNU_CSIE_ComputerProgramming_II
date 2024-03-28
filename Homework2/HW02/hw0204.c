@@ -4,6 +4,8 @@
 #include <string.h>
 #include <math.h>
 
+#define fptf fprintf
+
 struct _sBmpHeader
 {
     char bm[2];
@@ -34,6 +36,7 @@ int main()
     char output_name[100];
     printf("Please input the output BMP file name: ");
     fgets(output_name, 100, stdin);
+    output_name[strlen(output_name) - 1] = '\0';
     double angle;
     printf("Angle (0-90): ");
     scanf("%lf", &angle);
@@ -58,33 +61,106 @@ int main()
     header_write = header;
     size_t shift = header.height / tan(angle);
     header_write.width = shift + header.width;
-    header_write.size = header.offset + header.height * header.width * 3;
-    header_write.bitmap_size = header.height * header.width * 3;
-    fwrite(&header, sizeof(header), 1, image_write);
-    size_t col =0;
-
-    while( !feof( image_read ) )
+    header_write.size = header.offset + header.height * header_write.width * 3;
+    header_write.bitmap_size = header.height * header_write.width * 3;
+    // print header
     {
-
-        uint8_t	original[999] = {0};
-        uint8_t modified[999] = {0};
-
-        size_t count = fread( original, 1, 999, image_write );
-
-        for( size_t i = 0 ; i < count ; i++ )
-        {
-            modified[i] = 255 - original[i];
-            col++;
-            if(col%3==0&&col/3==header.width)
-            {
-                col =0;
-                goto blank_back;
-                // break;
-            }
-        }
-        fwrite( modified, count, 1, image_write );
-
+        printf("ID: %c%c\n", header.bm[0], header.bm[1]);
+        printf("Size: %u\n", header.size);
+        printf("Reserve: %u\n", header.reserve);
+        printf("Offset: %u\n", header.offset);
+        printf("Header Size: %u\n", header.header_size);
+        printf("Width: %u\n", header.width);
+        printf("Height: %u\n", header.height);
+        printf("Planes: %u\n", header.planes);
+        printf("Bits Per Pixel: %u\n", header.bpp);
+        printf("Compression: %u\n", header.compression);
+        printf("Bitmap Data Size: %u\n", header.bitmap_size);
+        printf("H-Resolution: %u\n", header.hres);
+        printf("V-Resolution: %u\n", header.vres);
+        printf("Used Colors: %u\n", header.used);
+        printf("Important Colors: %u\n", header.important);
     }
+    // print header_write
+    {
+        printf("ID: %c%c\n", header_write.bm[0], header_write.bm[1]);
+        printf("Size: %u\n", header_write.size);
+        printf("Reserve: %u\n", header_write.reserve);
+        printf("Offset: %u\n", header_write.offset);
+        printf("Header Size: %u\n", header_write.header_size);
+        printf("Width: %u\n", header_write.width);
+        printf("Height: %u\n", header_write.height);
+        printf("Planes: %u\n", header_write.planes);
+        printf("Bits Per Pixel: %u\n", header_write.bpp);
+        printf("Compression: %u\n", header_write.compression);
+        printf("Bitmap Data Size: %u\n", header_write.bitmap_size);
+        printf("H-Resolution: %u\n", header_write.hres);
+        printf("V-Resolution: %u\n", header_write.vres);
+        printf("Used Colors: %u\n", header_write.used);
+        printf("Important Colors: %u\n", header_write.important);
+    }
+    fwrite(&header_write, sizeof(header_write), 1, image_write);
+    size_t line = 0;
+    fptf(stderr, "shift: %ld\n", shift);
+    size_t pixel = 0;
+    while (!feof(image_read))
+    {
+        size_t blank = 0;
+        blank = (header.height - line) / tan(angle);
+        blank *= 3;
+        // fptf(stderr, "blank: %ld\n", blank);
+        for (size_t i = 0; i < blank; i++)
+        {
+            fputc(255, image_write);
+            pixel++;
+        }
+        size_t col = 0;
+        while (!feof(image_read))
+        {
+
+            /* code */
+
+            uint8_t original[3] = {0};
+            uint8_t modified[3] = {0};//problem with 3840
+
+            size_t count = fread(original, 1, 3, image_read);
+            if (count == 0)
+            {
+                continue;
+            }
+            for (size_t i = 0; i < count; i++)
+            {
+                modified[i] = original[i];
+                pixel++;
+                col++;
+                if (col >= 3 * header.width)
+                {
+                    // fptf(stderr, "col: %ld\n", col);
+                    // fptf(stderr, "i: %ld\n", i);
+                    col = 0;
+                    fwrite(modified, i + 1, 1, image_write);
+
+                    goto blank_back;
+                    // break;
+                }
+            }
+            fwrite(modified, count, 1, image_write);
+        }
+    blank_back:
+        line++;
+        for (size_t i = 0; i < (header_write.width * 3) - (blank + header.width * 3); i++)
+        {
+            fputc(255, image_write);
+            pixel++;
+        }
+        fptf(stderr,"pixel: %ld\n",pixel);
+        if (line == header.height)
+        {
+            break;
+        }
+        // fptf(stderr, "Line: %ld\n", line);
+    }
+    fptf(stderr, "pixel: %ld\n", pixel);
     fclose(image_read);
     fclose(image_write);
     return 0;
