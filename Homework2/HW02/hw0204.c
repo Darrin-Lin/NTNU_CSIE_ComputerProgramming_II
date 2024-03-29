@@ -43,6 +43,12 @@ int main()
     scanf("%lf", &angle);
     if (angle < 0 || angle >= 90)
     {
+        printf("Invalid angle\n");
+        return -1;
+    }
+    if (strcmp(file_name, output_name) == 0)
+    {
+        printf("Input and output file must be different\n");
         return -1;
     }
     angle = angle * M_PI / 180;
@@ -62,7 +68,7 @@ int main()
     header_write = header;
     size_t shift = header.height * tan(angle);
     header_write.width = shift + header.width;
-    header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4))%4);
+    header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4)) % 4);
     header_write.bitmap_size = header_write.size - header.offset;
     // print header
     {
@@ -191,7 +197,7 @@ int main()
             fwrite(white, 3, 1, image_write);
             pixel += 3;
         }
-        for (int32_t i = 0; i < (4 - (header_write.width * 3 % 4))%4; i++)
+        for (uint32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
         {
             fputc(0, image_write);
         }
