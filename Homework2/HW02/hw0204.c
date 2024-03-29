@@ -5,6 +5,7 @@
 #include <math.h>
 
 #define fptf fprintf
+#define DEBUG 0
 
 struct _sBmpHeader
 {
@@ -40,7 +41,7 @@ int main()
     double angle;
     printf("Angle (0-90): ");
     scanf("%lf", &angle);
-    if (angle < 0 || angle > 90)
+    if (angle < 0 || angle >= 90)
     {
         return -1;
     }
@@ -61,8 +62,8 @@ int main()
     header_write = header;
     size_t shift = header.height * tan(angle);
     header_write.width = shift + header.width;
-    header_write.size = header.offset + header.height * header_write.width * 3;
-    header_write.bitmap_size = header.height * header_write.width * 3;
+    header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4))%4);
+    header_write.bitmap_size = header_write.size - header.offset;
     // print header
     {
         printf("ID: %c%c\n", header.bm[0], header.bm[1]);
@@ -107,13 +108,30 @@ int main()
     {
         size_t blank = 0;
         blank = (header.height - line) * tan(angle);
-        blank *= 3;
         // fptf(stderr, "blank: %ld\n", blank);
-        for (size_t i = 0; i < blank; i++)
+        // fptf(stderr,"%d\n",(header_write.width * 3) - (blank + header.width * 3));
+        for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
         {
-            fputc(255, image_write);
-            pixel++;
+            uint8_t white[3] = {0};
+            white[0] = 255;
+            white[1] = 255;
+            white[2] = 255;
+            if (DEBUG)
+            {
+                if (i > (header_write.width) - (blank + header.width) - 1)
+                {
+                    white[0] = 0;
+                    white[1] = 0;
+                    white[2] = 0;
+                    pixel += 3;
+                    continue;
+                }
+            }
+            fwrite(white, 3, 1, image_write);
+            pixel += 3;
         }
+
+        // fptf(stderr, "blank_pixel: %ld\n", pixel);
         size_t col = 0;
         while (!feof(image_read))
         {
@@ -121,8 +139,7 @@ int main()
             /* code */
 
             uint8_t original[3] = {0};
-            uint8_t modified[3] = {0};//problem with 3840
-
+            uint8_t modified[3] = {0}; // problem with 3840
             size_t count = fread(original, 1, 3, image_read);
             if (count == 0)
             {
@@ -138,22 +155,49 @@ int main()
                     // fptf(stderr, "col: %ld\n", col);
                     // fptf(stderr, "i: %ld\n", i);
                     col = 0;
+                    if (DEBUG)
+                    {
+                        modified[0] = 0;
+                        modified[1] = 0;
+                        modified[2] = 0;
+                    }
                     fwrite(modified, i + 1, 1, image_write);
-
+                    // fptf(stderr, "pixel: %ld\n", pixel);
                     goto blank_back;
                     // break;
                 }
             }
             fwrite(modified, count, 1, image_write);
         }
+
     blank_back:
         line++;
-        for (size_t i = 0; i < (header_write.width * 3) - (blank + header.width * 3); i++)
+        for (size_t i = 0; i < blank; i++)
         {
-            fputc(255, image_write);
-            pixel++;
+            uint8_t white[3] = {0};
+            white[0] = 255;
+            white[1] = 255;
+            white[2] = 255;
+            if (DEBUG)
+            {
+                if (i >= blank - 1)
+                {
+                    white[0] = 0;
+                    white[1] = 0;
+                    white[2] = 0;
+                    pixel += 3;
+                }
+            }
+            fwrite(white, 3, 1, image_write);
+            pixel += 3;
         }
-        fptf(stderr,"pixel: %ld\n",pixel);
+        for (int32_t i = 0; i < (4 - (header_write.width * 3 % 4))%4; i++)
+        {
+            fputc(0, image_write);
+        }
+        // if (shift != 0)
+        //     fputc(255, image_write); // dont know why but it works
+        // fptf(stderr, "blank_back_pixel: %ld\n", pixel);
         if (line == header.height)
         {
             break;
