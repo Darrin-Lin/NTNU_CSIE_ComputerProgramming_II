@@ -249,20 +249,20 @@ int main()
         }
     }
     // print
-    printf("    Team        W\tD\tL\tGF\tGA\tGD\tPts\n");
+    printf("    Team          W\tD\tL\tGF\tGA\tGD\tPts\n");
     for (size_t i = 0; i < team_num; i++)
     {
         if (i < 9)
-            printf("0%d) ", i + 1);
+            printf("0%ld) ", i + 1);
         else
-            printf("%2d) ", i + 1);
+            printf("%2ld) ", i + 1);
         printf("%s", teams[i]);
-        for (size_t j = 0; j < 12 - strlen(teams[i]); j++)
+        for (size_t j = 0; j < 14 - strlen(teams[i]); j++)
             printf(" ");
         if (strlen(teams[i]) < 8)
-            printf("%d\t%d\t%d\t%d\t%d\t", win[i], draw[i], lose[i], GF[i], GA[i]);
+            printf("%ld\t%ld\t%ld\t%ld\t%ld\t", win[i], draw[i], lose[i], GF[i], GA[i]);
         else
-            printf("%d\t%d\t%d\t%d\t%d\t", win[i], draw[i], lose[i], GF[i], GA[i]);
+            printf("%ld\t%ld\t%ld\t%ld\t%ld\t", win[i], draw[i], lose[i], GF[i], GA[i]);
         if (GD[i] >= 0)
             printf("+%d\t %d\n", GD[i], pts[i]);
         else
