@@ -10,7 +10,8 @@
 const double freq[26] = {8.2, 1.5, 2.8, 4.3, 12.7, 2.2, 2.0, 6.1, 7.0, 0.15, 0.77, 4.0, 2.4, 6.7, 7.5, 1.9, 0.095, 6.0, 6.3, 9.1, 2.8, 0.98, 2.4, 0.15, 2.0, 0.074};
 
 static int8_t get_5_chr_words(char *input, char output[6]);
-static int32_t rm_words(char input, int32_t pos, int8_t t);
+static int8_t sort_5_chr_words();
+static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only);
 static double find_highest(char output[6]);
 
 int main()
@@ -34,7 +35,7 @@ int main()
     }
     fclose(dic);
     fclose(five_chr_dic);
-
+    sort_5_chr_words();
     /*char test[100];
     strcpy(test, pp);
     strncat(test, "output_words", 100);
@@ -69,11 +70,13 @@ int main()
         }
         int32_t words_num = 0;
         int8_t now_appear[26] = {0};
+        int8_t count_aphabet[26] = {0};
         for (int32_t i = 0; i < 5; i++)
         {
+            count_aphabet[guess[i] - 'A']++;
             if (usr_input[i] == 'G')
             {
-                words_num = rm_words(guess[i], i, 0);
+                words_num = rm_words(guess[i], i, 0, 0);
                 if (now_appear[guess[i] - 'A'] == -1)
                     now_appear[guess[i] - 'A'] = 0;
                 now_appear[guess[i] - 'A']++;
@@ -81,7 +84,8 @@ int main()
             }
             else if (usr_input[i] == 'Y')
             {
-                words_num = rm_words(guess[i], -1, 0);
+                words_num = rm_words(guess[i], -1, 0, 0);
+                words_num = rm_words(guess[i], i, -1, 0);
                 if (now_appear[guess[i] - 'A'] == -1)
                     now_appear[guess[i] - 'A'] = 0;
                 now_appear[guess[i] - 'A']++;
@@ -91,6 +95,7 @@ int main()
                 now_appear[guess[i] - 'A'] = -1;
             }
         }
+        int8_t only[26] = {0};
         for (int32_t i = 0; i < 26; i++)
         {
             if ((now_appear[i] > last_appear[i] && last_appear[i] != -1) || now_appear[i] == -1)
@@ -107,6 +112,10 @@ int main()
                 }
                 last_appear[i] = now_appear[i];
             }
+            if (count_aphabet[i] > last_appear[i] && last_appear[i] > 0)
+            {
+                only[i] = 1;
+            }
             if (DEBUG)
                 fptf(stderr, "%d ", last_appear[i]);
         }
@@ -114,15 +123,15 @@ int main()
         {
             if (last_appear[i])
             {
-                words_num = rm_words(i + 'A', -1, last_appear[i]);
+                words_num = rm_words(i + 'A', -1, last_appear[i], only[i]);
             }
         }
         if (words_num == 0)
         {
-            printf( “No Advice\n”);
+            printf("No Advice\n");
             goto err_cleanup;
         }
-        else if (words_num == 1 || strchr(answer, ' ') == NULL)
+        else if (strchr(answer, ' ') == NULL)
         {
             printf("Congratulations!!\n");
             if (!DEBUG)
@@ -193,7 +202,64 @@ static int8_t get_5_chr_words(char *input, char output[6])
     }
     return 0;
 }
-static int32_t rm_words(char input, int32_t pos, int8_t t) // t = 0 don't know/care, t<0 not in, t>0 in
+static int8_t sort_5_chr_words()
+{
+    FILE *dic = fopen("five_chr_dic.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    if (dic == NULL)
+    {
+        return -1;
+    }
+    char words[5000][6];
+    int32_t count = 0;
+    while (!feof(dic))
+    {
+        char line[7] = {0};
+        fgets(line, 7, dic);
+        if (line[0] == '\0')
+            break;
+        line[5] = '\0';
+        strcpy(words[count], line);
+        count++;
+    }
+    for (int32_t i = 0; i < count; i++)
+    {
+        for (int32_t j = i + 1; j < count; j++)
+        {
+            for (int32_t k = 0; k < 5; k++)
+            {
+                if (words[i][k] > words[j][k])
+                {
+                    char temp[6];
+                    strcpy(temp, words[i]);
+                    strcpy(words[i], words[j]);
+                    strcpy(words[j], temp);
+                    break;
+                }
+                else if (words[i][k] < words[j][k])
+                {
+                    break;
+                }
+                else if (k == 4)
+                {
+                    strcpy(words[j], words[count - 1]);
+                    count--;
+                }
+            }
+        }
+    }
+    for (int32_t i = 0; i < count; i++)
+    {
+        fprintf(temp, "%s\n", words[i]);
+    }
+    fclose(dic);
+    fclose(temp);
+    remove("five_chr_dic.txt");
+    rename("temp.txt", "five_chr_dic.txt");
+    return 0;
+}
+
+static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only) // t = 0 don't know/care, t<0 not in, t>0 in
 {
     FILE *dic = fopen("five_chr_dic.txt", "r");
     FILE *temp = fopen("temp.txt", "w");
@@ -241,7 +307,15 @@ static int32_t rm_words(char input, int32_t pos, int8_t t) // t = 0 don't know/c
                         ct++;
                     }
                 }
-                if (ct == t)
+                if (only)
+                {
+                    if (ct == t)
+                    {
+                        fprintf(temp, "%s", line);
+                        count++;
+                    }
+                }
+                else if (ct >= t)
                 {
                     fprintf(temp, "%s", line);
                     count++;
@@ -250,12 +324,23 @@ static int32_t rm_words(char input, int32_t pos, int8_t t) // t = 0 don't know/c
         }
         else
         {
-            if (line[pos] == input)
+            if (t == -1)
             {
-                fprintf(temp, "%s", line);
-                if (DEBUG)
-                    fptf(stderr, "%s", line);
-                count++;
+                if (line[pos] != input)
+                {
+                    fprintf(temp, "%s", line);
+                    count++;
+                }
+            }
+            else
+            {
+                if (line[pos] == input)
+                {
+                    fprintf(temp, "%s", line);
+                    // if (DEBUG)
+                    //     fptf(stderr, "%s", line);
+                    count++;
+                }
             }
         }
     }
