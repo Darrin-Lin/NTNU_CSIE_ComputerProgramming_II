@@ -38,6 +38,7 @@ int main()
     {
         goto err_close;
     }
+    time_shift *= -1;
     time_shift *= 1000000;
     if (time_shift < 0)
     {
@@ -89,6 +90,17 @@ int main()
             break;
         }
     }
+    if(DEBUG){
+        fptf(stderr, "primary_colour: %d\n", primary_colour & 0xFF0000);
+    }
+    uint8_t primary_colour_blue = (uint8_t)((primary_colour & 0xFF0000)>>16);
+    uint8_t primary_colour_green = (uint8_t)((primary_colour & 0x00FF00)>>8);
+    uint8_t primary_colour_red = (uint8_t)((primary_colour & 0x0000FF));
+    if(DEBUG){
+        fptf(stderr, "primary_colour_blue: %d\n", primary_colour_blue);
+        fptf(stderr, "primary_colour_green: %d\n", primary_colour_green);
+        fptf(stderr, "primary_colour_red: %d\n", primary_colour_red);
+    }
     if (style_check == 0)
     {
         goto err_close;
@@ -97,7 +109,7 @@ int main()
     Stime now = {0, 0};
     // Dialogue: 0,0:00:25.06,0:00:28.86,Default,,0,0,0,,... Three minutes.
     // ansi
-    printf("\e[38;2;%d;0;0m", primary_colour);
+    printf("\e[38;2;%d;%d;%dm", primary_colour_red, primary_colour_green, primary_colour_blue);
     while (!feof(file))
     {
 
@@ -177,7 +189,8 @@ int main()
         last = now;
         system("clear");
     }
-
+    fclose(file);
+    printf("\e[0m");
     return 0;
 err_close:
     fclose(file);
