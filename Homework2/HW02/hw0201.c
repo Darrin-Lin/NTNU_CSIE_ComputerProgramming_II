@@ -9,7 +9,6 @@
 #define DEBUG 0
 
 int32_t primary_colour = 0;
-// int64_t time_microsec = 0;
 int64_t time_shift = 0;
 double speed = 0;
 
@@ -23,7 +22,6 @@ static int8_t mystrcpy(char *dest, const char *src, int32_t len, char stop);
 
 int main()
 {
-    // usleep(1000000);
     char file_name[100];
     printf("Please enter the file name: ");
     fgets(file_name, 100, stdin);
@@ -35,7 +33,7 @@ int main()
     }
     char line[1000];
     printf("Time Shift ( -10 ~ 10 ): ");
-    scanf("%d", &time_shift);
+    scanf("%ld", &time_shift);
     if (time_shift < -10 || time_shift > 10)
     {
         goto err_close;
@@ -45,8 +43,7 @@ int main()
     {
         usleep(-time_shift);
     }
-    
-    // time_microsec = time_shift * 1000000;
+
     printf("Speed (0.25,0.5,0.75,1,1.25,1.5,1.75,2): ");
     scanf("%lf", &speed);
     if (fabs(speed - 0.25) > 1e-6 && fabs(speed - 0.5) > 1e-6 && fabs(speed - 0.75) > 1e-6 && fabs(speed - 1) > 1e-6 && fabs(speed - 1.25) > 1e-6 && fabs(speed - 1.5) > 1e-6 && fabs(speed - 1.75) > 1e-6 && fabs(speed - 2) > 1e-6)
@@ -137,7 +134,7 @@ int main()
             fptf(stderr, "time_end: %s\n", time_end);
             fptf(stderr, "santance: %s\n", santance);
         }
-        int64_t hour = 0, min = 0;
+        int32_t hour = 0, min = 0;
         double sec = 0;
         sscanf(time_start, "%d:%d:%lf", &hour, &min, &sec);
         if (DEBUG)
@@ -177,9 +174,6 @@ int main()
             system("clear");
         }
 
-        // time_microsec += (now.start - last.end);
-
-        // time_microsec += (now.end - now.start);
         last = now;
         system("clear");
     }
