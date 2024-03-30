@@ -51,18 +51,19 @@ int main()
         printf("Advice:   ");
         printf("%s\n", guess);
         printf("Feedback: ");
-        scanf("%s", usr_input);
-        if (strlen(usr_input) != 5)
+        // scanf("%s", usr_input);
+        fgets(usr_input, 1024, stdin);
+        if (strlen(usr_input) != 6)
         {
-            printf("Invalid input\n");
+            printf("Wrong Input\n");
             goto err_cleanup;
-            
         }
+        usr_input[5] = '\0';
         for (int32_t i = 0; i < 5; i++)
         {
             if (strchr("BYG", usr_input[i]) == NULL)
             {
-                printf("Invalid input\n");
+                printf("Wrong Input\n");
                 goto err_cleanup;
             }
         }
@@ -94,6 +95,16 @@ int main()
         {
             if ((now_appear[i] > last_appear[i] && last_appear[i] != -1) || now_appear[i] == -1)
             {
+                if (now_appear[i] == -1 && last_appear[i] > 0)
+                {
+                    printf("Wrong Input\n");
+                    goto err_cleanup;
+                }
+                if (last_appear[i] == -1 && now_appear[i] > 0)
+                {
+                    printf("Wrong Input\n");
+                    goto err_cleanup;
+                }
                 last_appear[i] = now_appear[i];
             }
             if (DEBUG)
@@ -108,7 +119,7 @@ int main()
         }
         if (words_num == 0)
         {
-            printf("No words found\n");
+            printf( “No Advice\n”);
             goto err_cleanup;
         }
         else if (words_num == 1 || strchr(answer, ' ') == NULL)
@@ -126,7 +137,7 @@ int main()
     if (!DEBUG)
         remove("five_chr_dic.txt");
     return 0;
-    err_cleanup:
+err_cleanup:
     if (!DEBUG)
         remove("five_chr_dic.txt");
     return -1;
