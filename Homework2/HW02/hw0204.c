@@ -64,6 +64,11 @@ int main()
     }
     sBmpHeader header;
     fread(&header, sizeof(header), 1, image_read);
+    if (header.bm[0] != 'B' || header.bm[1] != 'M')
+    {
+        printf("Not a BMP file\n");
+        return -1;
+    }
     sBmpHeader header_write;
     header_write = header;
     size_t shift = header.height * tan(angle);
@@ -71,6 +76,7 @@ int main()
     header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4)) % 4);
     header_write.bitmap_size = header_write.size - header.offset;
     // print header
+    if (DEBUG)
     {
         printf("ID: %c%c\n", header.bm[0], header.bm[1]);
         printf("Size: %u\n", header.size);
@@ -89,6 +95,7 @@ int main()
         printf("Important Colors: %u\n", header.important);
     }
     // print header_write
+    if (DEBUG)
     {
         printf("ID: %c%c\n", header_write.bm[0], header_write.bm[1]);
         printf("Size: %u\n", header_write.size);
@@ -108,7 +115,8 @@ int main()
     }
     fwrite(&header_write, sizeof(header_write), 1, image_write);
     size_t line = 0;
-    fptf(stderr, "shift: %ld\n", shift);
+    if (DEBUG)
+        fptf(stderr, "shift: %ld\n", shift);
     size_t pixel = 0;
     while (!feof(image_read))
     {
@@ -124,13 +132,11 @@ int main()
             white[2] = 255;
             if (DEBUG)
             {
-                if (i > (header_write.width) - (blank + header.width) - 1)
+                if (i == 0)
                 {
                     white[0] = 0;
                     white[1] = 0;
                     white[2] = 0;
-                    pixel += 3;
-                    continue;
                 }
             }
             fwrite(white, 3, 1, image_write);
@@ -141,9 +147,6 @@ int main()
         size_t col = 0;
         while (!feof(image_read))
         {
-
-            /* code */
-
             uint8_t original[3] = {0};
             uint8_t modified[3] = {0}; // problem with 3840
             size_t count = fread(original, 1, 3, image_read);
@@ -155,23 +158,32 @@ int main()
             {
                 modified[i] = original[i];
                 pixel++;
-                col++;
-                if (col >= 3 * header.width)
+            }
+            if (DEBUG)
+            {
+                if (col == 0)
                 {
-                    // fptf(stderr, "col: %ld\n", col);
-                    // fptf(stderr, "i: %ld\n", i);
-                    col = 0;
-                    if (DEBUG)
-                    {
-                        modified[0] = 0;
-                        modified[1] = 0;
-                        modified[2] = 0;
-                    }
-                    fwrite(modified, i + 1, 1, image_write);
-                    // fptf(stderr, "pixel: %ld\n", pixel);
-                    goto blank_back;
-                    // break;
+                    modified[0] = 0;
+                    modified[1] = 0;
+                    modified[2] = 0;
                 }
+            }
+            col++;
+            if (col >= header.width)
+            {
+                // fptf(stderr, "col: %ld\n", col);
+                // fptf(stderr, "i: %ld\n", i);
+                col = 0;
+                if (DEBUG)
+                {
+                    modified[0] = 0;
+                    modified[1] = 0;
+                    modified[2] = 0;
+                }
+                fwrite(modified, 3, 1, image_write);
+                // fptf(stderr, "pixel: %ld\n", pixel);
+                goto blank_back;
+                // break;
             }
             fwrite(modified, count, 1, image_write);
         }
@@ -186,12 +198,11 @@ int main()
             white[2] = 255;
             if (DEBUG)
             {
-                if (i >= blank - 1)
+                if (i == blank - 1)
                 {
                     white[0] = 0;
                     white[1] = 0;
                     white[2] = 0;
-                    pixel += 3;
                 }
             }
             fwrite(white, 3, 1, image_write);
@@ -210,7 +221,8 @@ int main()
         }
         // fptf(stderr, "Line: %ld\n", line);
     }
-    fptf(stderr, "pixel: %ld\n", pixel);
+    if (DEBUG)
+        fptf(stderr, "pixel: %ld\n", pixel);
     fclose(image_read);
     fclose(image_write);
     return 0;
