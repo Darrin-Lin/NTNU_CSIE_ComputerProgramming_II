@@ -18,6 +18,7 @@ hw02
 
 #### 3/30 Finish
 把畫面用完了，第一次應該如題目所敘不用清空畫面，然後目前對顏色的表示方式不太懂，以及跳過的時間是否要也要用倍速，寫信去問了。
+馬上就回了，跟著時間走，然後 time shift 是往前移，然後顏色是用 BGR 表示，在 [這裡](https://web.archive.org/web/20110720113748/http://www.perlfu.co.uk/projects/asa/ass-specs.doc) 有提到，我居然沒找到。
 
 ----
 
