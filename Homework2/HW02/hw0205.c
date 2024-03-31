@@ -41,6 +41,30 @@ enum gguf_metadata_value_type // uin32_t
     // The value is a 64-bit IEEE754 floating point number.
     GGUF_METADATA_VALUE_TYPE_FLOAT64 = 12,
 };
+enum ggml_type
+{
+    GGML_TYPE_F32 = 0,
+    GGML_TYPE_F16 = 1,
+    GGML_TYPE_Q4_0 = 2,
+    GGML_TYPE_Q4_1 = 3,
+    // GGML_TYPE_Q4_2 = 4, support has been removed
+    // GGML_TYPE_Q4_3 (5) support has been removed
+    GGML_TYPE_Q5_0 = 6,
+    GGML_TYPE_Q5_1 = 7,
+    GGML_TYPE_Q8_0 = 8,
+    GGML_TYPE_Q8_1 = 9,
+    // k-quantizations
+    GGML_TYPE_Q2_K = 10,
+    GGML_TYPE_Q3_K = 11,
+    GGML_TYPE_Q4_K = 12,
+    GGML_TYPE_Q5_K = 13,
+    GGML_TYPE_Q6_K = 14,
+    GGML_TYPE_Q8_K = 15,
+    GGML_TYPE_I8,
+    GGML_TYPE_I16,
+    GGML_TYPE_I32,
+    GGML_TYPE_COUNT,
+};
 typedef struct _Sgguf_header
 {
     uint32_t magic_number;
@@ -52,6 +76,8 @@ typedef struct _Sgguf_header
 
 static int8_t get_string(FILE *file, char str[]);
 static uint8_t get_value(FILE *file, uint32_t type);
+
+uint64_t parameter =0;
 
 int main()
 {
@@ -72,7 +98,8 @@ int main()
         fclose(gguf_read);
         return -1;
     }
-
+    printf("Parameters:"); // fix here
+    printf("\n");
     printf("Metadata                                Value\n");
     printf("Version:                                %u\n", gguf_header.version);
     printf("tensor_count:                           %lu\n", gguf_header.tenson_count);
@@ -95,13 +122,104 @@ int main()
     printf("Tensors                                 Shape            Precision\n");
     for (uint64_t i = 0; i < gguf_header.tenson_count; i++)
     {
+
         char name[200] = {0};
-        // get_string(gguf_read, name);
-        // printf("%s:", name);
-        // printf("\n");
+        get_string(gguf_read, name);
+        printf("%s:", name);
+        for (size_t i = 0; i < 39 - strlen(name); i++)
+        {
+            printf(" ");
+        }
+        uint32_t n_dim = 0;
+        fread(&n_dim, sizeof(uint32_t), 1, gguf_read);
+        printf("[");
+        int64_t strlen_count = 0;
+        strlen_count++;
+        for (uint32_t j = 0; j < n_dim; j++)
+        {
+            uint64_t dimensions = 0;
+            fread(&dimensions, sizeof(uint64_t), 1, gguf_read);
+            printf("%ld", dimensions);
+            char len_ct[100] = {0};
+            sprintf(len_ct, "%ld", dimensions);
+            strlen_count += strlen(len_ct);
+            if (j != n_dim - 1)
+            {
+                printf(",");
+                strlen_count++;
+            }
+        }
+        printf("]");
+        strlen_count ++;
+        for (int64_t i = 0; i < 17-strlen_count; i++)
+        {
+            printf(" ");
+        }
+        uint32_t precision = 0;
+        fread(&precision, sizeof(uint32_t), 1, gguf_read);
+        switch (precision)
+        {
+        case GGML_TYPE_F32:
+            printf("F32");
+            break;
+        case GGML_TYPE_F16:
+            printf("F16");
+            break;
+        case GGML_TYPE_Q4_0:
+            printf("Q4.0");
+            break;
+        case GGML_TYPE_Q4_1:
+            printf("Q4.1");
+            break;
+        case GGML_TYPE_Q5_0:
+            printf("Q5.0");
+            break;
+        case GGML_TYPE_Q5_1:
+            printf("Q5.1");
+            break;
+        case GGML_TYPE_Q8_0:
+            printf("Q8.0");
+            break;
+        case GGML_TYPE_Q8_1:
+            printf("Q8.1");
+            break;
+        case GGML_TYPE_Q2_K:
+            printf("Q2.K");
+            break;
+        case GGML_TYPE_Q3_K:
+            printf("Q3.K");
+            break;
+        case GGML_TYPE_Q4_K:
+            printf("Q4.K");
+            break;
+        case GGML_TYPE_Q5_K:
+            printf("Q5.K");
+            break;
+        case GGML_TYPE_Q6_K:
+            printf("Q6.K");
+            break;
+        case GGML_TYPE_Q8_K:
+            printf("Q8.K");
+            break;
+        case GGML_TYPE_I8:
+            printf("I8");
+            break;
+        case GGML_TYPE_I16:
+            printf("I16");
+            break;
+        case GGML_TYPE_I32:
+            printf("I32");
+            break;
+        default:
+            break;
+        }   
+        uint64_t offset = 0;
+        fread(&offset, sizeof(uint64_t), 1, gguf_read);
+        // don't know what to do with offset
+        printf("\n");
     }
     fclose(gguf_read);
-
+    printf("Total parameter size: %lu\n", parameter);
     return 0;
 }
 static int8_t get_string(FILE *file, char str[])
@@ -161,11 +279,10 @@ static uint8_t get_value(FILE *file, uint32_t type)
         fread(&value7, sizeof(uint8_t), 1, file);
         if (value7 == 0)
             printf("false");
-        // else if (value7 == 1)
-        else
+        else if (value7 == 1)
             printf("true");
-        // else
-        //     printf("invalid");
+        else
+            printf("invalid");
         break;
     case GGUF_METADATA_VALUE_TYPE_STRING:
         char value8[1000] = {0};
