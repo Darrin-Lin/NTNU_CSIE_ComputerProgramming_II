@@ -75,9 +75,10 @@ typedef struct _Sgguf_header
 } __attribute__((__packed__)) Sgguf_header;
 
 static int8_t get_string(FILE *file, char str[]);
-static uint8_t get_value(FILE *file, uint32_t type);
+static uint8_t get_value(FILE *file, uint32_t type, int8_t print);
+static int8_t count_parameters(FILE *file, Sgguf_header gguf_header);
 
-uint64_t parameter =0;
+uint64_t parameter = 0;
 
 int main()
 {
@@ -98,7 +99,23 @@ int main()
         fclose(gguf_read);
         return -1;
     }
-    printf("Parameters:"); // fix here
+    count_parameters(gguf_read, gguf_header);
+    printf("Parameters: ");
+    char num[100] = {0};
+    sprintf(num, "%lu", parameter);
+    int64_t len = strlen(num);
+    for (int64_t i = 0; i < len; i++)
+    {
+        printf("%c", num[i]);
+        if ((len - i - 1) % 3 == 0 && i != len - 1)
+        {
+            printf(",");
+        }
+    }
+    printf("\n");
+
+    fseek(gguf_read, 0, SEEK_SET);
+    fread(&gguf_header, sizeof(Sgguf_header), 1, gguf_read);
     printf("\n");
     printf("Metadata                                Value\n");
     printf("Version:                                %u\n", gguf_header.version);
@@ -115,7 +132,7 @@ int main()
             printf(" ");
         }
         fread(&type, sizeof(uint32_t), 1, gguf_read);
-        get_value(gguf_read, type);
+        get_value(gguf_read, type, 1);
         printf("\n");
     }
     printf("\n");
@@ -135,6 +152,7 @@ int main()
         printf("[");
         int64_t strlen_count = 0;
         strlen_count++;
+        uint64_t count = 1;
         for (uint32_t j = 0; j < n_dim; j++)
         {
             uint64_t dimensions = 0;
@@ -142,6 +160,7 @@ int main()
             printf("%ld", dimensions);
             char len_ct[100] = {0};
             sprintf(len_ct, "%ld", dimensions);
+            count *= dimensions;
             strlen_count += strlen(len_ct);
             if (j != n_dim - 1)
             {
@@ -149,9 +168,10 @@ int main()
                 strlen_count++;
             }
         }
+        parameter += count;
         printf("]");
-        strlen_count ++;
-        for (int64_t i = 0; i < 17-strlen_count; i++)
+        strlen_count++;
+        for (int64_t i = 0; i < 17 - strlen_count; i++)
         {
             printf(" ");
         }
@@ -212,14 +232,13 @@ int main()
             break;
         default:
             break;
-        }   
+        }
         uint64_t offset = 0;
         fread(&offset, sizeof(uint64_t), 1, gguf_read);
         // don't know what to do with offset
         printf("\n");
     }
     fclose(gguf_read);
-    printf("Total parameter size: %lu\n", parameter);
     return 0;
 }
 static int8_t get_string(FILE *file, char str[])
@@ -235,91 +254,144 @@ static int8_t get_string(FILE *file, char str[])
     str[strlen(str)] = '\0';
     return -1;
 }
-static uint8_t get_value(FILE *file, uint32_t type)
+static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
 {
     switch (type)
     {
     case GGUF_METADATA_VALUE_TYPE_UINT8:
         uint8_t value = 0;
         fread(&value, sizeof(uint8_t), 1, file);
-        printf("%d", value);
+        if (print)
+            printf("%d", value);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT8:
         int8_t value1 = 0;
         fread(&value1, sizeof(int8_t), 1, file);
-        printf("%d", value1);
+        if (print)
+            printf("%d", value1);
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT16:
         uint16_t value2 = 0;
         fread(&value2, sizeof(uint16_t), 1, file);
-        printf("%d", value2);
+        if (print)
+            printf("%d", value2);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT16:
         int16_t value3 = 0;
         fread(&value3, sizeof(int16_t), 1, file);
-        printf("%d", value3);
+        if (print)
+            printf("%d", value3);
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT32:
         uint32_t value4 = 0;
         fread(&value4, sizeof(uint32_t), 1, file);
-        printf("%d", value4);
+        if (print)
+            printf("%d", value4);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT32:
         int32_t value5 = 0;
         fread(&value5, sizeof(int32_t), 1, file);
-        printf("%d", value5);
+        if (print)
+            printf("%d", value5);
         break;
     case GGUF_METADATA_VALUE_TYPE_FLOAT32:
         float value6 = 0;
         fread(&value6, sizeof(float), 1, file);
-        printf("%f", value6);
+        if (print)
+            printf("%f", value6);
         break;
     case GGUF_METADATA_VALUE_TYPE_BOOL:
         uint8_t value7 = 0;
         fread(&value7, sizeof(uint8_t), 1, file);
-        if (value7 == 0)
-            printf("false");
-        else if (value7 == 1)
-            printf("true");
-        else
-            printf("invalid");
+        if (print)
+        {
+            if (value7 == 0)
+                printf("false");
+            else if (value7 == 1)
+                printf("true");
+            else
+                printf("invalid");
+        }
         break;
     case GGUF_METADATA_VALUE_TYPE_STRING:
         char value8[1000] = {0};
         get_string(file, value8);
-        printf("%s", value8);
+        if (print)
+            printf("%s", value8);
         break;
     case GGUF_METADATA_VALUE_TYPE_ARRAY:
         uint32_t array_type = 0;
         fread(&array_type, sizeof(uint32_t), 1, file);
         uint64_t array_len = 0;
         fread(&array_len, sizeof(uint64_t), 1, file);
-        printf("[");
+        if (print)
+            printf("[");
         for (uint64_t i = 0; i < array_len; i++)
         {
-            get_value(file, array_type);
-            if (i != array_len - 1)
-                printf(", ");
+            get_value(file, array_type, print);
+            if (print)
+                if (i != array_len - 1)
+                    printf(", ");
         }
-        printf("]");
+        if (print)
+            printf("]");
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT64:
         uint64_t value9 = 0;
         fread(&value9, sizeof(uint64_t), 1, file);
-        printf("%lu", value9);
+        if (print)
+            printf("%lu", value9);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT64:
         int64_t value10 = 0;
         fread(&value10, sizeof(int64_t), 1, file);
-        printf("%ld", value10);
+        if (print)
+            printf("%ld", value10);
         break;
     case GGUF_METADATA_VALUE_TYPE_FLOAT64:
         double value11 = 0;
         fread(&value11, sizeof(double), 1, file);
-        printf("%f", value11);
+        if (print)
+            printf("%f", value11);
         break;
     default:
         break;
+    }
+    return 0;
+}
+static int8_t count_parameters(FILE *file, Sgguf_header gguf_header)
+{
+    uint32_t type = 0;
+    for (uint64_t i = 0; i < gguf_header.metadata_kv_count; i++)
+    {
+        char title[100] = {0};
+        get_string(file, title);
+        fread(&type, sizeof(uint32_t), 1, file);
+        get_value(file, type, 0);
+    }
+    for (uint64_t i = 0; i < gguf_header.tenson_count; i++)
+    {
+
+        char name[200] = {0};
+        get_string(file, name);
+        uint32_t n_dim = 0;
+        fread(&n_dim, sizeof(uint32_t), 1, file);
+        uint64_t count = 1;
+        for (uint32_t j = 0; j < n_dim; j++)
+        {
+            uint64_t dimensions = 0;
+            fread(&dimensions, sizeof(uint64_t), 1, file);
+
+            count *= dimensions;
+        }
+        parameter += count;
+
+        uint32_t precision = 0;
+        fread(&precision, sizeof(uint32_t), 1, file);
+
+        uint64_t offset = 0;
+        fread(&offset, sizeof(uint64_t), 1, file);
+        // don't know what to do with offset
     }
     return 0;
 }
