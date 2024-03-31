@@ -56,7 +56,7 @@ hw02
 ### hw0205
 
 #### 3/31 Start
-我把前 24 byte 的輸入處理好了，但 Parameters 跟怎麼讀 metadate 還是沒想法。
+我把前 24 byte 的輸入處理好了，metadata 寫成 function 很好讀，還有 offset 是做甚麼的，然後寫信去問 fit into an 80-column width 的問題了，最後剩下分類 tensor 了。
 
 ----
 
