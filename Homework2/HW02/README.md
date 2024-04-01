@@ -55,8 +55,11 @@ hw02
 
 ### hw0205
 
-#### 3/31 Start
+#### 3/3選項Start
 我把前 24 byte 的輸入處理好了，metadata 寫成 function 很好讀，還有 offset 是做甚麼的，然後寫信去問 fit into an 80-column width 的問題了，最後剩下分類 tensor 了。
+
+#### 4/1 Edit
+助教給了個四個選項，直接省略，顯示省略數量，中間省略並加上省略數量，或是自己決定，我決定用第二種。我決定寫信去問 tensor 的排版。
 
 ----
 
