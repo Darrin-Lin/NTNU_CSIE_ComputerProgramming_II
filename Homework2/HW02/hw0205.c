@@ -328,10 +328,23 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
             fprintf(stdout, "[");
         for (uint64_t i = 0; i < array_len; i++)
         {
-            get_value(file, array_type, print);
-            if (print)
-                if (i != array_len - 1)
-                    fprintf(stdout, ", ");
+            if (array_len > 3&&i>=3)
+            {
+                if(i==array_len-1)
+                {
+                    fprintf(stdout,"...(%ld)",array_len-3);
+                }
+                get_value(file,array_type,0);
+            }
+            else
+            {
+                get_value(file, array_type, print);
+                if (print)
+                {
+                    if (i != array_len - 1)
+                        fprintf(stdout, ", ");
+                }
+            }
         }
         if (print)
             fprintf(stdout, "]");
