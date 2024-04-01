@@ -90,66 +90,66 @@ int main()
     Sgguf_header gguf_header;
     uint32_t type = 0;
     fread(&gguf_header, sizeof(Sgguf_header), 1, gguf_read);
-    printf("GGUF: ");
+    fprintf(stdout, "GGUF: ");
     if (gguf_header.magic_number == 0x46554747)
-        printf("true\n");
+        fprintf(stdout, "true\n");
     else
     {
-        printf("false\n");
+        fprintf(stdout, "false\n");
         fclose(gguf_read);
         return -1;
     }
     count_parameters(gguf_read, gguf_header);
-    printf("Parameters: ");
+    fprintf(stdout, "Parameters: ");
     char num[100] = {0};
     sprintf(num, "%lu", parameter);
     int64_t len = strlen(num);
     for (int64_t i = 0; i < len; i++)
     {
-        printf("%c", num[i]);
+        fprintf(stdout, "%c", num[i]);
         if ((len - i - 1) % 3 == 0 && i != len - 1)
         {
-            printf(",");
+            fprintf(stdout, ",");
         }
     }
-    printf("\n");
+    fprintf(stdout, "\n");
 
     fseek(gguf_read, 0, SEEK_SET);
     fread(&gguf_header, sizeof(Sgguf_header), 1, gguf_read);
-    printf("\n");
-    printf("Metadata                                Value\n");
-    printf("Version:                                %u\n", gguf_header.version);
-    printf("tensor_count:                           %lu\n", gguf_header.tenson_count);
-    printf("kv_count:                               %lu\n", gguf_header.metadata_kv_count);
+    fprintf(stdout, "\n");
+    fprintf(stdout, "Metadata                                Value\n");
+    fprintf(stdout, "Version:                                %u\n", gguf_header.version);
+    fprintf(stdout, "tensor_count:                           %lu\n", gguf_header.tenson_count);
+    fprintf(stdout, "kv_count:                               %lu\n", gguf_header.metadata_kv_count);
 
     for (uint64_t i = 0; i < gguf_header.metadata_kv_count; i++)
     {
         char title[100] = {0};
         get_string(gguf_read, title);
-        printf("%s:", title);
+        fprintf(stdout, "%s:", title);
         for (size_t i = 0; i < 39 - strlen(title); i++)
         {
-            printf(" ");
+            fprintf(stdout, " ");
         }
         fread(&type, sizeof(uint32_t), 1, gguf_read);
         get_value(gguf_read, type, 1);
-        printf("\n");
+        fprintf(stdout, "\n");
     }
-    printf("\n");
-    printf("Tensors                                 Shape            Precision\n");
+    fprintf(stdout, "\n");
+    fprintf(stdout, "Tensors                                 Shape            Precision\n");
     for (uint64_t i = 0; i < gguf_header.tenson_count; i++)
     {
 
         char name[200] = {0};
         get_string(gguf_read, name);
-        printf("%s:", name);
+        fprintf(stdout, "%s:", name);
         for (size_t i = 0; i < 39 - strlen(name); i++)
         {
-            printf(" ");
+            fprintf(stdout, " ");
         }
         uint32_t n_dim = 0;
         fread(&n_dim, sizeof(uint32_t), 1, gguf_read);
-        printf("[");
+        fprintf(stdout, "[");
         int64_t strlen_count = 0;
         strlen_count++;
         uint64_t count = 1;
@@ -157,78 +157,78 @@ int main()
         {
             uint64_t dimensions = 0;
             fread(&dimensions, sizeof(uint64_t), 1, gguf_read);
-            printf("%ld", dimensions);
+            fprintf(stdout, "%ld", dimensions);
             char len_ct[100] = {0};
             sprintf(len_ct, "%ld", dimensions);
             count *= dimensions;
             strlen_count += strlen(len_ct);
             if (j != n_dim - 1)
             {
-                printf(",");
+                fprintf(stdout, ",");
                 strlen_count++;
             }
         }
         parameter += count;
-        printf("]");
+        fprintf(stdout, "]");
         strlen_count++;
         for (int64_t i = 0; i < 17 - strlen_count; i++)
         {
-            printf(" ");
+            fprintf(stdout, " ");
         }
         uint32_t precision = 0;
         fread(&precision, sizeof(uint32_t), 1, gguf_read);
         switch (precision)
         {
         case GGML_TYPE_F32:
-            printf("F32");
+            fprintf(stdout, "F32");
             break;
         case GGML_TYPE_F16:
-            printf("F16");
+            fprintf(stdout, "F16");
             break;
         case GGML_TYPE_Q4_0:
-            printf("Q4_0");
+            fprintf(stdout, "Q4_0");
             break;
         case GGML_TYPE_Q4_1:
-            printf("Q4_1");
+            fprintf(stdout, "Q4_1");
             break;
         case GGML_TYPE_Q5_0:
-            printf("Q5_0");
+            fprintf(stdout, "Q5_0");
             break;
         case GGML_TYPE_Q5_1:
-            printf("Q5_1");
+            fprintf(stdout, "Q5_1");
             break;
         case GGML_TYPE_Q8_0:
-            printf("Q8_0");
+            fprintf(stdout, "Q8_0");
             break;
         case GGML_TYPE_Q8_1:
-            printf("Q8_1");
+            fprintf(stdout, "Q8_1");
             break;
         case GGML_TYPE_Q2_K:
-            printf("Q2_K");
+            fprintf(stdout, "Q2_K");
             break;
         case GGML_TYPE_Q3_K:
-            printf("Q3_K");
+            fprintf(stdout, "Q3_K");
             break;
         case GGML_TYPE_Q4_K:
-            printf("Q4_K");
+            fprintf(stdout, "Q4_K");
             break;
         case GGML_TYPE_Q5_K:
-            printf("Q5_K");
+            fprintf(stdout, "Q5_K");
             break;
         case GGML_TYPE_Q6_K:
-            printf("Q6_K");
+            fprintf(stdout, "Q6_K");
             break;
         case GGML_TYPE_Q8_K:
-            printf("Q8_K");
+            fprintf(stdout, "Q8_K");
             break;
         case GGML_TYPE_I8:
-            printf("I8");
+            fprintf(stdout, "I8");
             break;
         case GGML_TYPE_I16:
-            printf("I16");
+            fprintf(stdout, "I16");
             break;
         case GGML_TYPE_I32:
-            printf("I32");
+            fprintf(stdout, "I32");
             break;
         default:
             break;
@@ -236,7 +236,7 @@ int main()
         uint64_t offset = 0;
         fread(&offset, sizeof(uint64_t), 1, gguf_read);
         // don't know what to do with offset
-        printf("\n");
+        fprintf(stdout, "\n");
     }
     fclose(gguf_read);
     return 0;
@@ -262,43 +262,43 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
         uint8_t value = 0;
         fread(&value, sizeof(uint8_t), 1, file);
         if (print)
-            printf("%d", value);
+            fprintf(stdout, "%d", value);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT8:
         int8_t value1 = 0;
         fread(&value1, sizeof(int8_t), 1, file);
         if (print)
-            printf("%d", value1);
+            fprintf(stdout, "%d", value1);
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT16:
         uint16_t value2 = 0;
         fread(&value2, sizeof(uint16_t), 1, file);
         if (print)
-            printf("%d", value2);
+            fprintf(stdout, "%d", value2);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT16:
         int16_t value3 = 0;
         fread(&value3, sizeof(int16_t), 1, file);
         if (print)
-            printf("%d", value3);
+            fprintf(stdout, "%d", value3);
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT32:
         uint32_t value4 = 0;
         fread(&value4, sizeof(uint32_t), 1, file);
         if (print)
-            printf("%d", value4);
+            fprintf(stdout, "%d", value4);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT32:
         int32_t value5 = 0;
         fread(&value5, sizeof(int32_t), 1, file);
         if (print)
-            printf("%d", value5);
+            fprintf(stdout, "%d", value5);
         break;
     case GGUF_METADATA_VALUE_TYPE_FLOAT32:
         float value6 = 0;
         fread(&value6, sizeof(float), 1, file);
         if (print)
-            printf("%f", value6);
+            fprintf(stdout, "%f", value6);
         break;
     case GGUF_METADATA_VALUE_TYPE_BOOL:
         uint8_t value7 = 0;
@@ -306,18 +306,18 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
         if (print)
         {
             if (value7 == 0)
-                printf("false");
+                fprintf(stdout, "false");
             else if (value7 == 1)
-                printf("true");
+                fprintf(stdout, "true");
             else
-                printf("invalid");
+                fprintf(stdout, "invalid");
         }
         break;
     case GGUF_METADATA_VALUE_TYPE_STRING:
         char value8[1000] = {0};
         get_string(file, value8);
         if (print)
-            printf("%s", value8);
+            fprintf(stdout, "%s", value8);
         break;
     case GGUF_METADATA_VALUE_TYPE_ARRAY:
         uint32_t array_type = 0;
@@ -325,34 +325,34 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
         uint64_t array_len = 0;
         fread(&array_len, sizeof(uint64_t), 1, file);
         if (print)
-            printf("[");
+            fprintf(stdout, "[");
         for (uint64_t i = 0; i < array_len; i++)
         {
             get_value(file, array_type, print);
             if (print)
                 if (i != array_len - 1)
-                    printf(", ");
+                    fprintf(stdout, ", ");
         }
         if (print)
-            printf("]");
+            fprintf(stdout, "]");
         break;
     case GGUF_METADATA_VALUE_TYPE_UINT64:
         uint64_t value9 = 0;
         fread(&value9, sizeof(uint64_t), 1, file);
         if (print)
-            printf("%lu", value9);
+            fprintf(stdout, "%lu", value9);
         break;
     case GGUF_METADATA_VALUE_TYPE_INT64:
         int64_t value10 = 0;
         fread(&value10, sizeof(int64_t), 1, file);
         if (print)
-            printf("%ld", value10);
+            fprintf(stdout, "%ld", value10);
         break;
     case GGUF_METADATA_VALUE_TYPE_FLOAT64:
         double value11 = 0;
         fread(&value11, sizeof(double), 1, file);
         if (print)
-            printf("%f", value11);
+            fprintf(stdout, "%f", value11);
         break;
     default:
         break;
