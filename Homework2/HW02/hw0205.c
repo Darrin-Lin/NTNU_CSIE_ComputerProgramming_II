@@ -186,40 +186,40 @@ int main()
             printf("F16");
             break;
         case GGML_TYPE_Q4_0:
-            printf("Q4.0");
+            printf("Q4_0");
             break;
         case GGML_TYPE_Q4_1:
-            printf("Q4.1");
+            printf("Q4_1");
             break;
         case GGML_TYPE_Q5_0:
-            printf("Q5.0");
+            printf("Q5_0");
             break;
         case GGML_TYPE_Q5_1:
-            printf("Q5.1");
+            printf("Q5_1");
             break;
         case GGML_TYPE_Q8_0:
-            printf("Q8.0");
+            printf("Q8_0");
             break;
         case GGML_TYPE_Q8_1:
-            printf("Q8.1");
+            printf("Q8_1");
             break;
         case GGML_TYPE_Q2_K:
-            printf("Q2.K");
+            printf("Q2_K");
             break;
         case GGML_TYPE_Q3_K:
-            printf("Q3.K");
+            printf("Q3_K");
             break;
         case GGML_TYPE_Q4_K:
-            printf("Q4.K");
+            printf("Q4_K");
             break;
         case GGML_TYPE_Q5_K:
-            printf("Q5.K");
+            printf("Q5_K");
             break;
         case GGML_TYPE_Q6_K:
-            printf("Q6.K");
+            printf("Q6_K");
             break;
         case GGML_TYPE_Q8_K:
-            printf("Q8.K");
+            printf("Q8_K");
             break;
         case GGML_TYPE_I8:
             printf("I8");
