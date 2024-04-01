@@ -157,9 +157,9 @@ int main()
         {
             uint64_t dimensions = 0;
             fread(&dimensions, sizeof(uint64_t), 1, gguf_read);
-            fprintf(stdout, "%ld", dimensions);
+            fprintf(stdout, "%lu", dimensions);
             char len_ct[100] = {0};
-            sprintf(len_ct, "%ld", dimensions);
+            sprintf(len_ct, "%lu", dimensions);
             count *= dimensions;
             strlen_count += strlen(len_ct);
             if (j != n_dim - 1)
@@ -332,7 +332,7 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
             {
                 if(i==array_len-1)
                 {
-                    fprintf(stdout,"...(%ld)",array_len-3);
+                    fprintf(stdout,"...(%lu)",array_len-3);
                 }
                 get_value(file,array_type,0);
             }
