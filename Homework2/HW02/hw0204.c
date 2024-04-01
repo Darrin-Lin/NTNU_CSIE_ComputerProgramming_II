@@ -190,6 +190,8 @@ int main()
 
     blank_back:
         line++;
+        char not_use[10];
+        fread(not_use,(4 - (header_write.width * 3 % 4))% 4,1,image_read);
         for (size_t i = 0; i < blank; i++)
         {
             uint8_t white[3] = {0};
