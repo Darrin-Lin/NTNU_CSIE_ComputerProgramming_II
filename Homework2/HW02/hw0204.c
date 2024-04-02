@@ -284,7 +284,7 @@ int main()
                 }
             }
             col++;
-            if (col >= header.width)
+            if (col >= (size_t)header.width)
             {
                 // fptf(stderr, "col: %ld\n", col);
                 // fptf(stderr, "i: %ld\n", i);
@@ -366,7 +366,7 @@ int main()
                     pixel += 3;
                 }
             }
-            for (uint32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
+            for (int32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
             {
                 fputc(0, image_write);
             }
@@ -421,7 +421,7 @@ int main()
                 }
             }
 
-            for (uint32_t i = 0; i < (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4; i++)
+            for (int32_t i = 0; i < (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4; i++)
             {
                 fputc(0, image_write);
             }
