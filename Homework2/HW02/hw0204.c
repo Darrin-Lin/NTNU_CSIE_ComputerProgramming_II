@@ -14,8 +14,8 @@ struct _sBmpHeader
     uint32_t reserve;
     uint32_t offset;
     uint32_t header_size;
-    uint32_t width;
-    uint32_t height;
+    int32_t width;
+    int32_t height;
     uint16_t planes;
     uint16_t bpp;
     uint32_t compression;
@@ -64,6 +64,7 @@ int main()
     }
     sBmpHeader header;
     fread(&header, sizeof(header), 1, image_read);
+
     if (header.bm[0] != 'B' || header.bm[1] != 'M')
     {
         printf("Not a BMP file\n");
@@ -71,6 +72,14 @@ int main()
     }
     sBmpHeader header_write;
     header_write = header;
+    if (header.width < 0)
+    {
+        header.width = -header.width;
+    }
+    if (header.height < 0)
+    {
+        header.height = -header.height;
+    }
     size_t shift = header.height * tan(angle);
     header_write.width = shift + header.width;
     if (header_write.bpp == 24)
@@ -131,43 +140,93 @@ int main()
         blank = (header.height - line) * tan(angle);
         // fptf(stderr, "blank: %ld\n", blank);
         // fptf(stderr,"%d\n",(header_write.width * 3) - (blank + header.width * 3));
-        for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
+        if (header_write.height > 0)
         {
-            if (header_write.bpp == 24)
+            for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
             {
-                uint8_t white[3] = {0};
-                white[0] = 255;
-                white[1] = 255;
-                white[2] = 255;
-                if (DEBUG)
+                if (header_write.bpp == 24)
                 {
-                    if (i == 0)
-                    {
-                        white[0] = 0;
-                        white[1] = 0;
-                        white[2] = 0;
-                    }
-                }
-                fwrite(white, 3, 1, image_write);
-                pixel += 3;
-            }
-            else if (header_write.bpp >= 8)
-            {
-                uint8_t white[10] = {0};
-                for (int32_t j = 0; j < header_write.bpp / 8; j++)
-                {
-
-                    white[j] = 255;
+                    uint8_t white[3] = {0};
+                    white[0] = 255;
+                    white[1] = 255;
+                    white[2] = 255;
                     if (DEBUG)
                     {
                         if (i == 0)
                         {
-                            white[j] = 0;
+                            white[0] = 0;
+                            white[1] = 0;
+                            white[2] = 0;
                         }
                     }
+                    fwrite(white, 3, 1, image_write);
+                    pixel += 3;
                 }
-                fwrite(white, header_write.bpp / 8, 1, image_write);
-                pixel += header_write.bpp / 8;
+                else if (header_write.bpp >= 8)
+                {
+                    uint8_t white[10] = {0};
+                    for (int32_t j = 0; j < header_write.bpp / 8; j++)
+                    {
+
+                        white[j] = 255;
+                        if (DEBUG)
+                        {
+                            if (i == 0)
+                            {
+                                white[j] = 0;
+                            }
+                        }
+                    }
+                    fwrite(white, header_write.bpp / 8, 1, image_write);
+                    pixel += header_write.bpp / 8;
+                }
+            }
+        }
+        else
+        {
+            if (header_write.bpp == 24)
+            {
+                for (size_t i = 0; i < blank; i++)
+                {
+                    uint8_t white[3] = {0};
+                    white[0] = 255;
+                    white[1] = 255;
+                    white[2] = 255;
+                    if (DEBUG)
+                    {
+                        if (i == blank - 1)
+                        {
+                            white[0] = 0;
+                            white[1] = 0;
+                            white[2] = 0;
+                        }
+                    }
+                    fwrite(white, 3, 1, image_write);
+                    pixel += 3;
+                }
+            }
+            else if (header_write.bpp >= 8)
+            {
+                for (size_t i = 0; i < blank; i++)
+                {
+                    uint8_t white[10] = {0};
+                    for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                    {
+                        white[i] = 255;
+                    }
+                    if (DEBUG)
+                    {
+                        if (i == blank - 1)
+                        {
+                            for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                            {
+                                white[i] = 0;
+                            }
+                        }
+                    }
+                    fwrite(white, header_write.bpp / 8, 1, image_write);
+                    pixel += header_write.bpp / 8;
+                }
             }
         }
 
@@ -213,7 +272,8 @@ int main()
                     modified[i] = original[i];
                     pixel++;
                 }
-                if(DEBUG){
+                if (DEBUG)
+                {
                     if (col == 0)
                     {
                         for (int32_t i = 0; i < header_write.bpp / 8; i++)
@@ -263,23 +323,48 @@ int main()
         if (header_write.bpp == 24)
         {
             fread(not_use, (4 - (header.width * 3 % 4)) % 4, 1, image_read);
-            for (size_t i = 0; i < blank; i++)
+            if (header_write.height > 0)
             {
-                uint8_t white[3] = {0};
-                white[0] = 255;
-                white[1] = 255;
-                white[2] = 255;
-                if (DEBUG)
+                for (size_t i = 0; i < blank; i++)
                 {
-                    if (i == blank - 1)
+                    uint8_t white[3] = {0};
+                    white[0] = 255;
+                    white[1] = 255;
+                    white[2] = 255;
+                    if (DEBUG)
                     {
-                        white[0] = 0;
-                        white[1] = 0;
-                        white[2] = 0;
+                        if (i == blank - 1)
+                        {
+                            white[0] = 0;
+                            white[1] = 0;
+                            white[2] = 0;
+                        }
                     }
+                    fwrite(white, 3, 1, image_write);
+                    pixel += 3;
                 }
-                fwrite(white, 3, 1, image_write);
-                pixel += 3;
+            }
+            else
+            {
+                for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
+                {
+
+                    uint8_t white[3] = {0};
+                    white[0] = 255;
+                    white[1] = 255;
+                    white[2] = 255;
+                    if (DEBUG)
+                    {
+                        if (i == 0)
+                        {
+                            white[0] = 0;
+                            white[1] = 0;
+                            white[2] = 0;
+                        }
+                    }
+                    fwrite(white, 3, 1, image_write);
+                    pixel += 3;
+                }
             }
             for (uint32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
             {
@@ -290,26 +375,52 @@ int main()
         {
             // fptf(stderr, "blank: %ld\n", (4 - (header_write.width * header_write.bpp / 8) % 4) % 4);
             fread(not_use, (4 - (header.width * (header_write.bpp / 8) % 4)) % 4, 1, image_read);
-            for (size_t i = 0; i < blank; i++)
+            if (header_write.height > 0)
             {
-                uint8_t white[10] = {0};
-                for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                for (size_t i = 0; i < blank; i++)
                 {
-                    white[i] = 255;
-                }
-                if (DEBUG)
-                {
-                    if (i == blank - 1)
+                    uint8_t white[10] = {0};
+                    for (int32_t i = 0; i < header_write.bpp / 8; i++)
                     {
-                        for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                        white[i] = 255;
+                    }
+                    if (DEBUG)
+                    {
+                        if (i == blank - 1)
                         {
-                            white[i] = 0;
+                            for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                            {
+                                white[i] = 0;
+                            }
                         }
                     }
+                    fwrite(white, header_write.bpp / 8, 1, image_write);
+                    pixel += header_write.bpp / 8;
                 }
-                fwrite(white, header_write.bpp / 8, 1, image_write);
-                pixel += header_write.bpp / 8;
             }
+            else
+            {
+                for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
+                {
+
+                    uint8_t white[10] = {0};
+                    for (int32_t j = 0; j < header_write.bpp / 8; j++)
+                    {
+
+                        white[j] = 255;
+                        if (DEBUG)
+                        {
+                            if (i == 0)
+                            {
+                                white[j] = 0;
+                            }
+                        }
+                    }
+                    fwrite(white, header_write.bpp / 8, 1, image_write);
+                    pixel += header_write.bpp / 8;
+                }
+            }
+
             for (uint32_t i = 0; i < (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4; i++)
             {
                 fputc(0, image_write);
