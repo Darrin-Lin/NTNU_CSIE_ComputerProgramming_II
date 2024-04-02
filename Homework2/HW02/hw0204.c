@@ -126,47 +126,78 @@ int main()
         // fptf(stderr,"%d\n",(header_write.width * 3) - (blank + header.width * 3));
         for (size_t i = 0; i < (header_write.width) - (blank + header.width); i++)
         {
-            uint8_t white[3] = {0};
-            white[0] = 255;
-            white[1] = 255;
-            white[2] = 255;
-            if (DEBUG)
+            if (header_write.bpp == 24)
             {
-                if (i == 0)
+                uint8_t white[3] = {0};
+                white[0] = 255;
+                white[1] = 255;
+                white[2] = 255;
+                if (DEBUG)
                 {
-                    white[0] = 0;
-                    white[1] = 0;
-                    white[2] = 0;
+                    if (i == 0)
+                    {
+                        white[0] = 0;
+                        white[1] = 0;
+                        white[2] = 0;
+                    }
                 }
+                fwrite(white, 3, 1, image_write);
+                pixel += 3;
             }
-            fwrite(white, 3, 1, image_write);
-            pixel += 3;
+            else if(header_write.bpp>=8)
+            {
+                uint8_t white[10]={0};
+                for(int32_t j =0;j<header_write.bpp/8;j++)
+                {
+                    white[j]=255;
+                }
+                fwrite(white,header_write.bpp/8,1,image_write);
+            }
         }
 
         // fptf(stderr, "blank_pixel: %ld\n", pixel);
         size_t col = 0;
         while (!feof(image_read))
         {
-            uint8_t original[3] = {0};
-            uint8_t modified[3] = {0}; // problem with 3840
-            size_t count = fread(original, 1, 3, image_read);
-            if (count == 0)
+            uint8_t original[10] = {0};
+            uint8_t modified[10] = {0}; // problem with 3840
+            size_t count = 0;
+            if (header_write.bpp == 24)
             {
-                continue;
-            }
-            for (size_t i = 0; i < count; i++)
-            {
-                modified[i] = original[i];
-                pixel++;
-            }
-            if (DEBUG)
-            {
-                if (col == 0)
+
+                count = fread(original, 1, 3, image_read);
+                if (count == 0)
                 {
-                    modified[0] = 0;
-                    modified[1] = 0;
-                    modified[2] = 0;
+                    continue;
                 }
+                for (size_t i = 0; i < count; i++)
+                {
+                    modified[i] = original[i];
+                    pixel++;
+                }
+                if (DEBUG)
+                {
+                    if (col == 0)
+                    {
+                        modified[0] = 0;
+                        modified[1] = 0;
+                        modified[2] = 0;
+                    }
+                }
+            }
+            else if(header_write.bpp>=8)
+            {
+                count = fread(original, header_write.bpp/8, 1, image_read);
+                if (count == 0)
+                {
+                    continue;
+                }
+                for (size_t i = 0; i < count; i++)
+                {
+                    modified[i] = original[i];
+                    pixel++;
+                }
+                
             }
             col++;
             if (col >= header.width)
@@ -174,13 +205,16 @@ int main()
                 // fptf(stderr, "col: %ld\n", col);
                 // fptf(stderr, "i: %ld\n", i);
                 col = 0;
-                if (DEBUG)
+                if (header_write.bpp == 24)
                 {
-                    modified[0] = 0;
-                    modified[1] = 0;
-                    modified[2] = 0;
+                    if (DEBUG)
+                    {
+                        modified[0] = 0;
+                        modified[1] = 0;
+                        modified[2] = 0;
+                    }
+                    fwrite(modified, 3, 1, image_write);
                 }
-                fwrite(modified, 3, 1, image_write);
                 // fptf(stderr, "pixel: %ld\n", pixel);
                 goto blank_back;
                 // break;
@@ -191,28 +225,44 @@ int main()
     blank_back:
         line++;
         char not_use[10];
-        fread(not_use,(4 - (header_write.width * 3 % 4))% 4,1,image_read);
-        for (size_t i = 0; i < blank; i++)
+        if (header_write.bpp == 24)
         {
-            uint8_t white[3] = {0};
-            white[0] = 255;
-            white[1] = 255;
-            white[2] = 255;
-            if (DEBUG)
+            fread(not_use, (4 - (header_write.width * 3 % 4)) % 4, 1, image_read);
+            for (size_t i = 0; i < blank; i++)
             {
-                if (i == blank - 1)
+                uint8_t white[3] = {0};
+                white[0] = 255;
+                white[1] = 255;
+                white[2] = 255;
+                if (DEBUG)
                 {
-                    white[0] = 0;
-                    white[1] = 0;
-                    white[2] = 0;
+                    if (i == blank - 1)
+                    {
+                        white[0] = 0;
+                        white[1] = 0;
+                        white[2] = 0;
+                    }
                 }
+                fwrite(white, 3, 1, image_write);
+                pixel += 3;
             }
-            fwrite(white, 3, 1, image_write);
-            pixel += 3;
+            for (uint32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
+            {
+                fputc(0, image_write);
+            }
         }
-        for (uint32_t i = 0; i < (4 - (header_write.width * 3 % 4)) % 4; i++)
+        else if(header_write.bpp>=8)
         {
-            fputc(0, image_write);
+            for (size_t i = 0; i < blank; i++)
+            {
+                uint8_t white[10] = {0};
+                for(int32_t i =0;i<header_write.bpp/8;i++)
+                {
+                    white[i]=255;
+                }
+                fwrite(white, header_write.bpp/8, 1, image_write);
+                pixel += header_write.bpp/8;
+            }
         }
         // if (shift != 0)
         //     fputc(255, image_write); // dont know why but it works
