@@ -279,6 +279,7 @@ int main()
         }
         else if (header_write.bpp >= 8)
         {
+            fread(not_use, (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4, 1, image_read);
             for (size_t i = 0; i < blank; i++)
             {
                 uint8_t white[10] = {0};
@@ -298,6 +299,10 @@ int main()
                 // }
                 fwrite(white, header_write.bpp / 8, 1, image_write);
                 pixel += header_write.bpp / 8;
+            }
+            for (uint32_t i = 0; i < (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4; i++)
+            {
+                fputc(0, image_write);
             }
         }
         // if (shift != 0)
