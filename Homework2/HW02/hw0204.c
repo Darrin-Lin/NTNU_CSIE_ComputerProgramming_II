@@ -73,7 +73,14 @@ int main()
     header_write = header;
     size_t shift = header.height * tan(angle);
     header_write.width = shift + header.width;
-    header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4)) % 4);
+    if (header_write.bpp == 24)
+    {
+        header_write.size = header.offset + header.height * (header_write.width * 3 + (4 - ((header_write.width * 3) % 4)) % 4);
+    }
+    else if (header_write.bpp >= 8)
+    {
+        header_write.size = header.offset + header.height * (header_write.width * header_write.bpp / 8);
+    }
     header_write.bitmap_size = header_write.size - header.offset;
     // print header
     if (DEBUG)
@@ -144,14 +151,23 @@ int main()
                 fwrite(white, 3, 1, image_write);
                 pixel += 3;
             }
-            else if(header_write.bpp>=8)
+            else if (header_write.bpp >= 8)
             {
-                uint8_t white[10]={0};
-                for(int32_t j =0;j<header_write.bpp/8;j++)
+                uint8_t white[10] = {0};
+                for (int32_t j = 0; j < header_write.bpp / 8; j++)
                 {
-                    white[j]=255;
+
+                    white[j] = 255;
+                    if (DEBUG)
+                    {
+                        if (i == 0)
+                        {
+                            white[j] = 0;
+                        }
+                    }
                 }
-                fwrite(white,header_write.bpp/8,1,image_write);
+                fwrite(white, header_write.bpp / 8, 1, image_write);
+                pixel += header_write.bpp / 8;
             }
         }
 
@@ -185,9 +201,9 @@ int main()
                     }
                 }
             }
-            else if(header_write.bpp>=8)
+            else if (header_write.bpp >= 8)
             {
-                count = fread(original, header_write.bpp/8, 1, image_read);
+                count = fread(original, 1, header_write.bpp / 8, image_read);
                 if (count == 0)
                 {
                     continue;
@@ -197,7 +213,6 @@ int main()
                     modified[i] = original[i];
                     pixel++;
                 }
-                
             }
             col++;
             if (col >= header.width)
@@ -214,6 +229,17 @@ int main()
                         modified[2] = 0;
                     }
                     fwrite(modified, 3, 1, image_write);
+                }
+                else if (header_write.bpp >= 8)
+                {
+                    if (DEBUG)
+                    {
+                        for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                        {
+                            modified[i] = 0;
+                        }
+                    }
+                    fwrite(modified, header_write.bpp / 8, 1, image_write);
                 }
                 // fptf(stderr, "pixel: %ld\n", pixel);
                 goto blank_back;
@@ -251,17 +277,27 @@ int main()
                 fputc(0, image_write);
             }
         }
-        else if(header_write.bpp>=8)
+        else if (header_write.bpp >= 8)
         {
             for (size_t i = 0; i < blank; i++)
             {
                 uint8_t white[10] = {0};
-                for(int32_t i =0;i<header_write.bpp/8;i++)
+                for (int32_t i = 0; i < header_write.bpp / 8; i++)
                 {
-                    white[i]=255;
+                    white[i] = 255;
                 }
-                fwrite(white, header_write.bpp/8, 1, image_write);
-                pixel += header_write.bpp/8;
+                // if (DEBUG)
+                // {
+                //     if (i == blank - 1)
+                //     {
+                //         for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                //         {
+                //             white[i] = 0;
+                //         }
+                //     }
+                // }
+                fwrite(white, header_write.bpp / 8, 1, image_write);
+                pixel += header_write.bpp / 8;
             }
         }
         // if (shift != 0)
