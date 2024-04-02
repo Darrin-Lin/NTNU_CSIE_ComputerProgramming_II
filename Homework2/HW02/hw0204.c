@@ -213,6 +213,15 @@ int main()
                     modified[i] = original[i];
                     pixel++;
                 }
+                if(DEBUG){
+                    if (col == 0)
+                    {
+                        for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                        {
+                            modified[i] = 0;
+                        }
+                    }
+                }
             }
             col++;
             if (col >= header.width)
@@ -253,7 +262,7 @@ int main()
         char not_use[10];
         if (header_write.bpp == 24)
         {
-            fread(not_use, (4 - (header_write.width * 3 % 4)) % 4, 1, image_read);
+            fread(not_use, (4 - (header.width * 3 % 4)) % 4, 1, image_read);
             for (size_t i = 0; i < blank; i++)
             {
                 uint8_t white[3] = {0};
@@ -279,7 +288,8 @@ int main()
         }
         else if (header_write.bpp >= 8)
         {
-            fread(not_use, (4 - (header_write.width * (header_write.bpp / 8) % 4)) % 4, 1, image_read);
+            // fptf(stderr, "blank: %ld\n", (4 - (header_write.width * header_write.bpp / 8) % 4) % 4);
+            fread(not_use, (4 - (header.width * (header_write.bpp / 8) % 4)) % 4, 1, image_read);
             for (size_t i = 0; i < blank; i++)
             {
                 uint8_t white[10] = {0};
@@ -287,16 +297,16 @@ int main()
                 {
                     white[i] = 255;
                 }
-                // if (DEBUG)
-                // {
-                //     if (i == blank - 1)
-                //     {
-                //         for (int32_t i = 0; i < header_write.bpp / 8; i++)
-                //         {
-                //             white[i] = 0;
-                //         }
-                //     }
-                // }
+                if (DEBUG)
+                {
+                    if (i == blank - 1)
+                    {
+                        for (int32_t i = 0; i < header_write.bpp / 8; i++)
+                        {
+                            white[i] = 0;
+                        }
+                    }
+                }
                 fwrite(white, header_write.bpp / 8, 1, image_write);
                 pixel += header_write.bpp / 8;
             }
