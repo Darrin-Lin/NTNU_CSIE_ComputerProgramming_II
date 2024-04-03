@@ -337,7 +337,8 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
             {
                 if (i == array_len - 1)
                 {
-                    fprintf(stdout, "...(%lu)", array_len - 3);
+                    if (print)
+                        fprintf(stdout, "...(%lu)", array_len - 3);
                 }
                 get_value(file, array_type, 0);
             }
