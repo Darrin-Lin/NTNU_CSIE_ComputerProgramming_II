@@ -5,7 +5,7 @@
 
 // #include "gguf.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define fptf fprintf
 
 enum gguf_metadata_value_type // uin32_t
@@ -77,6 +77,8 @@ typedef struct _Sgguf_header
 static int8_t get_string(FILE *file, char str[]);
 static uint8_t get_value(FILE *file, uint32_t type, int8_t print);
 static int8_t count_parameters(FILE *file, Sgguf_header gguf_header);
+static int8_t sort_tensor();
+static int32_t mylog10(int32_t x);
 
 uint64_t parameter = 0;
 
@@ -137,19 +139,20 @@ int main()
     }
     fprintf(stdout, "\n");
     fprintf(stdout, "Tensors                                 Shape            Precision\n");
+    FILE *tensor = fopen("tensor.txt", "w");
     for (uint64_t i = 0; i < gguf_header.tenson_count; i++)
     {
 
         char name[200] = {0};
         get_string(gguf_read, name);
-        fprintf(stdout, "%s:", name);
+        fprintf(tensor, "%s:", name);
         for (size_t i = 0; i < 39 - strlen(name); i++)
         {
-            fprintf(stdout, " ");
+            fprintf(tensor, " ");
         }
         uint32_t n_dim = 0;
         fread(&n_dim, sizeof(uint32_t), 1, gguf_read);
-        fprintf(stdout, "[");
+        fprintf(tensor, "[");
         int64_t strlen_count = 0;
         strlen_count++;
         uint64_t count = 1;
@@ -157,78 +160,78 @@ int main()
         {
             uint64_t dimensions = 0;
             fread(&dimensions, sizeof(uint64_t), 1, gguf_read);
-            fprintf(stdout, "%lu", dimensions);
+            fprintf(tensor, "%lu", dimensions);
             char len_ct[100] = {0};
             sprintf(len_ct, "%lu", dimensions);
             count *= dimensions;
             strlen_count += strlen(len_ct);
             if (j != n_dim - 1)
             {
-                fprintf(stdout, ",");
+                fprintf(tensor, ",");
                 strlen_count++;
             }
         }
         parameter += count;
-        fprintf(stdout, "]");
+        fprintf(tensor, "]");
         strlen_count++;
         for (int64_t i = 0; i < 17 - strlen_count; i++)
         {
-            fprintf(stdout, " ");
+            fprintf(tensor, " ");
         }
         uint32_t precision = 0;
         fread(&precision, sizeof(uint32_t), 1, gguf_read);
         switch (precision)
         {
         case GGML_TYPE_F32:
-            fprintf(stdout, "F32");
+            fprintf(tensor, "F32");
             break;
         case GGML_TYPE_F16:
-            fprintf(stdout, "F16");
+            fprintf(tensor, "F16");
             break;
         case GGML_TYPE_Q4_0:
-            fprintf(stdout, "Q4_0");
+            fprintf(tensor, "Q4_0");
             break;
         case GGML_TYPE_Q4_1:
-            fprintf(stdout, "Q4_1");
+            fprintf(tensor, "Q4_1");
             break;
         case GGML_TYPE_Q5_0:
-            fprintf(stdout, "Q5_0");
+            fprintf(tensor, "Q5_0");
             break;
         case GGML_TYPE_Q5_1:
-            fprintf(stdout, "Q5_1");
+            fprintf(tensor, "Q5_1");
             break;
         case GGML_TYPE_Q8_0:
-            fprintf(stdout, "Q8_0");
+            fprintf(tensor, "Q8_0");
             break;
         case GGML_TYPE_Q8_1:
-            fprintf(stdout, "Q8_1");
+            fprintf(tensor, "Q8_1");
             break;
         case GGML_TYPE_Q2_K:
-            fprintf(stdout, "Q2_K");
+            fprintf(tensor, "Q2_K");
             break;
         case GGML_TYPE_Q3_K:
-            fprintf(stdout, "Q3_K");
+            fprintf(tensor, "Q3_K");
             break;
         case GGML_TYPE_Q4_K:
-            fprintf(stdout, "Q4_K");
+            fprintf(tensor, "Q4_K");
             break;
         case GGML_TYPE_Q5_K:
-            fprintf(stdout, "Q5_K");
+            fprintf(tensor, "Q5_K");
             break;
         case GGML_TYPE_Q6_K:
-            fprintf(stdout, "Q6_K");
+            fprintf(tensor, "Q6_K");
             break;
         case GGML_TYPE_Q8_K:
-            fprintf(stdout, "Q8_K");
+            fprintf(tensor, "Q8_K");
             break;
         case GGML_TYPE_I8:
-            fprintf(stdout, "I8");
+            fprintf(tensor, "I8");
             break;
         case GGML_TYPE_I16:
-            fprintf(stdout, "I16");
+            fprintf(tensor, "I16");
             break;
         case GGML_TYPE_I32:
-            fprintf(stdout, "I32");
+            fprintf(tensor, "I32");
             break;
         default:
             break;
@@ -236,8 +239,10 @@ int main()
         uint64_t offset = 0;
         fread(&offset, sizeof(uint64_t), 1, gguf_read);
         // don't know what to do with offset
-        fprintf(stdout, "\n");
+        fprintf(tensor, "\n");
     }
+    fclose(tensor);
+    sort_tensor();
     fclose(gguf_read);
     return 0;
 }
@@ -328,13 +333,13 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
             fprintf(stdout, "[");
         for (uint64_t i = 0; i < array_len; i++)
         {
-            if (array_len > 3&&i>=3)
+            if (array_len > 3 && i >= 3)
             {
-                if(i==array_len-1)
+                if (i == array_len - 1)
                 {
-                    fprintf(stdout,"...(%lu)",array_len-3);
+                    fprintf(stdout, "...(%lu)", array_len - 3);
                 }
-                get_value(file,array_type,0);
+                get_value(file, array_type, 0);
             }
             else
             {
@@ -407,4 +412,135 @@ static int8_t count_parameters(FILE *file, Sgguf_header gguf_header)
         // don't know what to do with offset
     }
     return 0;
+}
+static int8_t sort_tensor()
+{
+
+    FILE *fTensors = fopen("tensor.txt", "r");
+    if (fTensors == NULL)
+    {
+        return -1;
+    }
+    FILE *f_blk_sort = fopen("blk_sort.txt", "w");
+    FILE *fOther_sort = fopen("other_sort.txt", "w");
+    int32_t number_max = 0;
+    while (!feof(fTensors))
+    {
+        char tensor[200] = {0};
+        fgets(tensor, 200, fTensors);
+        if (strstr(tensor, "blk") != NULL) // sort by number
+        {
+            fprintf(f_blk_sort, "%s", tensor);
+            int32_t number = 0;
+            number = strtol(strchr(tensor, '.') + 1, NULL, 10);
+            if (number > number_max)
+            {
+                number_max = number;
+            }
+        }
+        else
+        {
+            fprintf(fOther_sort, "%s", tensor);
+        }
+    }
+
+    fclose(fTensors);
+    remove("tensor.txt");
+    fclose(f_blk_sort);
+    fclose(fOther_sort);
+    FILE *f_blk_sort_read = fopen("blk_sort.txt", "r");
+    // FILE *temp = fopen("temp.txt", "w");
+    for (int32_t i = 0; i <= number_max; i++)
+    {
+        fprintf(stdout, "blk.%d\n", i);
+        while (!feof(f_blk_sort_read))
+        {
+            char tensor[200] = {0};
+            fgets(tensor, 200, f_blk_sort_read);
+            if (strstr(tensor, ".") != NULL) // sort by number
+            {
+                int32_t number = 0;
+                number = strtol(strchr(tensor, '.') + 1, NULL, 10);
+                if (number == i)
+                {
+                    // add 2 spaces before [
+                    char print_tensor[200] = {0};
+                    strcpy(print_tensor, strchr(strchr(tensor, '.') + 1, '.'));
+                    strtok(print_tensor, "[");
+                    fprintf(stdout, "    %s", strtok(print_tensor, "["));
+                    for (int32_t j = 0; j < mylog10(i); j++)
+                    {
+                        fprintf(stdout, " ");
+                    }
+                    fprintf(stdout, "%s", strchr(tensor, '['));
+                }
+            }
+        }
+        fseek(f_blk_sort_read, 0, SEEK_SET);
+    }
+    fclose(f_blk_sort_read);
+    remove("blk_sort.txt");
+    // sort by alphabet
+    FILE *fOther_sort_read = fopen("other_sort.txt", "r");
+    char words[100][200];
+    while (!feof(fOther_sort_read))
+    {
+
+        int32_t count = 0;
+        while (!feof(fOther_sort_read))
+        {
+            char line[200] = {0};
+            fgets(line, 200, fOther_sort_read);
+            if (line[0] == '\0')
+                break;
+            strcpy(words[count], line);
+            count++;
+        }
+        for (int32_t i = 0; i < count; i++)
+        {
+            for (int32_t j = i + 1; j < count; j++)
+            {
+                int32_t len1 = strlen(words[i]);
+                int32_t len2 = strlen(words[j]);
+                int32_t len = len1 > len2 ? len2 : len1;
+                for (int32_t k = 0; k < len; k++)
+                {
+                    if (words[i][k] > words[j][k])
+                    {
+                        char temp[200] = {0};
+                        strcpy(temp, words[i]);
+                        strcpy(words[i], words[j]);
+                        strcpy(words[j], temp);
+                        break;
+                    }
+                    else if (words[i][k] < words[j][k])
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        for (int32_t i = 0; i < count; i++)
+        {
+            fprintf(stdout, "%s", words[i]);
+        }
+    }
+    fclose(fOther_sort_read);
+    remove("other_sort.txt");
+
+    return 0;
+}
+static int32_t mylog10(int32_t x)
+{
+    int32_t count = 0;
+    if (x == 0)
+    {
+        return 1;
+    }
+    while (x > 0)
+    {
+        x /= 10;
+        count++;
+    }
+    return count;
 }
