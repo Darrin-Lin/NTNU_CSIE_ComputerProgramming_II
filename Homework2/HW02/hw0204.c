@@ -429,7 +429,7 @@ int main()
         // if (shift != 0)
         //     fputc(255, image_write); // dont know why but it works
         // fptf(stderr, "blank_back_pixel: %ld\n", pixel);
-        if (line == header.height)
+        if ((int64_t)line == header.height)
         {
             break;
         }
