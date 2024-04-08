@@ -49,6 +49,7 @@ int main()
 
     while (1)
     {
+        
         printf("Advice:   ");
         printf("%s\n", guess);
         printf("Feedback: ");
@@ -94,6 +95,11 @@ int main()
             {
                 now_appear[guess[i] - 'A'] = -1;
             }
+            if(usr_input[i]=='B')
+            {
+                words_num = rm_words(guess[i], i, -1, 0);
+                
+            }
         }
         int8_t only[26] = {0};
         for (int32_t i = 0; i < 26; i++)
@@ -114,6 +120,10 @@ int main()
             }
             if (count_aphabet[i] > last_appear[i] && last_appear[i] > 0)
             {
+                if(DEBUG)
+                {
+                    fptf(stderr,"%c,%d;\n",i+'A',last_appear[i]);
+                }
                 only[i] = 1;
             }
             if (DEBUG)
@@ -141,6 +151,10 @@ int main()
         else
         {
             find_highest(guess);
+        }
+        if(DEBUG)
+        {
+        fptf(stderr,"num:%d",words_num);
         }
     }
     if (!DEBUG)
@@ -277,6 +291,10 @@ static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only) // t = 0
     {
         char line[7] = {0};
         fgets(line, 7, dic);
+        if(strlen(line)!=6)
+        {
+            continue;
+        }
         if (pos == -1)
         {
 
@@ -290,7 +308,7 @@ static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only) // t = 0
             }
             else if (t == -1)
             {
-                if (strchr(line, input) == NULL)
+                if (strchr(line, input) == NULL && strlen(line)>2)
                 {
                     fprintf(temp, "%s", line);
                     count++;
@@ -349,6 +367,10 @@ static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only) // t = 0
     fclose(temp);
     remove("five_chr_dic.txt");
     rename("temp.txt", "five_chr_dic.txt");
+    if(DEBUG)
+    {
+        fptf(stderr,"count:%d\n",count);
+    }
     return count;
 }
 
