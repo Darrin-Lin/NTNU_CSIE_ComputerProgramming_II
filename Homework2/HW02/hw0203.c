@@ -10,7 +10,7 @@
 const double freq[26] = {8.2, 1.5, 2.8, 4.3, 12.7, 2.2, 2.0, 6.1, 7.0, 0.15, 0.77, 4.0, 2.4, 6.7, 7.5, 1.9, 0.095, 6.0, 6.3, 9.1, 2.8, 0.98, 2.4, 0.15, 2.0, 0.074};
 
 static int8_t get_5_chr_words(char *input, char output[6]);
-static int8_t sort_5_chr_words();
+// static int8_t sort_5_chr_words();
 static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only);
 static double find_highest(char output[6]);
 
@@ -35,7 +35,7 @@ int main()
     }
     fclose(dic);
     fclose(five_chr_dic);
-    sort_5_chr_words();
+    // sort_5_chr_words();
     /*char test[100];
     strcpy(test, pp);
     strncat(test, "output_words", 100);
@@ -216,6 +216,7 @@ static int8_t get_5_chr_words(char *input, char output[6])
     }
     return 0;
 }
+/*
 static int8_t sort_5_chr_words()
 {
     FILE *dic = fopen("five_chr_dic.txt", "r");
@@ -272,6 +273,7 @@ static int8_t sort_5_chr_words()
     rename("temp.txt", "five_chr_dic.txt");
     return 0;
 }
+*/
 
 static int32_t rm_words(char input, int32_t pos, int8_t t, int8_t only) // t = 0 don't know/care, t<0 not in, t>0 in
 {
