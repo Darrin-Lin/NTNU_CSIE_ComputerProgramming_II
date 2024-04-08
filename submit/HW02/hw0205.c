@@ -255,7 +255,33 @@ static int8_t get_string(FILE *file, char str[])
         str[0] = '\0';
         return 0;
     }
-    fread(str, sizeof(char), string_len, file);
+    if (DEBUG)
+    {
+        fptf(stderr, "%ld\n", string_len);
+    }
+    uint64_t max_len = 50;
+    if (string_len > max_len)
+    {
+        for (uint64_t i = 0; i < max_len; i++)
+        {
+            char char_read = 0;
+            fread(&char_read, sizeof(char), 1, file);
+            str[i] = char_read;
+        }
+        str[max_len] = '.';
+        str[max_len + 1] = '.';
+        str[max_len + 2] = '.';
+        str[max_len + 3] = '\0';
+        for (uint64_t i = max_len; i < string_len; i++)
+        {
+            char char_read = 0;
+            fread(&char_read, sizeof(char), 1, file);
+        }
+    }
+    else
+    {
+        fread(str, sizeof(char), string_len, file);
+    }
     str[strlen(str)] = '\0';
     return -1;
 }
@@ -319,10 +345,13 @@ static uint8_t get_value(FILE *file, uint32_t type, int8_t print)
         }
         break;
     case GGUF_METADATA_VALUE_TYPE_STRING:
-        char value8[1000] = {0};
+        char value8[100] = {0};
         get_string(file, value8);
         if (print)
+        {
             fprintf(stdout, "%s", value8);
+        }
+
         break;
     case GGUF_METADATA_VALUE_TYPE_ARRAY:
         uint32_t array_type = 0;
