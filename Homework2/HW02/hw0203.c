@@ -20,6 +20,7 @@ int main()
     FILE *five_chr_dic = fopen("five_chr_dic.txt", "w");
     if (dic == NULL)
     {
+        printf("en_US.dic not found.\n");
         fclose(five_chr_dic);
         return -1;
     }
