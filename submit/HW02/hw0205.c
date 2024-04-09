@@ -84,15 +84,17 @@ uint64_t parameter = 0;
 
 int main()
 {
+    fprintf(stdout, "GGUF: ");
     FILE *gguf_read = fopen("model.gguf", "rb");
     if (gguf_read == NULL)
     {
+        fprintf(stdout, "false\n");
         return -1;
     }
     Sgguf_header gguf_header;
     uint32_t type = 0;
     fread(&gguf_header, sizeof(Sgguf_header), 1, gguf_read);
-    fprintf(stdout, "GGUF: ");
+
     if (gguf_header.magic_number == 0x46554747)
         fprintf(stdout, "true\n");
     else

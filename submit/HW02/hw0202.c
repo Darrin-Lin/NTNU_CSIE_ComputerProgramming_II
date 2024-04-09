@@ -39,6 +39,11 @@ int main()
     fgets(file_name, 100, stdin);
     file_name[strlen(file_name) - 1] = '\0';
     FILE *file = fopen(file_name, "r");
+    if(file==NULL)
+    {
+        printf("No file.\n");
+        return -1;
+    }
     char **teams = (char **)Vector_create_ptr(0);
     int64_t *win = Vector_create(0);
     int64_t *draw = Vector_create(0);

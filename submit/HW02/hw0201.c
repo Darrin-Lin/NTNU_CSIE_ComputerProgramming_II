@@ -29,6 +29,7 @@ int main()
     FILE *file = fopen(file_name, "r");
     if (file == NULL)
     {
+        printf("No file.\n");
         return -1;
     }
     char line[1000];
