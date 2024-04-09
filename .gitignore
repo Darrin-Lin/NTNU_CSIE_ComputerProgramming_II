@@ -10,3 +10,6 @@ fin0?
 *.in
 *.out
 *.gguf
+*.csv
+*.ass
+*.bmp
