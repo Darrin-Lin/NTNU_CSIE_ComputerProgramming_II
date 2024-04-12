@@ -5,7 +5,7 @@ all: ${hw_number}01 ${hw_number}02 ${hw_number}03 ${hw_number}04 ${hw_number}05
 CC=gcc
 CFLAGS= -g -Wall -Wextra -fsanitize=address -lubsan -lasan
 LDLIBS= -lm
-obj = myvector.o
+obj = myvector.o mybmp.o
 target = ${hw_number}01 ${hw_number}02 ${hw_number}03 ${hw_number}04 ${hw_number}05
 
 $(target): $(obj)
