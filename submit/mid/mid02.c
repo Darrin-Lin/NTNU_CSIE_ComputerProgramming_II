@@ -72,9 +72,13 @@ int main()
             else if (strstr(code, "comma:"))
             {
                 encode[27] = strtol(strchr(code, ':') + 2, NULL, 2);
+                encode_len[27] = strlen(strchr(code, ':') + 2) - 1;
             }
             else if (strstr(code, "period:"))
+            {
                 encode[28] = strtol(strchr(code, ':') + 2, NULL, 2);
+                encode_len[28] = strlen(strchr(code, ':') + 2) - 1;
+            }
             else
             {
                 printf("Invalid codebook.\n");
@@ -87,6 +91,7 @@ int main()
     int8_t temp_len = 0;
     while (!feof(input))
     {
+
         char c = fgetc(input);
         if (c == EOF)
         {
