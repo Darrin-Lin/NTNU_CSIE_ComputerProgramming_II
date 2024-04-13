@@ -35,6 +35,7 @@ int32_t count_end_byte(int32_t width, uint16_t bpp);
 sBmpHeader read_header(FILE *image_read);
 int8_t write_edge_pixel(int32_t width, FILE *image_write);
 sBmpPixel24 read_pixel(FILE *image_read, sBmpHeader header, int32_t row, int32_t col, int32_t end_pixel);
+int8_t create_bmp24_bg(int32_t width, int32_t height, sBmpPixel24 bg_color, FILE *image_write);
 
 int32_t count_end_byte(int32_t width, uint16_t bpp)
 {
@@ -64,4 +65,34 @@ sBmpPixel24 read_pixel(FILE *image_read, sBmpHeader header, int32_t row, int32_t
     fseek(image_read, header.offset + row * ((header.width) * 3 + end_byte) + col * 3, SEEK_SET);
     fread(&pixel, sizeof(sBmpPixel24), 1, image_read);
     return pixel;
+}
+
+int8_t create_bmp24_bg(int32_t width, int32_t height, sBmpPixel24 bg_color, FILE *image_write)
+{
+    sBmpHeader header;
+    header.bm[0] = 'B';
+    header.bm[1] = 'M';
+    header.size = 54 + width * height * 3 + count_end_byte(width, 24) * height;
+    header.reserve = 0;
+    header.offset = 54;
+    header.header_size = 40;
+    header.width = width;
+    header.height = height;
+    header.planes = 1;
+    header.bpp = 24;
+    header.compression = 0;
+    header.bitmap_size = width * height * 3 + count_end_byte(width, 24) * height;
+    header.hres = 0;
+    header.vres = 0;
+    header.used = 0;
+    header.important = 0;
+    fwrite(&header, sizeof(sBmpHeader), 1, image_write);
+    for(int32_t i = 0; i < height; i++)
+    {
+        for(int32_t j = 0; j < width; j++)
+        {
+            fwrite(&bg_color, sizeof(sBmpPixel24), 1, image_write);
+        }
+        write_edge_pixel(width, image_write);
+    }
 }
