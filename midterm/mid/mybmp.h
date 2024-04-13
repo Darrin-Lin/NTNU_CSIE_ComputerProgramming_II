@@ -41,3 +41,5 @@ int8_t write_edge_pixel(int32_t width, FILE *image_write);
 sBmpPixel24 read_pixel(FILE *image_read, sBmpHeader header, int32_t row, int32_t col, int32_t end_pixel);
 
 int8_t create_bmp24_bg(int32_t width, int32_t height, sBmpPixel24 bg_color, FILE *image_write);
+
+int8_t scale_image(FILE *image_read, FILE *image_write, int32_t scale_width, int32_t scale_height);

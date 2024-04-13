@@ -97,9 +97,9 @@ int8_t loop_command(int32_t *code_n, char *code)
 
 int main()
 {
-    char file_name[100];
+    char file_name[5000];
     printf("Enter the output filename: ");
-    fgets(file_name, 100, stdin);
+    fgets(file_name, 5000, stdin);
     file_name[strlen(file_name) - 1] = '\0';
     FILE *file = fopen(file_name, "wb");
     if (file == NULL)
