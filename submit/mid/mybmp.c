@@ -36,6 +36,7 @@ sBmpHeader read_header(FILE *image_read);
 int8_t write_edge_pixel(int32_t width, FILE *image_write);
 sBmpPixel24 read_pixel(FILE *image_read, sBmpHeader header, int32_t row, int32_t col, int32_t end_pixel);
 int8_t create_bmp24_bg(int32_t width, int32_t height, sBmpPixel24 bg_color, FILE *image_write);
+int8_t scale_image(FILE *image_read, FILE *image_write, int32_t scale_width, int32_t scale_height);
 
 int32_t count_end_byte(int32_t width, uint16_t bpp)
 {
@@ -95,4 +96,31 @@ int8_t create_bmp24_bg(int32_t width, int32_t height, sBmpPixel24 bg_color, FILE
         }
         write_edge_pixel(width, image_write);
     }
+}
+
+int8_t scale_image(FILE *image_read, FILE *image_write, int32_t scale_width, int32_t scale_height)
+{
+    sBmpHeader header = read_header(image_read);
+    sBmpHeader header_write = header;
+    if(header.height < 0)
+    {
+        header_write.height = -header.height;
+    }
+    int32_t end_pixel = count_end_byte(header.width, header.bpp);
+   // scale original image to new image
+    header_write.width = scale_width;
+    header_write.height = scale_height;
+    header_write.size = 54 + scale_width * scale_height * 3 + count_end_byte(scale_width, 24) * scale_height;
+    header_write.bitmap_size = scale_width * scale_height * 3 + count_end_byte(scale_width, 24) * scale_height;
+    fwrite(&header_write, sizeof(sBmpHeader), 1, image_write);
+    for(int32_t i = 0; i < scale_height; i++)
+    {
+        for(int32_t j = 0; j < scale_width; j++)
+        {
+            sBmpPixel24 pixel = read_pixel(image_read, header, (int32_t)(i * (double)header.height / scale_height), (int32_t)((double)j * header.width / scale_width), end_pixel);
+            fwrite(&pixel, sizeof(sBmpPixel24), 1, image_write);
+        }
+        write_edge_pixel(scale_width, image_write);
+    }
+    return 0;
 }
