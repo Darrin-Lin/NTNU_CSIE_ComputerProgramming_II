@@ -1,0 +1,8 @@
+程設行其二
+
+GNU GDB，懷此聖德。三分天下，而有其二。脩奉貢獻，debug 節不隆。user 斷之，是以 break。
+後見 breakpoint，賜之 print，得使 debug。為仲尼所稱，達及德行，猶奉事殷，論敍其美。
+Valgrind 之功，為霸之首。九合諸侯，一匡 memory leak。一匡 memory leak，不以兵車。正而不譎，其德傳稱。
+孔子所歎，並稱夷吾，民受其恩。賜與廟胙，命無下拜。小白不敢爾，天威在顏咫尺。
+AddressSanitizer 亦霸，躬奉 compile。檢測 memory leak，heap OOB，stack OOB，Free 後使用者。
+威服諸侯，師之所尊。八方聞之，名亞 Valgrind。未初始化，無法偵測，是其名紛葩。
