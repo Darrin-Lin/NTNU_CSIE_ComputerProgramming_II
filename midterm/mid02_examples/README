@@ -1,0 +1,72 @@
+# MID02 Examples
+
+This file contains examples for the MID02 assignment.
+
+Example 0 is the default example in the `mid.pdf`.
+
+Example 1 is the example which didn't content any spaces, periods or commas in the codebook and the input file.
+
+Example 2 and 3 are the examples which content spaces, periods and commas in the both files.
+
+You can use the commands at the end of this README to check the output files is correct or not.
+
+## Example 0
+
+```bash
+$ ./mid02
+Codebook: codebook.txt
+Input File: in
+Output File: out
+```
+
+## Example 1
+
+```bash
+$ ./mid02
+Codebook: codebook1.txt
+Input File: in1
+Output File: out1
+```
+
+## Example 2
+
+```bash
+$ ./mid02
+Codebook: codebook2.txt
+Input File: in2
+Output File: out2
+```
+
+## Example 3
+
+```bash
+$ ./mid02
+Codebook: codebook3.txt
+Input File: in3
+Output File: out3
+```
+
+## Some helpful commands
+
+```bash
+$ cat in
+abe
+$ xxd out
+00000000: f834                                     .4
+$ cat in1
+jacoblincool
+$ xxd out1
+00000000: f6d3 9cb5 10                             .....
+$ cat in2
+ta sky is very, very handsome.
+$ xxd out2
+00000000: 22bf 9f6e bd42 2fa8 d422 fb58 67df 933c  "..n.B/..".Xg..<
+00000010: 40                                       @
+$ cat in3
+ppap. i have a pen, i have an apple, ah, apple pen. i have a pen, i have pineapple, ah, pineapple pen. apple pen, pineapple pen, ah, pen pineapple apple pen.
+$ xxd out3
+00000000: 58f4 78e4 ef10 75d1 e393 bc4b 22ff 5139  X.x...u....K".Q9
+00000010: 445f e1d7 d1e3 93bc 41d7 478e 4ef0 faf4  D_......A.G.N...
+00000020: 5fea 2728 7d7a 2ff0 ebe8 8bfc 3ae8 7d7a  _.'(}z/.....:.}z
+00000030: 2ff0 eba2 7287 58fa f45f e22f f0eb ea    /...r.X.._./...
+```
