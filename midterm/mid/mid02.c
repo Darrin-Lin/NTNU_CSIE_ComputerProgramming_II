@@ -129,11 +129,11 @@ int main()
             printf("Invalid codebook.\n");
             goto terminate;
         }
-        fprintf(stderr, "*%d %d\n", code_now, code_now_len);
+        // fprintf(stderr, "*%d %d\n", code_now, code_now_len);
         while (temp_len + code_now_len > 8)
         {
             temp = (temp << (8 - temp_len)) | (code_now >> (code_now_len - (8 - temp_len)));
-            fprintf(stderr, "%d ", temp);
+            // fprintf(stderr, "%d ", temp);
             fwrite(&temp, 1, 1, output);
             code_now = code_now & ((1 << (code_now_len - (8 - temp_len))) - 1);
             code_now_len = code_now_len - (8 - temp_len);
@@ -142,10 +142,10 @@ int main()
         }
         temp = temp << code_now_len | code_now;
         temp_len += code_now_len;
-        fprintf(stderr, "(%d %d\n", temp, temp_len);
+        // fprintf(stderr, "(%d %d\n", temp, temp_len);
         if (temp_len == 8)
         {
-            fprintf(stderr, "a%d ", temp);
+            // fprintf(stderr, "a%d ", temp);
             fwrite(&temp, 1, 1, output);
             temp = 0;
             temp_len = 0;
