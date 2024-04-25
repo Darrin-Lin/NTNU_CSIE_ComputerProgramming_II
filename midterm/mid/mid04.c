@@ -120,6 +120,15 @@ int main()
     fclose(file);
     file = fopen(file_name, "rb");
     sBmpHeader header = read_header(file);
+    // forget in midterm.
+    for(int32_t i =0;i<256;i++)
+    {
+        for(int32_t j = 0;j<256;j++)
+        {
+            picture[i][j]=read_pixel(file,header,i,j,0);
+        }
+    }
+    // forget in midterm
     file = fopen(file_name, "wb");
 
     {

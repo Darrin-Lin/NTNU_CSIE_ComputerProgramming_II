@@ -55,6 +55,9 @@
         new = fopen("tmp.bmp", "rb");
         sBmpHeader new_header = read_header(new);
         fwrite(&cover_header, sizeof(sBmpHeader), 1, output);
+        // forgot in mid
+        y+=new_header.height;
+        // forgot in mid
         // y = cover_header.width - y;
         for (int32_t i = 0; i < abs(cover_header.height); i++)
         {
