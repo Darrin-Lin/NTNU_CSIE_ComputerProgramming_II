@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
             }
             break;
         default:
+            printf("Error: Invalid argument\n");
             break;
         }
     }
