@@ -10,6 +10,8 @@
 #include <getopt.h>
 #include "mybmp.h"
 
+#define DEBUG 1
+
 int main(int argc, char *argv[])
 {
     struct option longopts[] = {
@@ -62,6 +64,11 @@ int main(int argc, char *argv[])
     }
     shift = ~shift;
 
+    if (DEBUG)
+    {
+        printf("bits: %d\n", bits);
+        printf("shift: %d\n", shift);
+    }
     if (w)
     {
         FILE *cover_bmp = NULL;
@@ -210,7 +217,12 @@ int main(int argc, char *argv[])
                     tmp_len -= bits;
                 }
                 fwrite(&pixel, sizeof(sBmpPixel24), 1, tmp);
+                if (DEBUG)
+                {
+                    fprintf(stderr, "b:%d g:%d r:%d\n", pixel.b, pixel.g, pixel.r);
+                }
             }
+
             write_edge_pixel(bmp_header.width, tmp);
         }
         fclose(tmp);

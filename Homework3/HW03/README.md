@@ -16,6 +16,9 @@ hw03
 
 ### hw0301
 
+#### 4/26 Finish
+今天把第一題寫完了，用了 [cJSON](https://github.com/DaveGamble/cJSON) 來處理。寫信去問助教要不要輸出 book_id 中。
+
 ----
 
 ### hw0302

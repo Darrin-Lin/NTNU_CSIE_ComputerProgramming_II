@@ -5,7 +5,7 @@ all: hw0${hw_number}01 hw0${hw_number}02 hw0${hw_number}03 hw0${hw_number}04 hw0
 CC=gcc
 CFLAGS= -g -Wall -Wextra -fsanitize=address -lubsan -lasan
 LDLIBS= -lm
-obj = myvector.o mybmp.o
+obj = myvector.o mybmp.o ./cJSON/cJSON.o
 target = hw0${hw_number}01 hw0${hw_number}02 hw0${hw_number}03 hw0${hw_number}04 hw0${hw_number}05
 
 $(target): $(obj)
