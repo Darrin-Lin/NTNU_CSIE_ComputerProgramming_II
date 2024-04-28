@@ -21,20 +21,20 @@ Usage: hw0302 [options] ... [files] ...\n\
 -f and -i are exclusive and must be at least one.\n\
 "
 
-int32_t get_function_names(FILE *header_file, char **func);
+int32_t get_function_names(FILE *header_file, char *func);
+int32_t print_function_count(FILE *file, char *func, int8_t option[5]);
 // return vector_size
-
-
+enum option_index
+{
+    f_opt = 0,
+    i_opt,
+    l_opt,
+    c_opt,
+    h_opt,
+};
 int main(int argc, char *argv[])
 {
-    enum option_index
-    {
-        f_opt = 0,
-        i_opt,
-        l_opt,
-        c_opt,
-        h_opt,
-    };
+
     int8_t option[5] = {0};
     struct option longopts[] = {
         {"function", required_argument, NULL, 'f'},
@@ -111,23 +111,77 @@ int main(int argc, char *argv[])
     }
     if (DEBUG)
     {
-        //print index
-        fprintf(stderr,"argv%d\n",optind);
-        fprintf(stderr,"argc%s\n",argv[optind]);
+        // print index
+        fprintf(stderr, "argv%d\n", optind);
+        fprintf(stderr, "argc%s\n", argv[optind]);
     }
+
+    int32_t file_n = 0;
+    file_n = argc - optind;
     if (!option[f_opt] && !option[i_opt])
     {
         fprintf(stdout, "Error: -f and -i must be at least one.\n");
         goto err_arg;
     }
-    FILE *file = fopen(argv[optind],"r");
+    char *file_name = NULL;
+    file_name = argv[optind];
+    FILE *file = fopen(file_name, "r");
     if (file == NULL)
     {
         fprintf(stdout, "Error: cannot open file.\n");
         goto err_arg;
     }
-    char line[1024];
-    int32_t line_num = 0;
+
+    if (option[f_opt])
+    {
+        fprintf(stdout, "%s\n", func);
+        for (int32_t i = 0; i < file_n; i++)
+        {
+            file_name = argv[optind + i];
+            file = fopen(file_name, "r");
+            if (file == NULL)
+            {
+                fprintf(stdout, "Error: file %s cannot open.\n", file_name);
+                goto err_arg;
+            }
+            fprintf(stdout, "  %s ", file_name);
+            print_function_count(file, func, option);
+            fclose(file);
+        }
+    }
+    else if (option[i_opt])
+    {
+        FILE *header_file = fopen(include_file, "r");
+        if (header_file == NULL)
+        {
+            fprintf(stdout, "Error: cannot open %s.\n", include_file);
+            goto err_arg;
+        }
+        if (get_function_names(header_file, func) == -1)
+        {
+            fprintf(stdout, "Error: cannot find any function.\n");
+            goto err_arg;
+        }
+        do
+        {
+            if (DEBUG)
+                fprintf(stderr, "func_out: %s\n", func);
+            fprintf(stdout, "%s\n", func);
+            for (int32_t i = 0; i < file_n; i++)
+            {
+                file_name = argv[optind + i];
+                file = fopen(file_name, "r");
+                if (file == NULL)
+                {
+                    fprintf(stdout, "Error: file %s cannot open.\n", file_name);
+                    goto err_arg;
+                }
+                fprintf(stdout, "  %s ", file_name);
+                print_function_count(file, func, option);
+                fclose(file);
+            }
+        } while (get_function_names(header_file, func) != -1);
+    }
 
     return 0;
 err_arg:
@@ -135,10 +189,118 @@ err_arg:
     return -1;
 }
 
-int32_t get_function_names(FILE *header_file, char **func)
+int32_t get_function_names(FILE *header_file, char *func_find)
 {
     char line[1024];
     int32_t line_num = 0;
-    
-    
+    while (!feof(header_file))
+    {
+        fgets(line, 1024, header_file);
+        if (strstr(line, "int") != NULL || strstr(line, "void") != NULL || strstr(line, "char") != NULL || strstr(line, "float") != NULL || strstr(line, "double") != NULL)
+        {
+            if (strstr(line, "(") != NULL)
+            {
+                if (strstr(line, ")") != NULL)
+                {
+                    if (strstr(line, ";") != NULL)
+                    {
+                        char *p = strtok(line, "(");
+                        char *q = strtok(line, " ");
+                        q = strtok(NULL, " ");
+                        if (strrchr(q, '*') != NULL)
+                        {
+                            q = strrchr(q, '*') + 1;
+                        }
+
+                        strcpy(func_find, q);
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+int32_t print_function_count(FILE *file, char *func, int8_t option[5])
+{
+    char line[1024];
+    int32_t line_num = 0;
+    int32_t count = 0;
+    FILE *tmp_out = fopen("tmp.txt", "w");
+    if (tmp_out == NULL)
+    {
+        fprintf(stdout, "Error: cannot open file.\n");
+        return -1;
+    }
+    int8_t annotate = 0;
+    while (!feof(file))
+    {
+        fgets(line, 1024, file);
+        line_num++;
+        // if (strstr(line, "/*") != NULL)
+        // {
+        //     annotate = 1;
+        // }
+        // if (strstr(line, "*/") != NULL)
+        // {
+        //     annotate = 0;
+        // }
+        // if (annotate)
+        // {
+        //     continue;
+        // }
+        // if (strstr(line, "//") != NULL)
+        // {
+        //     strcpy(line, strtok(line, "/"));
+        // }
+        if (strstr(line, func) != NULL)
+        {
+            count++;
+            if (option[l_opt])
+            {
+                fprintf(tmp_out, "    line %d", line_num);
+                if (option[c_opt])
+                {
+                    fprintf(tmp_out, ": ");
+                }
+                else
+                {
+                    fprintf(tmp_out, "\n");
+                }
+            }
+            if (option[c_opt])
+            {
+                if (!option[l_opt])
+                    fprintf(tmp_out, "    ", line_num);
+                if (line[0] == ' ')
+                {
+                    char *ptr_line = line;
+                    while (*(ptr_line) == ' ')
+                    {
+                        ptr_line++;
+                    }
+                    fprintf(tmp_out, "%s", ptr_line);
+                }
+                else
+                    fprintf(tmp_out, "%s", line);
+            }
+        }
+    }
+    fclose(tmp_out);
+    fprintf(stdout, "(count: %d)\n", count);
+    char new_line[1024];
+    tmp_out = fopen("tmp.txt", "r");
+    while (!feof(tmp_out))
+    {
+        fgets(new_line, 1024, tmp_out);
+        if (new_line[0] != '\n' && !feof(tmp_out))
+        {
+            fprintf(stdout, "%s", new_line);
+        }
+    }
+    fclose(tmp_out);
+    if (!DEBUG)
+        remove("tmp.txt");
+    return 0;
 }
