@@ -10,7 +10,15 @@
 #include <getopt.h>
 #include "mybmp.h"
 
-#define DEBUG 1
+#define DEBUG 0
+void print_binary(uint8_t byte)
+{
+    for (int32_t i = 7; i >= 0; i--)
+    {
+        fprintf(stderr, "%d", (byte >> i) & 1);
+    }
+    fprintf(stderr, "\n");
+}
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +30,7 @@ int main(int argc, char *argv[])
     int32_t opt = 0;
     int8_t w = 0, e = 0;
     int32_t inp_bits = 1;
+
     while ((opt = getopt_long(argc, argv, "web:", longopts, NULL)) != -1)
     {
         switch (opt)
@@ -44,7 +53,7 @@ int main(int argc, char *argv[])
             break;
         case 'b':
             char *tmp;
-            inp_bits = strtol(optarg, &tmp, strlen(optarg));
+            inp_bits = strtol(optarg, &tmp, 10);
             if (*tmp != '\0' || (inp_bits > 8 || inp_bits < 1))
             {
                 printf("Error: -b must be a number between 1 and 8\n");
@@ -67,333 +76,433 @@ int main(int argc, char *argv[])
 
     if (DEBUG)
     {
-        printf("bits: %d\n", bits);
-        printf("shift: %d\n", shift);
+        fprintf(stderr, "bits: %d\n", bits);
+        fprintf(stderr, "shift: %d\n", shift);
     }
-    if (w)
+
+    if ((argc - optind) % 2)
     {
-        FILE *cover_bmp = NULL;
-        cover_bmp = fopen(argv[argc - 2], "rb");
-        if (cover_bmp == NULL)
-        {
-            printf("Error: %s not found\n", argv[argc - 2]);
-            goto err_case;
-        }
-        FILE *secret_data = NULL;
-        secret_data = fopen(argv[argc - 1], "rb");
-        if (secret_data == NULL)
-        {
-            printf("Error: %s not found\n", argv[argc - 1]);
-            goto err_case;
-        }
-        sBmpHeader bmp_header;
-        bmp_header = read_header(cover_bmp);
-        struct stat st;
-        fstat(fileno(secret_data), &st);
-        if (st.st_size * 8 > bmp_header.width * bmp_header.height * 3 * bits)
-        {
-            printf("Error: %s is too large to be hidden in %s\n", argv[argc - 1], argv[argc - 2]);
-            goto err_case;
-        }
-        FILE *tmp = fopen("tmp.bmp", "wb");
-        if (tmp == NULL)
-        {
-            printf("Error: tmp cannot be created\n");
-            goto err_case;
-        }
-        bmp_header.reserve = st.st_size;
-        int32_t size = st.st_size;
-        fwrite(&bmp_header, sizeof(sBmpHeader), 1, tmp);
-        int32_t end_pixel = count_end_byte(bmp_header.width, bmp_header.bpp);
-        uint8_t tmp_byte = 0;
-        uint8_t tmp_len = 8;
-        for (int32_t i = 0; i < bmp_header.height; i++)
-        {
-            for (int32_t j = 0; j < bmp_header.width; j++)
-            {
-                sBmpPixel24 pixel = read_pixel(cover_bmp, bmp_header, i, j, end_pixel);
-                if (size > 0)
-                {
-                    if (tmp_len >= bits)
-                    {
-                        pixel.b &= shift;
-                        pixel.b |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                            size--;
-                            tmp_len = 8;
-                        }
-                    }
-                    else
-                    {
-                        pixel.b &= shift;
-                        pixel.b |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-
-                        fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                        pixel.b |= (tmp_byte >> 8 + (tmp_len));
-                        size--;
-                        tmp_len += 8;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    pixel.b &= shift;
-                    pixel.b |= (tmp_byte >> (tmp_len - bits));
-                    tmp_byte = tmp_byte << bits;
-                    tmp_len -= bits;
-                }
-                if (size > 0)
-                {
-                    if (tmp_len >= bits)
-                    {
-                        pixel.g &= shift;
-                        pixel.g |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                            size--;
-                            tmp_len = 8;
-                        }
-                    }
-                    else
-                    {
-                        pixel.g &= shift;
-                        pixel.g |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-
-                        fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                        pixel.g |= (tmp_byte >> 8 + (tmp_len));
-                        size--;
-                        tmp_len += 8;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    pixel.g &= shift;
-                    pixel.g |= (tmp_byte >> (tmp_len - bits));
-                    tmp_byte = tmp_byte << bits;
-                    tmp_len -= bits;
-                }
-                if (size > 0)
-                {
-                    if (tmp_len >= bits)
-                    {
-                        pixel.r &= shift;
-                        pixel.r |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                            size--;
-                            tmp_len = 8;
-                        }
-                    }
-                    else
-                    {
-                        pixel.r &= shift;
-                        pixel.r |= (tmp_byte >> (tmp_len - bits));
-                        tmp_byte = tmp_byte << bits;
-                        tmp_len -= bits;
-
-                        fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
-                        pixel.r |= (tmp_byte >> 8 + (tmp_len));
-                        size--;
-                        tmp_len += 8;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    pixel.r &= shift;
-                    pixel.r |= (tmp_byte >> (tmp_len - bits));
-                    tmp_byte = tmp_byte << bits;
-                    tmp_len -= bits;
-                }
-                fwrite(&pixel, sizeof(sBmpPixel24), 1, tmp);
-                if (DEBUG)
-                {
-                    fprintf(stderr, "b:%d g:%d r:%d\n", pixel.b, pixel.g, pixel.r);
-                }
-            }
-
-            write_edge_pixel(bmp_header.width, tmp);
-        }
-        fclose(tmp);
-        fclose(cover_bmp);
-    }
-    else if (e)
-    {
-        FILE *cover_bmp = NULL;
-        cover_bmp = fopen(argv[argc - 2], "rb");
-        if (cover_bmp == NULL)
-        {
-            printf("Error: %s not found\n", argv[argc - 2]);
-            goto err_case;
-        }
-        sBmpHeader bmp_header;
-        bmp_header = read_header(cover_bmp);
-        FILE *secret_data_out = fopen(argv[argc - 1], "wb");
-        if (secret_data_out == NULL)
-        {
-            printf("Error: secret_data cannot be created\n");
-            goto err_case;
-        }
-        int32_t size = 0;
-        size = bmp_header.reserve;
-        uint8_t tmp_byte = 0;
-        uint8_t tmp_len = 8;
-        for (int32_t i = 0; i < bmp_header.height; i++)
-        {
-            for (int32_t j = 0; j < bmp_header.width; j++)
-            {
-                sBmpPixel24 pixel = read_pixel(cover_bmp, bmp_header, i, j, count_end_byte(bmp_header.width, bmp_header.bpp));
-                if (size > 0)
-                {
-                    if (tmp_len + bits <= 8)
-                    {
-                        tmp_byte = tmp_byte << bits;
-                        tmp_byte |= pixel.b & ~shift;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                            tmp_byte = 0;
-                            tmp_len = 8;
-                            size--;
-                        }
-                    }
-                    else
-                    {
-                        tmp_byte = tmp_byte << bits - (8 - tmp_len);
-                        uint8_t tmp_shift = ~shift;
-                        for (int32_t k = 0; k < bits - 8 - tmp_len; k++)
-                        {
-                            tmp_shift |= 1 << k;
-                        }
-                        tmp_byte |= (pixel.b & tmp_shift) >> bits - (8 - tmp_len);
-                        tmp_len -= bits;
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len += 8;
-                        size--;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    tmp_byte = tmp_byte << bits;
-                    tmp_byte |= pixel.b & ~shift;
-                    tmp_len -= bits;
-                    if (tmp_len == 0)
-                    {
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len = 8;
-                        size--;
-                    }
-                }
-                if (size > 0)
-                {
-                    if (tmp_len + bits <= 8)
-                    {
-                        tmp_byte = tmp_byte << bits;
-                        tmp_byte |= pixel.g & ~shift;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                            tmp_byte = 0;
-                            tmp_len = 8;
-                            size--;
-                        }
-                    }
-                    else
-                    {
-                        tmp_byte = tmp_byte << bits - (8 - tmp_len);
-                        uint8_t tmp_shift = ~shift;
-                        for (int32_t k = 0; k < bits - 8 - tmp_len; k++)
-                        {
-                            tmp_shift |= 1 << k;
-                        }
-                        tmp_byte |= (pixel.g & tmp_shift) >> bits - (8 - tmp_len);
-                        tmp_len -= bits;
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len += 8;
-                        size--;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    tmp_byte = tmp_byte << bits;
-                    tmp_byte |= pixel.g & ~shift;
-                    tmp_len -= bits;
-                    if (tmp_len == 0)
-                    {
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len = 8;
-                        size--;
-                    }
-                }
-                if (size > 0)
-                {
-                    if (tmp_len + bits <= 8)
-                    {
-                        tmp_byte = tmp_byte << bits;
-                        tmp_byte |= pixel.r & ~shift;
-                        tmp_len -= bits;
-                        if (tmp_len == 0)
-                        {
-                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                            tmp_byte = 0;
-                            tmp_len = 8;
-                            size--;
-                        }
-                    }
-                    else
-                    {
-                        tmp_byte = tmp_byte << bits - (8 - tmp_len);
-                        uint8_t tmp_shift = ~shift;
-                        for (int32_t k = 0; k < bits - 8 - tmp_len; k++)
-                        {
-                            tmp_shift |= 1 << k;
-                        }
-                        tmp_byte |= (pixel.r & tmp_shift) >> bits - (8 - tmp_len);
-                        tmp_len -= bits;
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len += 8;
-                        size--;
-                    }
-                }
-                else if (tmp_len > 0)
-                {
-                    tmp_byte = tmp_byte << bits;
-                    tmp_byte |= pixel.r & ~shift;
-                    tmp_len -= bits;
-                    if (tmp_len == 0)
-                    {
-                        fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
-                        tmp_byte = 0;
-                        tmp_len = 8;
-                        size--;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        printf("Error: -w or -e must be used\n");
+        printf("Wrong number of files\n");
         goto err_case;
+    }
+    int32_t file_n = 0;
+    file_n = (argc - optind)/2;
+    for (int32_t n = optind; n < optind + file_n; n++)
+    {
+        char *inp_bmp = NULL;
+        char *out_file = NULL;
+        inp_bmp = argv[n];
+        if(DEBUG)
+        fprintf(stderr,"%s",inp_bmp);
+        out_file = argv[n+file_n];
+        if(DEBUG)
+        fprintf(stderr,"%s",out_file);
+        if (w)
+        {
+            FILE *cover_bmp = NULL;
+            cover_bmp = fopen(inp_bmp, "rb");
+            if (cover_bmp == NULL)
+            {
+                printf("Error: %s not found\n", inp_bmp);
+                goto err_case;
+            }
+            FILE *secret_data = NULL;
+            secret_data = fopen(out_file, "rb");
+            if (DEBUG)
+            {
+                fprintf(stderr, "secret_data: %s\n", out_file);
+            }
+            if (secret_data == NULL)
+            {
+                printf("Error: %s not found\n", out_file);
+                goto err_case;
+            }
+            sBmpHeader bmp_header;
+            bmp_header = read_header(cover_bmp);
+            struct stat st;
+            fstat(fileno(secret_data), &st);
+            if (st.st_size * 8 > bmp_header.width * bmp_header.height * 3 * bits)
+            {
+                printf("Error: %s is too large to be hidden in %s\n", out_file, inp_bmp);
+                goto err_case;
+            }
+            FILE *tmp = fopen("tmp.bmp", "wb");
+            if (tmp == NULL)
+            {
+                printf("Error: tmp cannot be created\n");
+                goto err_case;
+            }
+            bmp_header.reserve = st.st_size;
+            int32_t size = st.st_size;
+            fwrite(&bmp_header, sizeof(sBmpHeader), 1, tmp);
+            int32_t end_pixel = count_end_byte(bmp_header.width, bmp_header.bpp);
+            uint8_t tmp_byte = 0;
+            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+            if (DEBUG)
+            {
+                // fprintf(stderr, "tmp_byte: %d\n", tmp_byte);
+                print_binary(tmp_byte);
+            }
+            size--;
+            int8_t tmp_len = 8;
+            for (int32_t i = 0; i < bmp_header.height; i++)
+            {
+                for (int32_t j = 0; j < bmp_header.width; j++)
+                {
+                    sBmpPixel24 pixel = read_pixel(cover_bmp, bmp_header, i, j, end_pixel);
+                    if (DEBUG)
+                    {
+                        fprintf(stderr, "tmp_byte: %d\n", tmp_byte);
+                        fprintf(stderr, "size: %d\n", size);
+                        fprintf(stderr, "tmp_len: %d\n", tmp_len);
+                    }
+                    if (size > 0)
+                    {
+                        if (tmp_len >= bits)
+                        {
+                            pixel.b &= shift;
+                            pixel.b |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            if (tmp_len == 0)
+                            {
+                                fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                                size--;
+                                tmp_len = 8;
+                            }
+                        }
+                        else
+                        {
+                            pixel.b &= shift;
+                            pixel.b |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                            pixel.b |= (tmp_byte >> (8 + (tmp_len)));
+                            size--;
+                            tmp_len += 8;
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                        }
+                    }
+                    else if (tmp_len > 0)
+                    {
+                        pixel.b &= shift;
+                        pixel.b |= (tmp_byte >> (8 - bits));
+                        tmp_byte = tmp_byte << bits;
+                        tmp_len -= bits;
+                    }
+                    if (DEBUG)
+                    {
+                        fprintf(stderr, "tmp_byte:");
+                        print_binary(tmp_byte);
+                    }
+                    if (size > 0)
+                    {
+                        if (tmp_len >= bits)
+                        {
+                            pixel.g &= shift;
+                            pixel.g |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            if (tmp_len == 0)
+                            {
+                                fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                                size--;
+                                tmp_len = 8;
+                            }
+                        }
+                        else
+                        {
+                            pixel.g &= shift;
+                            pixel.g |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                            pixel.g |= (tmp_byte >> (8 + (tmp_len)));
+                            size--;
+                            tmp_len += 8;
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                        }
+                    }
+                    else if (tmp_len > 0)
+                    {
+                        pixel.g &= shift;
+                        pixel.g |= (tmp_byte >> (8 - bits));
+                        tmp_byte = tmp_byte << bits;
+                        tmp_len -= bits;
+                    }
+                    if (DEBUG)
+                    {
+                        fprintf(stderr, "tmp_byte:");
+                        print_binary(tmp_byte);
+                    }
+                    if (size > 0)
+                    {
+                        if (tmp_len >= bits)
+                        {
+                            pixel.r &= shift;
+                            pixel.r |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            if (tmp_len == 0)
+                            {
+                                fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                                size--;
+                                tmp_len = 8;
+                            }
+                        }
+                        else
+                        {
+                            pixel.r &= shift;
+                            pixel.r |= (tmp_byte >> (8 - bits));
+                            tmp_byte = tmp_byte << bits;
+                            tmp_len -= bits;
+                            fread(&tmp_byte, sizeof(uint8_t), 1, secret_data);
+                            pixel.r |= (tmp_byte >> (8 + (tmp_len)));
+                            size--;
+                            tmp_len += 8;
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                        }
+                    }
+                    else if (tmp_len > 0)
+                    {
+                        pixel.r &= shift;
+                        pixel.r |= (tmp_byte >> (8 - bits));
+                        tmp_byte = tmp_byte << bits;
+                        tmp_len -= bits;
+                    }
+                    if (DEBUG)
+                    {
+                        fprintf(stderr, "tmp_byte:");
+                        print_binary(tmp_byte);
+                    }
+                    fwrite(&pixel, sizeof(sBmpPixel24), 1, tmp);
+                    if (DEBUG)
+                    {
+                        fprintf(stderr, "b:");
+                        print_binary(pixel.b);
+                        fprintf(stderr, "g:");
+                        print_binary(pixel.g);
+                        fprintf(stderr, "r:");
+                        print_binary(pixel.r);
+                    }
+                }
+
+                write_edge_pixel(bmp_header.width, tmp);
+            }
+            fclose(tmp);
+            rename("tmp.bmp", inp_bmp);
+            fclose(cover_bmp);
+        }
+        else if (e)
+        {
+            FILE *cover_bmp = NULL;
+            cover_bmp = fopen(inp_bmp, "rb");
+            if (cover_bmp == NULL)
+            {
+                printf("Error: %s not found\n", inp_bmp);
+                goto err_case;
+            }
+            sBmpHeader bmp_header;
+            bmp_header = read_header(cover_bmp);
+            FILE *secret_data_out = fopen(out_file, "wb");
+            if (secret_data_out == NULL)
+            {
+                printf("Error: secret_data cannot be created\n");
+                goto err_case;
+            }
+            int32_t size = 0;
+            size = bmp_header.reserve;
+            uint8_t tmp_byte = 0;
+            int8_t tmp_len = 0;
+            if (DEBUG)
+            {
+                fprintf(stderr, "size:%d\n", size);
+            }
+            for (int32_t i = 0; i < bmp_header.height; i++)
+            {
+                for (int32_t j = 0; j < bmp_header.width; j++)
+                {
+                    sBmpPixel24 pixel = read_pixel(cover_bmp, bmp_header, i, j, count_end_byte(bmp_header.width, bmp_header.bpp));
+                    if (size > 0)
+                    {
+                        if (tmp_len + bits <= 8)
+                        {
+                            tmp_byte = tmp_byte << bits;
+                            tmp_byte |= pixel.b & ~shift;
+                            tmp_len += bits;
+                            if (tmp_len == 8)
+                            {
+                                fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                                tmp_byte = 0;
+                                tmp_len = 0;
+                                size--;
+                            }
+                        }
+                        else
+                        {
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                            uint8_t tmp_shift = 0;
+
+                            for (int32_t k = bits - (8 - tmp_len); k <= 8 - tmp_len; k++)
+                            {
+                                tmp_shift |= (1 << k);
+                            }
+
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift--:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "%d,%d\n", bits - (8 - tmp_len), 8 - tmp_len);
+                            }
+                            tmp_byte |= (pixel.b & tmp_shift) >> (bits - (8 - tmp_len));
+                            tmp_len += bits;
+                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                            tmp_byte = 0;
+                            tmp_len -= 8;
+                            tmp_shift = 0;
+                            for (int32_t k = 0; k < tmp_len; k++)
+                            {
+                                tmp_shift |= 1 << k;
+                            }
+                            tmp_byte |= (pixel.b & tmp_shift);
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "tmp_byte:");
+                                print_binary(tmp_byte);
+                                fprintf(stderr, "tmp_len: %d\n", tmp_len);
+                            }
+                            size--;
+                        }
+                    }
+
+                    if (size > 0)
+                    {
+                        if (tmp_len + bits <= 8)
+                        {
+                            tmp_byte = tmp_byte << bits;
+                            tmp_byte |= pixel.g & ~shift;
+                            tmp_len += bits;
+                            if (tmp_len == 8)
+                            {
+                                fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                                tmp_byte = 0;
+                                tmp_len = 0;
+                                size--;
+                            }
+                        }
+                        else
+                        {
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                            uint8_t tmp_shift = 0;
+
+                            for (int32_t k = bits - (8 - tmp_len); k <= 8 - tmp_len; k++)
+                            {
+                                tmp_shift |= (1 << k);
+                            }
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift--:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "%d,%d\n", bits - (8 - tmp_len), 8 - tmp_len);
+                            }
+                            tmp_byte |= (pixel.g & tmp_shift) >> (bits - (8 - tmp_len));
+                            tmp_len += bits;
+                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                            tmp_byte = 0;
+                            tmp_len -= 8;
+                            tmp_shift = 0;
+                            for (int32_t k = 0; k < tmp_len; k++)
+                            {
+                                tmp_shift |= 1 << k;
+                            }
+                            tmp_byte |= (pixel.g & tmp_shift);
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "tmp_byte:");
+                                print_binary(tmp_byte);
+                                fprintf(stderr, "tmp_len: %d\n", tmp_len);
+                            }
+                            size--;
+                        }
+                    }
+                    if (size > 0)
+                    {
+                        if (tmp_len + bits <= 8)
+                        {
+                            tmp_byte = tmp_byte << bits;
+                            tmp_byte |= pixel.r & ~shift;
+                            tmp_len += bits;
+                            if (tmp_len == 8)
+                            {
+                                fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                                tmp_byte = 0;
+                                tmp_len = 0;
+                                size--;
+                            }
+                        }
+                        else
+                        {
+                            tmp_byte = tmp_byte << (8 - tmp_len);
+                            uint8_t tmp_shift = 0;
+
+                            for (int32_t k = bits - (8 - tmp_len); k <= 8 - tmp_len; k++)
+                            {
+                                tmp_shift |= (1 << k);
+                            }
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift--:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "%d,%d\n", bits - (8 - tmp_len), 8 - tmp_len);
+                            }
+                            tmp_byte |= (pixel.r & tmp_shift) >> (bits - (8 - tmp_len));
+                            tmp_len += bits;
+                            fwrite(&tmp_byte, sizeof(uint8_t), 1, secret_data_out);
+                            tmp_byte = 0;
+                            tmp_len -= 8;
+                            tmp_shift = 0;
+                            for (int32_t k = 0; k < tmp_len; k++)
+                            {
+                                tmp_shift |= 1 << k;
+                            }
+                            tmp_byte |= (pixel.r & tmp_shift);
+                            if (DEBUG)
+                            {
+                                fprintf(stderr, "tmp_shift:");
+                                print_binary(tmp_shift);
+                                fprintf(stderr, "tmp_byte:");
+                                print_binary(tmp_byte);
+                                fprintf(stderr, "tmp_len: %d\n", tmp_len);
+                            }
+                            size--;
+                        }
+                    }
+
+                    if (DEBUG)
+                    {
+
+                        fprintf(stderr, "tmp_byte: %d\n", tmp_byte);
+                        fprintf(stderr, "tmp_len: %d\n", tmp_len);
+                        fprintf(stderr, "b:");
+                        print_binary(pixel.b);
+                        fprintf(stderr, "g:");
+                        print_binary(pixel.g);
+                        fprintf(stderr, "r:");
+                        print_binary(pixel.r);
+                    }
+                }
+            }
+        }
+        else
+        {
+            printf("Error: -w or -e must be used\n");
+            goto err_case;
+        }
     }
     return 0;
 err_case:
