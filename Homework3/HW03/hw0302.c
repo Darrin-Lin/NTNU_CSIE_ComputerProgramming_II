@@ -10,7 +10,7 @@
 #include <getopt.h>
 #include "myvector.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define HELP_MSG "\
 Usage: hw0302 [options] ... [files] ...\n\
   -f, --function=func Trace the func usage in [Files].\n\
@@ -196,8 +196,9 @@ int32_t get_function_names(FILE *header_file, char *func_find)
     while (!feof(header_file))
     {
         fgets(line, 1024, header_file);
-        if (strstr(line, "int") != NULL || strstr(line, "void") != NULL || strstr(line, "char") != NULL || strstr(line, "float") != NULL || strstr(line, "double") != NULL)
-        {
+        // if (strstr(line, "int") != NULL || strstr(line, "void") != NULL || strstr(line, "char") != NULL || strstr(line, "float") != NULL || strstr(line, "double") != NULL)
+        // {
+        if (strstr(line, "__") == NULL)
             if (strstr(line, "(") != NULL)
             {
                 if (strstr(line, ")") != NULL)
@@ -216,8 +217,8 @@ int32_t get_function_names(FILE *header_file, char *func_find)
                         return 0;
                     }
                 }
+                // }
             }
-        }
     }
     return -1;
 }
@@ -238,22 +239,66 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
     {
         fgets(line, 1024, file);
         line_num++;
-        // if (strstr(line, "/*") != NULL)
-        // {
-        //     annotate = 1;
-        // }
-        // if (strstr(line, "*/") != NULL)
-        // {
-        //     annotate = 0;
-        // }
-        // if (annotate)
-        // {
-        //     continue;
-        // }
-        // if (strstr(line, "//") != NULL)
-        // {
-        //     strcpy(line, strtok(line, "/"));
-        // }
+        if (annotate)
+        {
+            if (strstr(line, "*/") == NULL)
+                continue;
+        }
+        char print_line[1024];
+        strcpy(print_line, line);
+        if (strstr(line, "/*") != NULL)
+        {
+            if (strstr(line, "*/") != NULL)
+            {
+                char *end = NULL;
+                int32_t comment_l = (strstr(line, "*/") - strstr(line, "/*"));
+
+                if (comment_l > 0)
+                {
+                    while (comment_l > 0)
+                    {
+                        for (char *i = strstr(line, "/*"); *(i + comment_l + 2) != '\0'; i = i)
+                        {
+                            *i = *(i + comment_l + 2);
+                            end = i;
+                            i++;
+                        }
+                        *(end + 1) = '\0';
+                        if (DEBUG)
+                        {
+                            fprintf(stderr, "%s", line);
+                        }
+                        if (strstr(line, "*/") == NULL || strstr(line, "/*") == NULL)
+                            break;
+                        comment_l = (strstr(line, "*/") - strstr(line, "/*"));
+                    }
+                }
+                else
+                {
+                    *(strstr(line, "/*")) = '\0';
+                    char tmp_chr[1024];
+                    strcpy(tmp_chr,line);
+                    strcpy(line, strstr(tmp_chr, "*/") + 2);
+                }
+                annotate = 0;
+            }
+            else
+            {
+                *(strstr(line, "/*")) = '\0';
+                annotate = 1;
+            }
+        }
+        if (strstr(line, "*/") != NULL)
+        {
+            annotate = 0;
+            char tmp_chr[1024];
+            strcpy(tmp_chr,line);
+            strcpy(line, strstr(tmp_chr, "*/") + 2);
+        }
+        if (strstr(line, "//") != NULL)
+        {
+            *(strstr(line, "//")) = '\0';
+        }
         if (strstr(line, func) != NULL)
         {
             count++;
@@ -275,7 +320,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                     fprintf(tmp_out, "    ", line_num);
                 if (line[0] == ' ')
                 {
-                    char *ptr_line = line;
+                    char *ptr_line = print_line;
                     while (*(ptr_line) == ' ')
                     {
                         ptr_line++;
@@ -283,7 +328,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                     fprintf(tmp_out, "%s", ptr_line);
                 }
                 else
-                    fprintf(tmp_out, "%s", line);
+                    fprintf(tmp_out, "%s", print_line);
             }
         }
     }

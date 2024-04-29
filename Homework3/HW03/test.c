@@ -9,5 +9,7 @@ int main()
         return 1;
     }
     sBmpPixel24 bg = {0, 0, 0};
-    create_bmp24_bg(8,8,bg,fp);
+    /*
+    create_bmp24_bg(8,8,bg,fp);*/create_bmp24_bg(8,8,bg,fp);
+
 }
