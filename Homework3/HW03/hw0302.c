@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
             }
             break;
         case 'h':
-            if (option[f_opt] || option[i_opt] || option[l_opt] || option[c_opt])
-            {
-                fprintf(stdout, "Error: -h cannot be used with other options.\n");
-                goto err_arg;
-            }
+            // if (option[f_opt] || option[i_opt] || option[l_opt] || option[c_opt])
+            // {
+            //     fprintf(stdout, "Error: -h cannot be used with other options.\n");
+            //     goto err_arg;
+            // }
             option[h_opt]++;
             fprintf(stdout, HELP_MSG);
             return 0;

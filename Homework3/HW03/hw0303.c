@@ -86,17 +86,17 @@ int main(int argc, char *argv[])
         goto err_case;
     }
     int32_t file_n = 0;
-    file_n = (argc - optind)/2;
+    file_n = (argc - optind) / 2;
     for (int32_t n = optind; n < optind + file_n; n++)
     {
         char *inp_bmp = NULL;
         char *out_file = NULL;
         inp_bmp = argv[n];
-        if(DEBUG)
-        fprintf(stderr,"%s",inp_bmp);
-        out_file = argv[n+file_n];
-        if(DEBUG)
-        fprintf(stderr,"%s",out_file);
+        if (DEBUG)
+            fprintf(stderr, "%s", inp_bmp);
+        out_file = argv[n + file_n];
+        if (DEBUG)
+            fprintf(stderr, "%s", out_file);
         if (w)
         {
             FILE *cover_bmp = NULL;
