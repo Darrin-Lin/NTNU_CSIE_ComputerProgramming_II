@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
     {
         if (DEBUG)
         {
-            fprintf(stderr, "t/f: %d\n", (abs(output_header.width) - 1) % ((out_width) / 256));
+            fprintf(stderr, "t/f: %d\n", ((abs(out_width) / 256)==0? (abs(out_width) / 256)% (abs(out_width) / 256) == 0 :1 ));
         }
         for (int32_t i = 0; i < abs(output_header.height); i++)
         {
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
             {
 
                 sBmpPixel24 out_pixel = {0, 0, 0};
-                if (j % ((out_width) / 256) == 0)
+                if ((abs(out_width) / 256)!=0?j % (abs(out_width) / 256) == 0 :1 || j==abs(out_width)-1)
                 {
                     if (labs(i - r_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
                     {
