@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     int32_t line_radius = 0;
     while ((opt = getopt_long(argc, argv, "i:o:w:h:l:H", longopts, NULL)) != -1)
     {
-            char *num_err = NULL;
+        char *num_err = NULL;
 
         switch (opt)
         {
@@ -81,11 +81,11 @@ int main(int argc, char *argv[])
                 fprintf(stdout, "Error: -w can only be used once.\n");
                 goto err_arg;
             }
-            num_err=NULL;
+            num_err = NULL;
             out_width = strtol(optarg, &num_err, 10);
-            if(DEBUG)
+            if (DEBUG)
             {
-                fprintf(stderr,"%s",num_err);
+                fprintf(stderr, "%s", num_err);
             }
             if (*num_err != '\0')
             {
@@ -110,16 +110,16 @@ int main(int argc, char *argv[])
             break;
         case 'l':
             option[l_opt]++;
-            if(option[l_opt]>1)
+            if (option[l_opt] > 1)
             {
                 fprintf(stdout, "Error: -l can only be used once.\n");
                 goto err_arg;
             }
             num_err = NULL;
-        
-            line_radius=strtol(optarg, &num_err,10);
-            
-            if(*num_err != '\0')
+
+            line_radius = strtol(optarg, &num_err, 10);
+
+            if (*num_err != '\0')
             {
                 fprintf(stdout, "Error: %s is not a number", optarg);
                 goto err_arg;
@@ -163,9 +163,23 @@ int main(int argc, char *argv[])
             b_count[inp_pixel.b]++;
         }
     }
-    if (DEBUG)
+    fclose(inp_bmp);
+    int64_t max = 0;
+    for (int32_t i = 0; i < 256; i++)
     {
-        for (int32_t i = 0; i < 256; i++)
+        if (r_count[i] > max)
+        {
+            max = r_count[i];
+        }
+        if (g_count[i] > max)
+        {
+            max = g_count[i];
+        }
+        if (b_count[i] > max)
+        {
+            max = b_count[i];
+        }
+        if (DEBUG)
         {
             fprintf(stderr, "%d\n", i);
             fprintf(stderr, "  r: %ld\n", r_count[i]);
@@ -173,6 +187,94 @@ int main(int argc, char *argv[])
             fprintf(stderr, "  b: %ld\n", b_count[i]);
         }
     }
+    for (int32_t i = 0; i < 256; i++)
+    {
+        r_count[i] = r_count[i] * (out_height - 1) / max;
+        g_count[i] = g_count[i] * (out_height - 1) / max;
+        b_count[i] = b_count[i] * (out_height - 1) / max;
+    }
+    sBmpPixel24 bg = {0, 0, 0};
+    FILE *out_bmp = NULL;
+    out_bmp = fopen(out_name, "wb");
+    if (out_bmp == NULL)
+    {
+        fprintf(stdout, "Error: Can't create %s.", out_name);
+        goto err_arg;
+    }
+    if (create_bmp24_bg(out_width, out_height, bg, out_bmp) == -1)
+    {
+        fprintf(stdout, "Error: Can't create bmp file.");
+        goto err_arg;
+    }
+    fclose(out_bmp);
+    out_bmp = fopen(out_name, "rb");
+    sBmpHeader output_header = read_header(out_bmp);
+    end_byte = count_end_byte(output_header.width, 24);
+    fclose(out_bmp);
+    out_bmp = fopen(out_name, "wb");
+    if (out_bmp == NULL)
+    {
+        fprintf(stdout, "Error: Can't open %s.", out_name);
+        goto err_arg;
+    }
+    end_byte = count_end_byte(output_header.width, 24);
+    fwrite(&output_header, sizeof(sBmpHeader), 1, out_bmp);
+    if (max != 0)
+    {
+        if (DEBUG)
+        {
+            fprintf(stderr, "t/f: %d\n", (abs(output_header.width) - 1) % ((out_width) / 256));
+        }
+        for (int32_t i = 0; i < abs(output_header.height); i++)
+        {
+            for (int32_t j = 0; j < abs(output_header.width); j++)
+            {
+
+                sBmpPixel24 out_pixel = {0, 0, 0};
+                if (j % ((out_width) / 256) == 0)
+                {
+                    if (labs(i - r_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    {
+                        out_pixel.r = 255 - (labs(i - r_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                    }
+                    if (labs(i - g_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    {
+                        out_pixel.g = 255 - (labs(i - g_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                    }
+                    if (labs(i - b_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    {
+                        out_pixel.b = 255 - (labs(i - b_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                    }
+                }
+                // The line need to be continuous.
+                // else if (j * 255 / (abs(output_header.width) - 1) + 1 < 256)
+                // {
+                //     int32_t r_conti = (r_count[j * 255 / (abs(output_header.width) - 1)] + r_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+                //     int32_t r_conti_h = labs(r_count[j * 255 / (abs(output_header.width) - 1)] - r_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
+                //     if (abs(i - r_conti) < r_conti_h)
+                //     {
+                //         out_pixel.r = 255;
+                //     }
+                //     int32_t g_conti = (g_count[j * 255 / (abs(output_header.width) - 1)] + g_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+                //     int32_t g_conti_h = labs(g_count[j * 255 / (abs(output_header.width) - 1)] - g_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
+                //     if (abs(i - g_conti) < g_conti_h)
+                //     {
+                //         out_pixel.g = 255;
+                //     }
+                //     int32_t b_conti = (b_count[j * 255 / (abs(output_header.width) - 1)] + b_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+                //     int32_t b_conti_h = labs(b_count[j * 255 / (abs(output_header.width) - 1)] - b_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
+                //     if (abs(i - b_conti) < b_conti_h)
+                //     {
+                //         out_pixel.b = 255;
+                //     }
+                // }
+                fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
+            }
+            write_edge_pixel(abs(output_header.width), out_bmp);
+        }
+    }
+    fclose(out_bmp);
+
     return 0;
 err_arg:
     return -1;
