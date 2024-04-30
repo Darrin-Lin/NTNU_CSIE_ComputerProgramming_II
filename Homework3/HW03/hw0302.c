@@ -192,10 +192,16 @@ err_arg:
 int32_t get_function_names(FILE *header_file, char *func_find)
 {
     char line[1024];
-    int32_t line_num = 0;
     while (!feof(header_file))
     {
         fgets(line, 1024, header_file);
+        while (strlen(line) > 1 && line[strlen(line) - 2] == '\\')
+        {
+            char tmp_chr[1024];
+            fgets(tmp_chr, 1024, header_file);
+            line[strlen(line) - 2] = '\0';
+            strcat(line, tmp_chr);
+        }
         // if (strstr(line, "int") != NULL || strstr(line, "void") != NULL || strstr(line, "char") != NULL || strstr(line, "float") != NULL || strstr(line, "double") != NULL)
         // {
         if (strstr(line, "__") == NULL)
@@ -238,14 +244,26 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
     while (!feof(file))
     {
         fgets(line, 1024, file);
+        int32_t tmp_line_num = line_num;
+        char print_line[1024];
+        strcpy(print_line, line);
+        while (strlen(line) > 1 && line[strlen(line) - 2] == '\\')
+        {
+            char tmp_chr[1024];
+            fgets(tmp_chr, 1024, file);
+            line[strlen(line) - 2] = '\0';
+            strcat(line, tmp_chr);
+            strcat(print_line, tmp_chr);
+            tmp_line_num++;
+        }
+
         line_num++;
         if (annotate)
         {
             if (strstr(line, "*/") == NULL)
                 continue;
         }
-        char print_line[1024];
-        strcpy(print_line, line);
+        
         if (strstr(line, "/*") != NULL)
         {
             if (strstr(line, "*/") != NULL)
@@ -277,7 +295,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                 {
                     *(strstr(line, "/*")) = '\0';
                     char tmp_chr[1024];
-                    strcpy(tmp_chr,line);
+                    strcpy(tmp_chr, line);
                     strcpy(line, strstr(tmp_chr, "*/") + 2);
                 }
                 annotate = 0;
@@ -292,12 +310,43 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
         {
             annotate = 0;
             char tmp_chr[1024];
-            strcpy(tmp_chr,line);
+            strcpy(tmp_chr, line);
             strcpy(line, strstr(tmp_chr, "*/") + 2);
         }
         if (strstr(line, "//") != NULL)
         {
             *(strstr(line, "//")) = '\0';
+        }
+        int32_t count_quotation = 0;
+        for (int i = 0; i < strlen(line); i++)
+        {
+            if (line[i] == '\"')
+            {
+                count_quotation++;
+            }
+        }
+        if (count_quotation)
+        {
+            if (DEBUG)
+            {
+                fprintf(stderr, "count_quotation: %d\n", count_quotation);
+            }
+            while (count_quotation % 2 == 0 && count_quotation)
+            {
+                int32_t quotation_l = 0;
+                quotation_l = strchr(strchr(line, '"') + 1, '"') - strchr(line, '"');
+
+                char *end_ptr = NULL;
+                for (char *i = strchr(line, '"'); *(i + quotation_l + 1) != '\0'; i = i)
+                {
+                    *i = *(i + quotation_l + 1);
+                    i++;
+                    end_ptr = i;
+                }
+                count_quotation -= 2;
+
+                *(end_ptr) = '\0';
+            }
         }
         if (strstr(line, func) != NULL)
         {
@@ -317,7 +366,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
             if (option[c_opt])
             {
                 if (!option[l_opt])
-                    fprintf(tmp_out, "    ", line_num);
+                    fprintf(tmp_out, "    ");
                 if (line[0] == ' ')
                 {
                     char *ptr_line = print_line;
@@ -331,6 +380,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                     fprintf(tmp_out, "%s", print_line);
             }
         }
+        line_num = tmp_line_num;
     }
     fclose(tmp_out);
     fprintf(stdout, "(count: %d)\n", count);
