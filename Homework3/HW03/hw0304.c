@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     }
     void *adress = (void *)adress_num;
     uint8_t *memory = mmap(adress, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);
-    printf("-%d\n", memory[0]);
+    // printf("-%d\n", memory[0]);
     return 0;
 
 err_arg:

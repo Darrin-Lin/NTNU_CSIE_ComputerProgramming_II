@@ -222,16 +222,21 @@ int main(int argc, char *argv[])
             r_point[i] = r_count[i * 255 / (abs(out_width) - 1)];
             g_point[i] = g_count[i * 255 / (abs(out_width) - 1)];
             b_point[i] = b_count[i * 255 / (abs(out_width) - 1)];
+            if (DEBUG&&b_point[i]>190)
+            {
+                fprintf(stderr, "i:%d %d\n", i, b_point[i]);
+            }
         }
         else
         {
-            if(DEBUG)
+            
+            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)] + ((r_count[i * 255 / (abs(out_width) - 1)+1] - r_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256))) / (out_width / 256));
+            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)] + ((g_count[i * 255 / (abs(out_width) - 1)+1] - g_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256)) )/ (out_width / 256));
+            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)] + ((b_count[i * 255 / (abs(out_width) - 1)+1] - b_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256)) )/ (out_width / 256));
+            if (DEBUG&&b_point[i]>190)
             {
-                fprintf(stderr, "i:%d %d\n",i,i * 255 / (abs(out_width) - 1) + 1);
+                fprintf(stderr, "i:%d %d\n", i, b_point[i]);
             }
-            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)] + ((r_count[i * 255 / (abs(out_width) - 1)] - r_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
-            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)] + ((g_count[i * 255 / (abs(out_width) - 1)] - g_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
-            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)] + ((b_count[i * 255 / (abs(out_width) - 1)] - b_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
         }
     }
 
@@ -281,7 +286,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (r_point[j]-line_radius < i && i < r_point[j + 1] + line_radius)
+                        if (r_point[j] - line_radius < i && i < r_point[j + 1] + line_radius)
                         {
                             out_pixel.r = 255;
                             // if(labs(i - r_point[j]) < line_radius)
@@ -296,7 +301,7 @@ int main(int argc, char *argv[])
                     }
                     if (g_point[j] > g_point[j + 1])
                     {
-                        if (g_point[j + 1] - line_radius < i && i < g_point[j] + line_radius)
+                        if ((g_point[j + 1] - line_radius) < i && i < g_point[j] + line_radius)
                         {
                             out_pixel.g = 255;
                             // if(labs(i - g_point[j]) < line_radius)
@@ -313,7 +318,7 @@ int main(int argc, char *argv[])
                     {
                         if (g_point[j] - line_radius < i && i < g_point[j + 1] + line_radius)
                         {
-                            out_pixel.g = 255 ;
+                            out_pixel.g = 255;
                             // if(labs(i - g_point[j]) < line_radius)
                             // {
                             //     out_pixel.g = 255 - (labs(i - g_point[j]) * 255 / line_radius);
@@ -322,12 +327,11 @@ int main(int argc, char *argv[])
                             // {
                             //     out_pixel.g = 255 - (labs(i - g_point[j + 1]) * 255 / line_radius);
                             // }
-
                         }
                     }
                     if (b_point[j] > b_point[j + 1])
                     {
-                        if (b_point[j + 1] - line_radius < i && i< b_point[j] +line_radius)
+                        if (b_point[j + 1] - line_radius < i && i < b_point[j] + line_radius)
                         {
                             out_pixel.b = 255;
                             // if(i - b_point[j] < line_radius && i - b_point[j] > 0)
@@ -342,7 +346,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (b_point[j] - line_radius < i && i < b_point[j+1] + line_radius)
+                        if (b_point[j] - line_radius < i && i < b_point[j + 1] + line_radius)
                         {
                             out_pixel.b = 255;
                             // if(i - b_point[j] < line_radius && i - b_point[j] > 0)

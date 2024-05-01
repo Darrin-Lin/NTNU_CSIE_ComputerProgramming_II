@@ -258,12 +258,31 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
         }
 
         line_num++;
+        tmp_line_num++;
+
         if (annotate)
         {
             if (strstr(line, "*/") == NULL)
                 continue;
         }
-        
+        if (strstr(line, "*/") != NULL)
+        {
+            if (annotate == 0 && strstr(line, "//") != NULL)
+            {
+                *(strstr(line, "//")) = '\0';
+            }
+            if (strstr(line, "*/") != NULL)
+            {
+                annotate = 0;
+                char tmp_chr[1024];
+                strcpy(tmp_chr, line);
+                strcpy(line, strstr(tmp_chr, "*/") + 2);
+            }
+        }
+        if (strstr(line, "//") != NULL)
+        {
+            *(strstr(line, "//")) = '\0';
+        }
         if (strstr(line, "/*") != NULL)
         {
             if (strstr(line, "*/") != NULL)
@@ -306,17 +325,7 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                 annotate = 1;
             }
         }
-        if (strstr(line, "*/") != NULL)
-        {
-            annotate = 0;
-            char tmp_chr[1024];
-            strcpy(tmp_chr, line);
-            strcpy(line, strstr(tmp_chr, "*/") + 2);
-        }
-        if (strstr(line, "//") != NULL)
-        {
-            *(strstr(line, "//")) = '\0';
-        }
+
         int32_t count_quotation = 0;
         for (int i = 0; i < strlen(line); i++)
         {
