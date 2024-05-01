@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <getopt.h>
 #include "mybmp.h"
+#include "myvector.h"
 
 #define DEBUG 1
 #define HELP_MSG "\
@@ -187,12 +188,6 @@ int main(int argc, char *argv[])
             fprintf(stderr, "  b: %ld\n", b_count[i]);
         }
     }
-    for (int32_t i = 0; i < 256; i++)
-    {
-        r_count[i] = r_count[i] * (out_height - 1) / max;
-        g_count[i] = g_count[i] * (out_height - 1) / max;
-        b_count[i] = b_count[i] * (out_height - 1) / max;
-    }
     sBmpPixel24 bg = {0, 0, 0};
     FILE *out_bmp = NULL;
     out_bmp = fopen(out_name, "wb");
@@ -207,6 +202,39 @@ int main(int argc, char *argv[])
         goto err_arg;
     }
     fclose(out_bmp);
+    if (max == 0)
+    {
+        return 0;
+    }
+    for (int32_t i = 0; i < 256; i++)
+    {
+        r_count[i] = r_count[i] * (out_height - 1) / max;
+        g_count[i] = g_count[i] * (out_height - 1) / max;
+        b_count[i] = b_count[i] * (out_height - 1) / max;
+    }
+    int64_t *r_point = Vector_create(out_width);
+    int64_t *g_point = Vector_create(out_width);
+    int64_t *b_point = Vector_create(out_width);
+    for (int32_t i = 0; i < out_width; i++)
+    {
+        if (((abs(out_width) / 256) != 0 ? i % (abs(out_width) / 256) == 0 : 1) || i == abs(out_width) - 1)
+        {
+            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)];
+            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)];
+            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)];
+        }
+        else
+        {
+            if(DEBUG)
+            {
+                fprintf(stderr, "i:%d %d\n",i,i * 255 / (abs(out_width) - 1) + 1);
+            }
+            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)] + ((r_count[i * 255 / (abs(out_width) - 1)] - r_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
+            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)] + ((g_count[i * 255 / (abs(out_width) - 1)] - g_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
+            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)] + ((b_count[i * 255 / (abs(out_width) - 1)] - b_count[i * 255 / (abs(out_width) - 1) + 1]) * (i % (out_width / 256)) / (out_width / 256));
+        }
+    }
+
     out_bmp = fopen(out_name, "rb");
     sBmpHeader output_header = read_header(out_bmp);
     end_byte = count_end_byte(output_header.width, 24);
@@ -215,6 +243,9 @@ int main(int argc, char *argv[])
     if (out_bmp == NULL)
     {
         fprintf(stdout, "Error: Can't open %s.", out_name);
+        Vector_free(r_point);
+        Vector_free(g_point);
+        Vector_free(b_point);
         goto err_arg;
     }
     end_byte = count_end_byte(output_header.width, 24);
@@ -223,7 +254,7 @@ int main(int argc, char *argv[])
     {
         if (DEBUG)
         {
-            fprintf(stderr, "t/f: %d\n", ((abs(out_width) / 256)==0? (abs(out_width) / 256)% (abs(out_width) / 256) == 0 :1 ));
+            fprintf(stderr, "t/f: %d\n", ((abs(out_width) / 256) == 0 ? (abs(out_width) / 256) % (abs(out_width) / 256) == 0 : 1));
         }
         for (int32_t i = 0; i < abs(output_header.height); i++)
         {
@@ -231,41 +262,120 @@ int main(int argc, char *argv[])
             {
 
                 sBmpPixel24 out_pixel = {0, 0, 0};
-                if ((abs(out_width) / 256)!=0?j % (abs(out_width) / 256) == 0 :1 || j==abs(out_width)-1)
+                if (j != out_width - 1)
                 {
-                    if (labs(i - r_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    if (r_point[j] > r_point[j + 1])
                     {
-                        out_pixel.r = 255 - (labs(i - r_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                        if (r_point[j + 1] - line_radius < i && i < r_point[j] + line_radius)
+                        {
+                            out_pixel.r = 255;
+                            // if(labs(i - r_point[j]) < line_radius)
+                            // {
+                            //     out_pixel.r = 255 - (labs(i - r_point[j]) * 255 / line_radius);
+                            // }
+                            // if(labs(i - r_point[j + 1]) < line_radius)
+                            // {
+                            //     out_pixel.r = 255 - (labs(i - r_point[j + 1]) * 255 / line_radius);
+                            // }
+                        }
                     }
-                    if (labs(i - g_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    else
                     {
-                        out_pixel.g = 255 - (labs(i - g_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                        if (r_point[j]-line_radius < i && i < r_point[j + 1] + line_radius)
+                        {
+                            out_pixel.r = 255;
+                            // if(labs(i - r_point[j]) < line_radius)
+                            // {
+                            //     out_pixel.r = 255 - (labs(i - r_point[j]) * 255 / line_radius);
+                            // }
+                            // if(labs(i - r_point[j + 1]) < line_radius)
+                            // {
+                            //     out_pixel.r = 255 - (labs(i - r_point[j + 1]) * 255 / line_radius);
+                            // }
+                        }
                     }
-                    if (labs(i - b_count[j * 255 / (abs(output_header.width) - 1)]) < line_radius)
+                    if (g_point[j] > g_point[j + 1])
                     {
-                        out_pixel.b = 255 - (labs(i - b_count[j * 255 / (abs(output_header.width) - 1)]) * 255 / line_radius);
+                        if (g_point[j + 1] - line_radius < i && i < g_point[j] + line_radius)
+                        {
+                            out_pixel.g = 255;
+                            // if(labs(i - g_point[j]) < line_radius)
+                            // {
+                            //     out_pixel.g = 255 - (labs(i - g_point[j]) * 255 / line_radius);
+                            // }
+                            // if(labs(i - g_point[j + 1]) < line_radius)
+                            // {
+                            //     out_pixel.g = 255 - (labs(i - g_point[j + 1]) * 255 / line_radius);
+                            // }
+                        }
+                    }
+                    else
+                    {
+                        if (g_point[j] - line_radius < i && i < g_point[j + 1] + line_radius)
+                        {
+                            out_pixel.g = 255 ;
+                            // if(labs(i - g_point[j]) < line_radius)
+                            // {
+                            //     out_pixel.g = 255 - (labs(i - g_point[j]) * 255 / line_radius);
+                            // }
+                            // if(labs(i - g_point[j + 1]) < line_radius)
+                            // {
+                            //     out_pixel.g = 255 - (labs(i - g_point[j + 1]) * 255 / line_radius);
+                            // }
+
+                        }
+                    }
+                    if (b_point[j] > b_point[j + 1])
+                    {
+                        if (b_point[j + 1] - line_radius < i && i< b_point[j] +line_radius)
+                        {
+                            out_pixel.b = 255;
+                            // if(i - b_point[j] < line_radius && i - b_point[j] > 0)
+                            // {
+                            //     out_pixel.b = 255 - ((line_radius - (i - b_point[j])) * 255 / line_radius);
+                            // }
+                            // if(b_point[j + 1] - i < line_radius && b_point[j + 1] - i > 0)
+                            // {
+                            //     out_pixel.b = 255 - ((line_radius-(b_point[j+1]-i)) * 255 / line_radius);
+                            // }
+                        }
+                    }
+                    else
+                    {
+                        if (b_point[j] - line_radius < i && i < b_point[j+1] + line_radius)
+                        {
+                            out_pixel.b = 255;
+                            // if(i - b_point[j] < line_radius && i - b_point[j] > 0)
+                            // {
+                            //     out_pixel.b = 255;
+                            // }
+                            // if(b_point[j + 1] - i < line_radius && b_point[j + 1] - i > 0)
+                            // {
+                            //     out_pixel.b = 255;
+                            // }
+                        }
                     }
                 }
-                // The line need to be continuous.
+                // // The line need to be continuous.
                 // else if (j * 255 / (abs(output_header.width) - 1) + 1 < 256)
                 // {
-                //     int32_t r_conti = (r_count[j * 255 / (abs(output_header.width) - 1)] + r_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+
                 //     int32_t r_conti_h = labs(r_count[j * 255 / (abs(output_header.width) - 1)] - r_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                //     if (abs(i - r_conti) < r_conti_h)
+                //     if (abs(i - r_conti) < line_radius)
                 //     {
-                //         out_pixel.r = 255;
+                //         out_pixel.r = 255 - (labs(i - r_conti) * 255 / line_radius);
                 //     }
-                //     int32_t g_conti = (g_count[j * 255 / (abs(output_header.width) - 1)] + g_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+                //     int32_t g_conti = g_count[j * 255 / (abs(output_header.width) - 1)] + ((g_count[j * 255 / (abs(output_header.width) - 1)] - g_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256));
                 //     int32_t g_conti_h = labs(g_count[j * 255 / (abs(output_header.width) - 1)] - g_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                //     if (abs(i - g_conti) < g_conti_h)
+                //     if (abs(i - g_conti) < line_radius)
                 //     {
-                //         out_pixel.g = 255;
+                //         out_pixel.g = 255 - (labs(i - g_conti) * 255 / line_radius);
                 //     }
-                //     int32_t b_conti = (b_count[j * 255 / (abs(output_header.width) - 1)] + b_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256);
+                //     int32_t b_conti = b_count[j * 255 / (abs(output_header.width) - 1)] + ((b_count[j * 255 / (abs(output_header.width) - 1)] - b_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256));
                 //     int32_t b_conti_h = labs(b_count[j * 255 / (abs(output_header.width) - 1)] - b_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                //     if (abs(i - b_conti) < b_conti_h)
+                //     if (abs(i - b_conti) < line_radius)
                 //     {
-                //         out_pixel.b = 255;
+                //         out_pixel.b = 255 - (labs(i - b_conti) * 255 / line_radius);
                 //     }
                 // }
                 fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
@@ -274,7 +384,9 @@ int main(int argc, char *argv[])
         }
     }
     fclose(out_bmp);
-
+    Vector_free(r_point);
+    Vector_free(g_point);
+    Vector_free(b_point);
     return 0;
 err_arg:
     return -1;
