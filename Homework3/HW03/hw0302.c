@@ -13,11 +13,11 @@
 #define DEBUG 0
 #define HELP_MSG "\
 Usage: hw0302 [options] ... [files] ...\n\
-  -f, --function=func Trace the func usage in [Files].\n\
-  -i, --include=File Trace all functions listed in the header file in [Files].\n\
-  -l, --linum Display the line number.\n\
-  -c, --code Display the code.\n\
-  -h, --help Display this information and exit.\n\n\
+  -f, --function=func   Trace the func usage in [Files].\n\
+  -i, --include=File    Trace all functions listed in the header file in [Files].\n\
+  -l, --linum       Display the line number.\n\
+  -c, --code        Display the code.\n\
+  -h, --help        Display this information and exit.\n\n\
 -f and -i are exclusive and must be at least one.\n\
 "
 

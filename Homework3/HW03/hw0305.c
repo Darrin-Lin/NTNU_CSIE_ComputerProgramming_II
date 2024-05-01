@@ -13,12 +13,12 @@
 
 #define DEBUG 1
 #define HELP_MSG "\
--i, - -input, mandatory: input file path\n\
--o, - -output, mandatory: output file path\n\
--w, - -width, mandatory: output bmp file widths\n\
--h, - -height, mandatory: output bmp file height\n\
--l, - -line, mandatory: the radius of line\n\
--H, - -help, option: show help message\n\
+-i, --input, mandatory: input file path\n\
+-o, --output, mandatory: output file path\n\
+-w, --width, mandatory: output bmp file widths\n\
+-h, --height, mandatory: output bmp file height\n\
+-l, --line, mandatory: the radius of line\n\
+-H, --help, option: show help message\n\
 "
 
 enum option_index
