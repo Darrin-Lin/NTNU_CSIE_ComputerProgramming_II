@@ -212,33 +212,6 @@ int main(int argc, char *argv[])
         g_count[i] = g_count[i] * (out_height - 1) / max;
         b_count[i] = b_count[i] * (out_height - 1) / max;
     }
-    int64_t *r_point = Vector_create(out_width);
-    int64_t *g_point = Vector_create(out_width);
-    int64_t *b_point = Vector_create(out_width);
-    for (int32_t i = 0; i < out_width; i++)
-    {
-        if (((abs(out_width) / 256) != 0 ? i % (abs(out_width) / 256) == 0 : 1) || i == abs(out_width) - 1)
-        {
-            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)];
-            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)];
-            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)];
-            if (DEBUG&&b_point[i]>190)
-            {
-                fprintf(stderr, "i:%d %d\n", i, b_point[i]);
-            }
-        }
-        else
-        {
-            
-            r_point[i] = r_count[i * 255 / (abs(out_width) - 1)] + ((r_count[i * 255 / (abs(out_width) - 1)+1] - r_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256))) / (out_width / 256));
-            g_point[i] = g_count[i * 255 / (abs(out_width) - 1)] + ((g_count[i * 255 / (abs(out_width) - 1)+1] - g_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256)) )/ (out_width / 256));
-            b_point[i] = b_count[i * 255 / (abs(out_width) - 1)] + ((b_count[i * 255 / (abs(out_width) - 1)+1] - b_count[i * 255 / (abs(out_width) - 1)]) * ((i % (out_width / 256)) )/ (out_width / 256));
-            if (DEBUG&&b_point[i]>190)
-            {
-                fprintf(stderr, "i:%d %d\n", i, b_point[i]);
-            }
-        }
-    }
 
     out_bmp = fopen(out_name, "rb");
     sBmpHeader output_header = read_header(out_bmp);
@@ -248,9 +221,7 @@ int main(int argc, char *argv[])
     if (out_bmp == NULL)
     {
         fprintf(stdout, "Error: Can't open %s.", out_name);
-        Vector_free(r_point);
-        Vector_free(g_point);
-        Vector_free(b_point);
+
         goto err_arg;
     }
     end_byte = count_end_byte(output_header.width, 24);
@@ -267,97 +238,86 @@ int main(int argc, char *argv[])
             {
 
                 sBmpPixel24 out_pixel = {0, 0, 0};
-                if (j != out_width - 1)
+                int32_t count_into255 = j * 255 / (abs(output_header.width) - 1);
+                if (line_radius == 1)
                 {
-                    if (r_point[j] > r_point[j + 1])
+
+                    // if (r_count[count_into255] == i)
+                    // {
+                    //     out_pixel.r = 255;
+                    // }
+                    // if (g_count[count_into255] == i)
+                    // {
+                    //     out_pixel.g = 255;
+                    // }
+                    // if (b_count[count_into255] == i)
+                    // {
+                    //     out_pixel.b = 255;
+                    // }
+                    int32_t xa = (count_into255 * (abs(output_header.width) - 1) / 255);
+                    int32_t xb = ((count_into255 + 1) * (abs(output_header.width) - 1) / 255);
+                    if (count_into255 < 255)
                     {
-                        if (r_point[j + 1] - line_radius < i && i < r_point[j] + line_radius)
+                        // if ((i - r_count[count_into255]) * (xb - xa) == (j - xa) * (r_count[count_into255 + 1] - r_count[count_into255]))
+                        // {
+                        //     out_pixel.r = 255;
+                        // }
+                        // if ((i - g_count[count_into255]) * (xb - xa) == (j - xa) * (g_count[count_into255 + 1] - g_count[count_into255]))
+                        // {
+                        //     out_pixel.g = 255;
+                        // }
+                        // if ((i - b_count[count_into255]) * (xb - xa) == (j - xa) * (b_count[count_into255 + 1] - b_count[count_into255]))
+                        // {
+                        //     out_pixel.b = 255;
+                        // }
+                        if (xa != xb && i == r_count[count_into255] + (r_count[count_into255 + 1] - r_count[count_into255]) * (j - xa) / (xb - xa))
                         {
                             out_pixel.r = 255;
-                            // if(labs(i - r_point[j]) < line_radius)
-                            // {
-                            //     out_pixel.r = 255 - (labs(i - r_point[j]) * 255 / line_radius);
-                            // }
-                            // if(labs(i - r_point[j + 1]) < line_radius)
-                            // {
-                            //     out_pixel.r = 255 - (labs(i - r_point[j + 1]) * 255 / line_radius);
-                            // }
                         }
-                    }
-                    else
-                    {
-                        if (r_point[j] - line_radius < i && i < r_point[j + 1] + line_radius)
+                        // else if (xa == xb && j == xa)
+                        // {
+                        //     out_pixel.r = 255;
+                        // }
+                        else if (r_count[count_into255 + 1] != r_count[count_into255] && j == xa + (xb - xa) * (i - r_count[count_into255]) / (r_count[count_into255 + 1] - r_count[count_into255]))
                         {
                             out_pixel.r = 255;
-                            // if(labs(i - r_point[j]) < line_radius)
-                            // {
-                            //     out_pixel.r = 255 - (labs(i - r_point[j]) * 255 / line_radius);
-                            // }
-                            // if(labs(i - r_point[j + 1]) < line_radius)
-                            // {
-                            //     out_pixel.r = 255 - (labs(i - r_point[j + 1]) * 255 / line_radius);
-                            // }
                         }
-                    }
-                    if (g_point[j] > g_point[j + 1])
-                    {
-                        if ((g_point[j + 1] - line_radius) < i && i < g_point[j] + line_radius)
+                        // else if (r_count[count_into255 + 1] == r_count[count_into255] && j == xa)
+                        // {
+                        //     out_pixel.r = 255;
+                        // }
+                        if (xa != xb && i == g_count[count_into255] + (g_count[count_into255 + 1] - g_count[count_into255]) * (j - xa) / (xb - xa))
                         {
                             out_pixel.g = 255;
-                            // if(labs(i - g_point[j]) < line_radius)
-                            // {
-                            //     out_pixel.g = 255 - (labs(i - g_point[j]) * 255 / line_radius);
-                            // }
-                            // if(labs(i - g_point[j + 1]) < line_radius)
-                            // {
-                            //     out_pixel.g = 255 - (labs(i - g_point[j + 1]) * 255 / line_radius);
-                            // }
                         }
-                    }
-                    else
-                    {
-                        if (g_point[j] - line_radius < i && i < g_point[j + 1] + line_radius)
+                        // else if (xa == xb && j == xa)
+                        // {
+                        //     out_pixel.g = 255;
+                        // }
+                        else if (g_count[count_into255 + 1] != g_count[count_into255] && j == xa + (xb - xa) * (i - g_count[count_into255]) / (g_count[count_into255 + 1] - g_count[count_into255]))
                         {
                             out_pixel.g = 255;
-                            // if(labs(i - g_point[j]) < line_radius)
-                            // {
-                            //     out_pixel.g = 255 - (labs(i - g_point[j]) * 255 / line_radius);
-                            // }
-                            // if(labs(i - g_point[j + 1]) < line_radius)
-                            // {
-                            //     out_pixel.g = 255 - (labs(i - g_point[j + 1]) * 255 / line_radius);
-                            // }
                         }
-                    }
-                    if (b_point[j] > b_point[j + 1])
-                    {
-                        if (b_point[j + 1] - line_radius < i && i < b_point[j] + line_radius)
+                        // else if (g_count[count_into255 + 1] == g_count[count_into255] && j == xa)
+                        // {
+                        //     out_pixel.g = 255;
+                        // }
+                        if (xa != xb && i == b_count[count_into255] + (b_count[count_into255 + 1] - b_count[count_into255]) * (j - xa) / (xb - xa))
                         {
                             out_pixel.b = 255;
-                            // if(i - b_point[j] < line_radius && i - b_point[j] > 0)
-                            // {
-                            //     out_pixel.b = 255 - ((line_radius - (i - b_point[j])) * 255 / line_radius);
-                            // }
-                            // if(b_point[j + 1] - i < line_radius && b_point[j + 1] - i > 0)
-                            // {
-                            //     out_pixel.b = 255 - ((line_radius-(b_point[j+1]-i)) * 255 / line_radius);
-                            // }
                         }
-                    }
-                    else
-                    {
-                        if (b_point[j] - line_radius < i && i < b_point[j + 1] + line_radius)
+                        // else if (xa == xb && j == xa)
+                        // {
+                        //     out_pixel.b = 255;
+                        // }
+                        else if (b_count[count_into255 + 1] != b_count[count_into255] && j == xa + (xb - xa) * (i - b_count[count_into255]) / (b_count[count_into255 + 1] - b_count[count_into255]))
                         {
                             out_pixel.b = 255;
-                            // if(i - b_point[j] < line_radius && i - b_point[j] > 0)
-                            // {
-                            //     out_pixel.b = 255;
-                            // }
-                            // if(b_point[j + 1] - i < line_radius && b_point[j + 1] - i > 0)
-                            // {
-                            //     out_pixel.b = 255;
-                            // }
                         }
+                        // else if (b_count[count_into255 + 1] == b_count[count_into255] && j == xa)
+                        // {
+                        //     out_pixel.b = 255;
+                        // }
                     }
                 }
                 // // The line need to be continuous.
@@ -388,9 +348,6 @@ int main(int argc, char *argv[])
         }
     }
     fclose(out_bmp);
-    Vector_free(r_point);
-    Vector_free(g_point);
-    Vector_free(b_point);
     return 0;
 err_arg:
     return -1;
