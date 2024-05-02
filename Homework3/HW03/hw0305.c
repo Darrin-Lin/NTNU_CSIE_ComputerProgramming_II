@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
                         }
                         else if (xa == xb && j == xa)
                         {
-                            out_pixel.g = 255;  
+                            out_pixel.g = 255;
                         }
                         else if (g_count[count_into256] != g_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1]))
                         {
@@ -378,32 +378,113 @@ int main(int argc, char *argv[])
                             out_pixel.b = 255;
                         }
                     }
-                    // // The line need to be continuous.
-                    // else if (j * 255 / (abs(output_header.width) - 1) + 1 < 256)
-                    // {
-
-                    //     int32_t r_conti_h = labs(r_count[j * 255 / (abs(output_header.width) - 1)] - r_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                    //     if (abs(i - r_conti) < line_radius)
-                    //     {
-                    //         out_pixel.r = 255 - (labs(i - r_conti) * 255 / line_radius);
-                    //     }
-                    //     int32_t g_conti = g_count[j * 255 / (abs(output_header.width) - 1)] + ((g_count[j * 255 / (abs(output_header.width) - 1)] - g_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256));
-                    //     int32_t g_conti_h = labs(g_count[j * 255 / (abs(output_header.width) - 1)] - g_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                    //     if (abs(i - g_conti) < line_radius)
-                    //     {
-                    //         out_pixel.g = 255 - (labs(i - g_conti) * 255 / line_radius);
-                    //     }
-                    //     int32_t b_conti = b_count[j * 255 / (abs(output_header.width) - 1)] + ((b_count[j * 255 / (abs(output_header.width) - 1)] - b_count[j * 255 / (abs(output_header.width) - 1) + 1]) * (j % (out_width / 256)) / (out_width / 256));
-                    //     int32_t b_conti_h = labs(b_count[j * 255 / (abs(output_header.width) - 1)] - b_count[j * 255 / (abs(output_header.width) - 1) + 1]) / 2;
-                    //     if (abs(i - b_conti) < line_radius)
-                    //     {
-                    //         out_pixel.b = 255 - (labs(i - b_conti) * 255 / line_radius);
-                    //     }
-                    // }
-                    fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
                 }
-                write_edge_pixel(abs(output_header.width), out_bmp);
+                else
+                {
+                    int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
+                    int32_t xb = ((count_into256 + 1) * (abs(output_header.width) - 1) / 256);
+                    if (count_into256 < 255)
+                    {
+                        if (xa != xb && labs(i - (r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.r = 255 - (255 - out_pixel.r) * (labs(i - (r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.r = 255 - (255 - out_pixel.r) * (labs(j - xa) / line_radius);
+                        }
+                        else if (r_count[count_into256 + 1] != r_count[count_into256] && labs(j - 1 - xa - (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256])) < line_radius)
+                        {
+                            // if ((i > r_count[count_into256 + 1] && i < r_count[count_into256]) || (i < r_count[count_into256 + 1] && i > r_count[count_into256])) //FIXME
+                                out_pixel.r = 255 - (255 - out_pixel.r) * (labs(j - 1 - xa - (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256])) / line_radius);
+                        }
+                        
+                        if (xa != xb && labs(i - (g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.g = 255 - (255 - out_pixel.g) * (labs(i - (g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.g = 255 - (255 - out_pixel.g) * (labs(j - xa) / line_radius);
+                        }
+                        else if (g_count[count_into256 + 1] != g_count[count_into256] && labs(j - 1 - xa - (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256])) < line_radius)
+                        {
+                            // if ((i > g_count[count_into256 + 1] && i < g_count[count_into256]) || (i < g_count[count_into256 + 1] && i > g_count[count_into256])) //FIXME
+                                out_pixel.g = 255 - (255 - out_pixel.g) * (labs(j - 1 - xa - (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256])) / line_radius);
+                        }
+                       
+                        if (xa != xb && labs(i - (b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.b = 255 - (255 - out_pixel.b) * (labs(i - (b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.b = 255 - (255 - out_pixel.b) * (labs(j - xa) / line_radius);
+                        }
+                        else if (b_count[count_into256 + 1] != b_count[count_into256] && labs(j - 1 - xa - (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256])) < line_radius)
+                        {
+                            // if ((i > b_count[count_into256 + 1] && i < b_count[count_into256]) || (i < b_count[count_into256 + 1] && i > b_count[count_into256])) // FIXME
+                                out_pixel.b = 255 - (255 - out_pixel.b) * (labs(j - 1 - xa - (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256])) / line_radius);
+                        }
+                        
+                    }
+                    else if (count_into256 == 255)
+                    {
+                        xa = ((count_into256 - 1) * (abs(output_header.width) - 1) / 256);
+                        xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
+                        if (xa != xb && labs(i - (r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.r = 255 - (255 - out_pixel.r) * (labs(i - (r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.r = 255 - (255 - out_pixel.r) * (labs(j - xa) / line_radius);
+                        }
+                        else if (r_count[count_into256] != r_count[count_into256 - 1] && labs(j - 1 - xa - (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1])) < line_radius)
+                        {
+                            if ((i > r_count[count_into256] && i < r_count[count_into256 - 1]) || (i < r_count[count_into256] && i > r_count[count_into256 - 1]))
+                                out_pixel.r = 255 - (255 - out_pixel.r) * (labs(j - 1 - xa - (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1])) / line_radius);
+                        }
+                        
+                        if (xa != xb && labs(i - (g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.g = 255 - (255 - out_pixel.g) * (labs(i - (g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.g = 255 - (255 - out_pixel.g) * (labs(j - xa) / line_radius);
+                        }
+                        else if (g_count[count_into256] != g_count[count_into256 - 1] && labs(j - 1 - xa - (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1])) < line_radius)
+                        {
+                            if ((i > g_count[count_into256] && i < g_count[count_into256 - 1]) || (i < g_count[count_into256] && i > g_count[count_into256 - 1]))
+                                out_pixel.g = 255 - (255 - out_pixel.g) * (labs(j - 1 - xa - (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1])) / line_radius);
+                        }
+                        else if (g_count[count_into256] == g_count[count_into256 - 1] && labs(j - xa) < line_radius && j != 0)
+                        {
+                            out_pixel.g = 255 - (255 - out_pixel.g) * (labs(j - xa) / line_radius);
+                        }
+                        if (xa != xb && labs(i - (b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))) < line_radius)
+                        {
+                            out_pixel.b = 255 - (255 - out_pixel.b) * (labs(i - (b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))) / line_radius);
+                        }
+                        else if (xa == xb && labs(j - xa) < line_radius)
+                        {
+                            out_pixel.b = 255 - (255 - out_pixel.b) * (labs(j - xa) / line_radius);
+                        }
+                        else if (b_count[count_into256] != b_count[count_into256 - 1] && labs(j - 1 - xa - (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1])) < line_radius)
+                        {
+                            if ((i > b_count[count_into256] && i < b_count[count_into256 - 1]) || (i < b_count[count_into256] && i > b_count[count_into256 - 1]))
+                                out_pixel.b = 255 - (255 - out_pixel.b) * (labs(j - 1 - xa - (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1])) / line_radius);
+                        }
+                        else if (b_count[count_into256] == b_count[count_into256 - 1] && labs(j - xa) < line_radius && j != 0)
+                        {
+                            out_pixel.b = 255 - (255 - out_pixel.b) * (labs(j - xa) / line_radius);
+                        }
+                    }
+                }
+                fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
             }
+            write_edge_pixel(abs(output_header.width), out_bmp);
         }
     }
     fclose(out_bmp);
