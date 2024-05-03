@@ -133,8 +133,11 @@ int main(int argc, char *argv[])
         goto err_arg;
     }
     void *adress = (void *)adress_num;
-    uint8_t *memory = mmap(adress, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);
+    uint8_t *memory = (int8_t *)mmap(adress, file_size, 255| PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);
     // printf("-%d\n", memory[0]);
+    char test[10];
+    read(game,&test,5);
+    printf("%d\n",test[0]);
     return 0;
 
 err_arg:
