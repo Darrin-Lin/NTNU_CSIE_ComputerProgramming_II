@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <getopt.h>
 
-// #define _DEBUG_ 1
+// #define _DEBUG_
 
 #define HELP_MSG "\
   -p, --pid=dosbox-staging_pid       Give program the dosbox-staging's pid.\n\
@@ -34,6 +34,18 @@ enum option_index
     a_opt,
     h_opt,
 };
+
+int8_t print_80_byte(int32_t file)
+{
+    char buffer[100] = {0};
+    read(file, buffer, 80);
+    for (int i = 0; i < 80; i++)
+    {
+        printf("%0x%d%d\n", buffer[i] / 16, buffer[i] % 16);
+    }
+    printf("\n");
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -132,14 +144,14 @@ int main(int argc, char *argv[])
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
-    void *adress = (void *)adress_num;
-    uint8_t *memory = (int8_t *)mmap(adress, file_size, 255| PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);
-    // printf("-%d\n", memory[0]);
-    char test[10];
-    read(game,&test,5);
-    printf("%d\n",test[0]);
+    lseek(game, adress_num, SEEK_SET);
+    print_80_byte(game);
+    close(game);
     return 0;
 
 err_arg:
+    return -1;
+err_close:
+    close(game);
     return -1;
 }
