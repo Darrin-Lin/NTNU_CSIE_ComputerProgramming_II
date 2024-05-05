@@ -11,7 +11,7 @@
 #include "mybmp.h"
 #include "myvector.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define HELP_MSG "\
 -i, --input, mandatory: input file path\n\
 -o, --output, mandatory: output file path\n\
