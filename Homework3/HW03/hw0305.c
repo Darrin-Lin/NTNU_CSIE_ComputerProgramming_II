@@ -210,14 +210,14 @@ int main(int argc, char *argv[])
     }
     for (int32_t i = 0; i < 256; i++)
     {
-        r_count[i] = r_count[i] * (out_height - 1) / max;
-        g_count[i] = g_count[i] * (out_height - 1) / max;
-        b_count[i] = b_count[i] * (out_height - 1) / max;
+        r_count[i] = r_count[i] * (abs(out_height) - 1) / max;
+        g_count[i] = g_count[i] * (abs(out_height) - 1) / max;
+        b_count[i] = b_count[i] * (abs(out_height) - 1) / max;
     }
 
     out_bmp = fopen(out_name, "rb");
     sBmpHeader output_header = read_header(out_bmp);
-    end_byte = count_end_byte(output_header.width, 24);
+    end_byte = count_end_byte(abs(output_header.width), 24);
     fclose(out_bmp);
     out_bmp = fopen(out_name, "wb");
     if (out_bmp == NULL)
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 
         goto err_arg;
     }
-    end_byte = count_end_byte(output_header.width, 24);
+    end_byte = count_end_byte(abs(output_header.width), 24);
     fwrite(&output_header, sizeof(sBmpHeader), 1, out_bmp);
     if (max != 0)
     {
@@ -348,9 +348,9 @@ int main(int argc, char *argv[])
                     fprintf(stdout, "Error: Can't allocate memory.");
                     goto err_arg;
                 }
-                for (int32_t i = 0; i < out_height; i++)
+                for (int32_t i = 0; i < abs(output_header.height); i++)
                 {
-                    for (int32_t j = 0; j < out_width; j++)
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
                     {
                         int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
                         int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
                             {
                                 out_pixel.r = 255;
                             }
-                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
+                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
                             {
                                 if ((i > r_count[count_into256 + interval] && i < r_count[count_into256]) || (i < r_count[count_into256 + interval] && i > r_count[count_into256]))
                                     out_pixel.r = 255;
@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
                             {
                                 out_pixel.g = 255;
                             }
-                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
+                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
                             {
                                 if ((i > g_count[count_into256 + interval] && i < g_count[count_into256]) || (i < g_count[count_into256 + interval] && i > g_count[count_into256]))
                                     out_pixel.g = 255;
@@ -510,7 +510,7 @@ int main(int argc, char *argv[])
                             {
                                 out_pixel.b = 255;
                             }
-                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
+                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
                             {
                                 if ((i > b_count[count_into256 + interval] && i < b_count[count_into256]) || (i < b_count[count_into256 + interval] && i > b_count[count_into256]))
                                     out_pixel.b = 255;
@@ -592,7 +592,7 @@ int main(int argc, char *argv[])
                             {
                                 draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
                             }
-                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
+                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
                             {
                                 if ((i > r_count[count_into256 + interval] && i < r_count[count_into256]) || (i < r_count[count_into256 + interval] && i > r_count[count_into256]))
                                     draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
@@ -606,7 +606,7 @@ int main(int argc, char *argv[])
                             {
                                 draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
                             }
-                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
+                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
                             {
                                 if ((i > g_count[count_into256 + interval] && i < g_count[count_into256]) || (i < g_count[count_into256 + interval] && i > g_count[count_into256]))
                                     draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
@@ -620,7 +620,7 @@ int main(int argc, char *argv[])
                             {
                                 draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
                             }
-                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
+                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j - (abs(out_width == 257 ? 0 : 1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
                             {
                                 if ((i > b_count[count_into256 + interval] && i < b_count[count_into256]) || (i < b_count[count_into256 + interval] && i > b_count[count_into256]))
                                     draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
@@ -691,6 +691,34 @@ int main(int argc, char *argv[])
         }
     }
     fclose(out_bmp);
+    if (out_height < 0)
+    {
+        out_bmp = fopen("output.bmp", "rb");
+        if (out_bmp == NULL)
+        {
+            fprintf(stdout, "Error: Can't open file.");
+            goto err_arg;
+        }
+        FILE *tmp_out = fopen("tmp_out.bmp", "wb");
+        if (tmp_out == NULL)
+        {
+            fprintf(stdout, "Error: Can't open file.");
+            goto err_arg;
+        }
+        fwrite(&output_header, sizeof(sBmpHeader), 1, tmp_out);
+        output_header.height = -output_header.height;
+        for (int32_t i = 0; i < abs(output_header.height); i++)
+        {
+            for (int32_t j = 0; j < abs(output_header.width); j++)
+            {
+                sBmpPixel24 out_pixel;
+                out_pixel = read_pixel(out_bmp, output_header, output_header.height- i-1, j, end_byte);
+                fwrite(&out_pixel, sizeof(sBmpPixel24), 1, tmp_out);
+            }
+            write_edge_pixel(abs(output_header.width), tmp_out);
+        }
+        fclose(out_bmp);
+    }
     return 0;
 err_arg:
     return -1;
