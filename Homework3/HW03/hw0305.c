@@ -234,284 +234,460 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "t/f: %d\n", ((abs(out_width) / 256) == 0 ? (abs(out_width) / 256) % (abs(out_width) / 256) == 0 : 1));
         }
-        if (line_radius == 1)
+        if (abs(out_width) > 257)
         {
-            for (int32_t i = 0; i < abs(output_header.height); i++)
+            if (line_radius == 1)
             {
-                for (int32_t j = 0; j < abs(output_header.width); j++)
+                for (int32_t i = 0; i < abs(output_header.height); i++)
                 {
-
-                    sBmpPixel24 out_pixel = {0, 0, 0};
-                    int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
-
-                    // if (r_count[count_into256] == i)
-                    // {
-                    //     out_pixel.r = 255;
-                    // }
-                    // if (g_count[count_into256] == i)
-                    // {
-                    //     out_pixel.g = 255;
-                    // }
-                    // if (b_count[count_into256] == i)
-                    // {
-                    //     out_pixel.b = 255;
-                    // }
-                    int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
-                    int32_t xb = ((count_into256 + 1) * (abs(output_header.width) - 1) / 256);
-                    if (count_into256 < 255)
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
                     {
-                        if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+
+                        sBmpPixel24 out_pixel = {0, 0, 0};
+                        int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
+
+                        int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
+                        int32_t xb = ((count_into256 + 1) * (abs(output_header.width) - 1) / 256);
+                        if (count_into256 < 255)
                         {
-                            out_pixel.r = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.r = 255;
-                        }
-                        else if (r_count[count_into256 + 1] != r_count[count_into256] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256]))
-                        {
-                            if ((i > r_count[count_into256 + 1] && i < r_count[count_into256]) || (i < r_count[count_into256 + 1] && i > r_count[count_into256]))
+                            if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 out_pixel.r = 255;
-                        }
-                        else if (r_count[count_into256 + 1] == r_count[count_into256] && j == xa && j != 0)
-                        {
-                            out_pixel.r = 255;
-                        }
-                        if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))
-                        {
-                            out_pixel.g = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.g = 255;
-                        }
-                        else if (g_count[count_into256 + 1] != g_count[count_into256] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256]))
-                        {
-                            if ((i > g_count[count_into256 + 1] && i < g_count[count_into256]) || (i < g_count[count_into256 + 1] && i > g_count[count_into256]))
+                            }
+                            else if (r_count[count_into256 + 1] != r_count[count_into256] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256]))
+                            {
+                                if ((i > r_count[count_into256 + 1] && i < r_count[count_into256]) || (i < r_count[count_into256 + 1] && i > r_count[count_into256]))
+                                    out_pixel.r = 255;
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256]) == (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 out_pixel.g = 255;
-                        }
-                        else if (g_count[count_into256 + 1] == g_count[count_into256] && j == xa && j != 0)
-                        {
-                            out_pixel.g = 255;
-                        }
-                        if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))
-                        {
-                            out_pixel.b = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.b = 255;
-                        }
-                        else if (b_count[count_into256 + 1] != b_count[count_into256] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256]))
-                        {
-                            if ((i > b_count[count_into256 + 1] && i < b_count[count_into256]) || (i < b_count[count_into256 + 1] && i > b_count[count_into256]))
+                            }
+                            else if (g_count[count_into256 + 1] != g_count[count_into256] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256]))
+                            {
+                                if ((i > g_count[count_into256 + 1] && i < g_count[count_into256]) || (i < g_count[count_into256 + 1] && i > g_count[count_into256]))
+                                    out_pixel.g = 255;
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256]) == (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 out_pixel.b = 255;
+                            }
+                            else if (b_count[count_into256 + 1] != b_count[count_into256] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256]))
+                            {
+                                if ((i > b_count[count_into256 + 1] && i < b_count[count_into256]) || (i < b_count[count_into256 + 1] && i > b_count[count_into256]))
+                                    out_pixel.b = 255;
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256]) == (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
                         }
-                        else if (b_count[count_into256 + 1] == b_count[count_into256] && j == xa && j != 0)
+                        else if (count_into256 == 255)
                         {
-                            out_pixel.b = 255;
+                            xa = ((count_into256 - 1) * (abs(output_header.width) - 1) / 256);
+                            xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
+                            if (xa != xb && i == r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            else if (r_count[count_into256] != r_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1]))
+                            {
+                                // if ((i > r_count[count_into256] && i < r_count[count_into256 - 1]) || (i < r_count[count_into256] && i > r_count[count_into256 - 1]))
+                                out_pixel.r = 255;
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256 - 1]) == (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            if (xa != xb && i == g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            else if (g_count[count_into256] != g_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1]))
+                            {
+                                // if ((i > g_count[count_into256] && i < g_count[count_into256 - 1]) || (i < g_count[count_into256] && i > g_count[count_into256 - 1]))
+                                out_pixel.g = 255;
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256 - 1]) == (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            if (xa != xb && i == b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
+                            else if (b_count[count_into256] != b_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1]))
+                            {
+                                // if ((i > b_count[count_into256] && i < b_count[count_into256 - 1]) || (i < b_count[count_into256] && i > b_count[count_into256 - 1]))
+                                out_pixel.b = 255;
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256 - 1]) == (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
                         }
+                        fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
                     }
-                    else if (count_into256 == 255)
-                    {
-                        xa = ((count_into256 - 1) * (abs(output_header.width) - 1) / 256);
-                        xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
-                        if (xa != xb && i == r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            out_pixel.r = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.r = 255;
-                        }
-                        else if (r_count[count_into256] != r_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1]))
-                        {
-                            // if ((i > r_count[count_into256] && i < r_count[count_into256 - 1]) || (i < r_count[count_into256] && i > r_count[count_into256 - 1]))
-                            out_pixel.r = 255;
-                        }
-                        else if (r_count[count_into256] == r_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            out_pixel.r = 255;
-                        }
-                        if (xa != xb && i == g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            out_pixel.g = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.g = 255;
-                        }
-                        else if (g_count[count_into256] != g_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1]))
-                        {
-                            // if ((i > g_count[count_into256] && i < g_count[count_into256 - 1]) || (i < g_count[count_into256] && i > g_count[count_into256 - 1]))
-                            out_pixel.g = 255;
-                        }
-                        else if (g_count[count_into256] == g_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            out_pixel.g = 255;
-                        }
-                        if (xa != xb && i == b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            out_pixel.b = 255;
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            out_pixel.b = 255;
-                        }
-                        else if (b_count[count_into256] != b_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1]))
-                        {
-                            // if ((i > b_count[count_into256] && i < b_count[count_into256 - 1]) || (i < b_count[count_into256] && i > b_count[count_into256 - 1]))
-                            out_pixel.b = 255;
-                        }
-                        else if (b_count[count_into256] == b_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            out_pixel.b = 255;
-                        }
-                    }
-                    fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
+                    write_edge_pixel(abs(output_header.width), out_bmp);
                 }
-                write_edge_pixel(abs(output_header.width), out_bmp);
+            }
+
+            else
+            {
+                sBmpPixel24 *out_img = calloc(abs(output_header.width) * abs(output_header.height), sizeof(sBmpPixel24));
+                if (out_img == NULL)
+                {
+                    fprintf(stdout, "Error: Can't allocate memory.");
+                    goto err_arg;
+                }
+                for (int32_t i = 0; i < out_height; i++)
+                {
+                    for (int32_t j = 0; j < out_width; j++)
+                    {
+                        int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
+                        int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
+                        int32_t xb = ((count_into256 + 1) * (abs(output_header.width) - 1) / 256);
+                        if (count_into256 < 255)
+                        {
+                            if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if (r_count[count_into256 + 1] != r_count[count_into256] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256]))
+                            {
+                                if ((i > r_count[count_into256 + 1] && i < r_count[count_into256]) || (i < r_count[count_into256 + 1] && i > r_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256]) == (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+
+                            if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if (g_count[count_into256 + 1] != g_count[count_into256] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256]))
+                            {
+                                if ((i > g_count[count_into256 + 1] && i < g_count[count_into256]) || (i < g_count[count_into256 + 1] && i > g_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256]) == (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if (b_count[count_into256 + 1] != b_count[count_into256] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256]))
+                            {
+                                if ((i > b_count[count_into256 + 1] && i < b_count[count_into256]) || (i < b_count[count_into256 + 1] && i > b_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256]) == (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                        }
+                        else if (count_into256 == 255)
+                        {
+                            xa = ((count_into256 - 1) * (abs(output_header.width) - 1) / 256);
+                            xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
+                            if (xa != xb && i == r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if (r_count[count_into256] != r_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1]))
+                            {
+                                // if ((i > r_count[count_into256] && i < r_count[count_into256 - 1]) || (i < r_count[count_into256] && i > r_count[count_into256 - 1]))
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256 - 1]) == (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if (g_count[count_into256] != g_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1]))
+                            {
+                                // if ((i > g_count[count_into256] && i < g_count[count_into256 - 1]) || (i < g_count[count_into256] && i > g_count[count_into256 - 1]))
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256 - 1]) == (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if (b_count[count_into256] != b_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1]))
+                            {
+                                // if ((i > b_count[count_into256] && i < b_count[count_into256 - 1]) || (i < b_count[count_into256] && i > b_count[count_into256 - 1]))
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256 - 1]) == (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                        }
+                    }
+                }
+
+                for (int32_t i = 0; i < abs(output_header.height); i++)
+                {
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
+                    {
+                        fwrite(&out_img[i * abs(output_header.width) + j], sizeof(sBmpPixel24), 1, out_bmp);
+                    }
+                    write_edge_pixel(abs(output_header.width), out_bmp);
+                }
+                free(out_img);
             }
         }
-
         else
         {
-            sBmpPixel24 *out_img = calloc(abs(output_header.width) * abs(output_header.height), sizeof(sBmpPixel24));
-            if (out_img == NULL)
+            int32_t interval = 256 / (abs(out_width) - 1);
+            if (DEBUG)
             {
-                fprintf(stdout, "Error: Can't allocate memory.");
-                goto err_arg;
+                fprintf(stderr, "interval: %d\n", interval);
             }
-            for (int32_t i = 0; i < out_height; i++)
+            if (line_radius == 1)
             {
-                for (int32_t j = 0; j < out_width; j++)
+                for (int32_t i = 0; i < abs(output_header.height); i++)
                 {
-                    int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
-                    int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
-                    int32_t xb = ((count_into256 + 1) * (abs(output_header.width) - 1) / 256);
-                    if (count_into256 < 255)
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
                     {
-                        if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+
+                        sBmpPixel24 out_pixel = {0, 0, 0};
+                        int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
+
+                        int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
+                        int32_t xb = ((count_into256 + interval) * (abs(output_header.width) - 1) / 256);
+
+                        if (count_into256 < 255)
                         {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
+                            {
+                                if ((i > r_count[count_into256 + interval] && i < r_count[count_into256]) || (i < r_count[count_into256 + interval] && i > r_count[count_into256]))
+                                    out_pixel.r = 255;
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256]) == (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= r_count[count_into256] && i <= r_count[count_into256 + interval]) || (i <= r_count[count_into256] && i >= r_count[count_into256 + interval]))
+                                    out_pixel.r = 255;
+                            }
+                            if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + interval] - g_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
+                            {
+                                if ((i > g_count[count_into256 + interval] && i < g_count[count_into256]) || (i < g_count[count_into256 + interval] && i > g_count[count_into256]))
+                                    out_pixel.g = 255;
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256]) == (g_count[count_into256 + interval] - g_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= g_count[count_into256] && i <= g_count[count_into256 + interval]) || (i <= g_count[count_into256] && i >= g_count[count_into256 + interval]))
+                                    out_pixel.g = 255;
+                            }
+                            if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + interval] - b_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
+                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
+                            {
+                                if ((i > b_count[count_into256 + interval] && i < b_count[count_into256]) || (i < b_count[count_into256 + interval] && i > b_count[count_into256]))
+                                    out_pixel.b = 255;
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256]) == (b_count[count_into256 + interval] - b_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= b_count[count_into256] && i <= b_count[count_into256 + interval]) || (i <= b_count[count_into256] && i >= b_count[count_into256 + interval]))
+                                    out_pixel.b = 255;
+                            }
                         }
-                        else if (xa == xb && j == xa)
+                        else if (count_into256 == 255)
                         {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            xa = ((count_into256 - interval) * (abs(output_header.width) - 1) / 256);
+                            xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
+                            if (xa != xb && i == r_count[count_into256 - interval] + (r_count[count_into256] - r_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            else if (r_count[count_into256] != r_count[count_into256 - interval] && j == xa + (xb - xa) * (i - r_count[count_into256 - interval]) / (r_count[count_into256] - r_count[count_into256 - interval]))
+                            {
+                                // if ((i > r_count[count_into256] && i < r_count[count_into256 - interval]) || (i < r_count[count_into256] && i > r_count[count_into256 - interval]))
+                                out_pixel.r = 255;
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256 - interval]) == (r_count[count_into256] - r_count[count_into256 - interval]) * (j - xa))
+                            {
+                                out_pixel.r = 255;
+                            }
+                            if (xa != xb && i == g_count[count_into256 - interval] + (g_count[count_into256] - g_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            else if (g_count[count_into256] != g_count[count_into256 - interval] && j == xa + (xb - xa) * (i - g_count[count_into256 - interval]) / (g_count[count_into256] - g_count[count_into256 - interval]))
+                            {
+                                // if ((i > g_count[count_into256] && i < g_count[count_into256 - interval]) || (i < g_count[count_into256] && i > g_count[count_into256 - interval]))
+                                out_pixel.g = 255;
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256 - interval]) == (g_count[count_into256] - g_count[count_into256 - interval]) * (j - xa))
+                            {
+                                out_pixel.g = 255;
+                            }
+                            if (xa != xb && i == b_count[count_into256 - interval] + (b_count[count_into256] - b_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
+                            else if (b_count[count_into256] != b_count[count_into256 - interval] && j == xa + (xb - xa) * (i - b_count[count_into256 - interval]) / (b_count[count_into256] - b_count[count_into256 - interval]))
+                            {
+                                // if ((i > b_count[count_into256] && i < b_count[count_into256 - interval]) || (i < b_count[count_into256] && i > b_count[count_into256 - interval]))
+                                out_pixel.b = 255;
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256 - interval]) == (b_count[count_into256] - b_count[count_into256 - interval]) * (j - xa))
+                            {
+                                out_pixel.b = 255;
+                            }
                         }
-                        else if (r_count[count_into256 + 1] != r_count[count_into256] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + 1] - r_count[count_into256]))
+                        fwrite(&out_pixel, sizeof(sBmpPixel24), 1, out_bmp);
+                    }
+                    write_edge_pixel(abs(output_header.width), out_bmp);
+                }
+            }
+
+            else
+            {
+                sBmpPixel24 *out_img = calloc(abs(output_header.width) * abs(output_header.height), sizeof(sBmpPixel24));
+                if (out_img == NULL)
+                {
+                    fprintf(stdout, "Error: Can't allocate memory.");
+                    goto err_arg;
+                }
+                for (int32_t i = 0; i < abs(output_header.height); i++)
+                {
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
+                    {
+                        int32_t count_into256 = j * 256 / (abs(output_header.width) - 1);
+                        int32_t xa = (count_into256 * (abs(output_header.width) - 1) / 256);
+                        int32_t xb = ((count_into256 + interval) * (abs(output_header.width) - 1) / 256);
+                        if (count_into256 < 255)
                         {
-                            if ((i > r_count[count_into256 + 1] && i < r_count[count_into256]) || (i < r_count[count_into256 + 1] && i > r_count[count_into256]))
+                            if (xa != xb && i == r_count[count_into256] + (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-                        else if (r_count[count_into256 + 1] == r_count[count_into256] && j == xa && j != 0)
-                        {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-
-                        if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + 1] - g_count[count_into256]) * (j - xa) / (xb - xa))
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (g_count[count_into256 + 1] != g_count[count_into256] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + 1] - g_count[count_into256]))
-                        {
-                            if ((i > g_count[count_into256 + 1] && i < g_count[count_into256]) || (i < g_count[count_into256 + 1] && i > g_count[count_into256]))
+                            }
+                            else if (r_count[count_into256 + interval] != r_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - r_count[count_into256]) / (r_count[count_into256 + interval] - r_count[count_into256]))
+                            {
+                                if ((i > r_count[count_into256 + interval] && i < r_count[count_into256]) || (i < r_count[count_into256 + interval] && i > r_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256]) == (r_count[count_into256 + 1] - r_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= r_count[count_into256 + interval] && i <= r_count[count_into256]) || (i <= r_count[count_into256 + interval] && i >= r_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == g_count[count_into256] + (g_count[count_into256 + interval] - g_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (g_count[count_into256 + 1] == g_count[count_into256] && j == xa && j != 0)
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + 1] - b_count[count_into256]) * (j - xa) / (xb - xa))
-                        {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                        else if (b_count[count_into256 + 1] != b_count[count_into256] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + 1] - b_count[count_into256]))
-                        {
-                            if ((i > b_count[count_into256 + 1] && i < b_count[count_into256]) || (i < b_count[count_into256 + 1] && i > b_count[count_into256]))
+                            }
+                            else if (g_count[count_into256 + interval] != g_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - g_count[count_into256]) / (g_count[count_into256 + interval] - g_count[count_into256]))
+                            {
+                                if ((i > g_count[count_into256 + interval] && i < g_count[count_into256]) || (i < g_count[count_into256 + interval] && i > g_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256]) == (g_count[count_into256 + interval] - g_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= g_count[count_into256 + interval] && i <= g_count[count_into256]) || (i <= g_count[count_into256 + interval] && i >= g_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == b_count[count_into256] + (b_count[count_into256 + interval] - b_count[count_into256]) * (j - xa) / (xb - xa))
+                            {
                                 draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if (b_count[count_into256 + interval] != b_count[count_into256] && j-(abs(out_width==257?0:1)) == xa + (xb - xa) * (i - b_count[count_into256]) / (b_count[count_into256 + interval] - b_count[count_into256]))
+                            {
+                                if ((i > b_count[count_into256 + interval] && i < b_count[count_into256]) || (i < b_count[count_into256 + interval] && i > b_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256]) == (b_count[count_into256 + interval] - b_count[count_into256]) * (j - xa))
+                            {
+                                if ((i >= b_count[count_into256 + interval] && i <= b_count[count_into256]) || (i <= b_count[count_into256 + interval] && i >= b_count[count_into256]))
+                                    draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
                         }
-                        else if (b_count[count_into256 + 1] == b_count[count_into256] && j == xa && j != 0)
+                        else if (count_into256 == 255)
                         {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                    }
-                    else if (count_into256 == 255)
-                    {
-                        xa = ((count_into256 - 1) * (abs(output_header.width) - 1) / 256);
-                        xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
-                        if (xa != xb && i == r_count[count_into256 - 1] + (r_count[count_into256] - r_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-                        else if (r_count[count_into256] != r_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - r_count[count_into256 - 1]) / (r_count[count_into256] - r_count[count_into256 - 1]))
-                        {
-                            // if ((i > r_count[count_into256] && i < r_count[count_into256 - 1]) || (i < r_count[count_into256] && i > r_count[count_into256 - 1]))
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-                        else if (r_count[count_into256] == r_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
-                        }
-                        if (xa != xb && i == g_count[count_into256 - 1] + (g_count[count_into256] - g_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (g_count[count_into256] != g_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - g_count[count_into256 - 1]) / (g_count[count_into256] - g_count[count_into256 - 1]))
-                        {
-                            // if ((i > g_count[count_into256] && i < g_count[count_into256 - 1]) || (i < g_count[count_into256] && i > g_count[count_into256 - 1]))
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        else if (g_count[count_into256] == g_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
-                        }
-                        if (xa != xb && i == b_count[count_into256 - 1] + (b_count[count_into256] - b_count[count_into256 - 1]) * (j - xa) / (xb - xa))
-                        {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                        else if (xa == xb && j == xa)
-                        {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                        else if (b_count[count_into256] != b_count[count_into256 - 1] && j - 1 == xa + (xb - xa) * (i - b_count[count_into256 - 1]) / (b_count[count_into256] - b_count[count_into256 - 1]))
-                        {
-                            // if ((i > b_count[count_into256] && i < b_count[count_into256 - 1]) || (i < b_count[count_into256] && i > b_count[count_into256 - 1]))
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
-                        }
-                        else if (b_count[count_into256] == b_count[count_into256 - 1] && j == xa && j != 0)
-                        {
-                            draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            xa = ((count_into256 - interval) * (abs(output_header.width) - 1) / 256);
+                            xb = ((count_into256) * (abs(output_header.width) - 1) / 256);
+                            if (xa != xb && i == r_count[count_into256 - interval] + (r_count[count_into256] - r_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if (r_count[count_into256] != r_count[count_into256 - interval] && j == xa + (xb - xa) * (i - r_count[count_into256 - interval]) / (r_count[count_into256] - r_count[count_into256 - interval]))
+                            {
+                                // if ((i > r_count[count_into256] && i < r_count[count_into256 - interval]) || (i < r_count[count_into256] && i > r_count[count_into256 - interval]))
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - r_count[count_into256 - interval]) == (r_count[count_into256] - r_count[count_into256 - interval]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 0, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == g_count[count_into256 - interval] + (g_count[count_into256] - g_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if (g_count[count_into256] != g_count[count_into256 - interval] && j == xa + (xb - xa) * (i - g_count[count_into256 - interval]) / (g_count[count_into256] - g_count[count_into256 - interval]))
+                            {
+                                // if ((i > g_count[count_into256] && i < g_count[count_into256 - interval]) || (i < g_count[count_into256] && i > g_count[count_into256 - interval]))
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - g_count[count_into256 - interval]) == (g_count[count_into256] - g_count[count_into256 - interval]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 1, out_img, out_width, out_height);
+                            }
+                            if (xa != xb && i == b_count[count_into256 - interval] + (b_count[count_into256] - b_count[count_into256 - interval]) * (j - xa) / (xb - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if (b_count[count_into256] != b_count[count_into256 - interval] && j == xa + (xb - xa) * (i - b_count[count_into256 - interval]) / (b_count[count_into256] - b_count[count_into256 - interval]))
+                            {
+                                // if ((i > b_count[count_into256] && i < b_count[count_into256 - interval]) || (i < b_count[count_into256] && i > b_count[count_into256 - interval]))
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
+                            else if ((xb - xa) * (i - b_count[count_into256 - interval]) == (b_count[count_into256] - b_count[count_into256 - interval]) * (j - xa))
+                            {
+                                draw_circle(j, i, line_radius, 2, out_img, out_width, out_height);
+                            }
                         }
                     }
                 }
-            }
 
-            for (int32_t i = 0; i < abs(output_header.height); i++)
-            {
-                for (int32_t j = 0; j < abs(output_header.width); j++)
+                for (int32_t i = 0; i < abs(output_header.height); i++)
                 {
-                    fwrite(&out_img[i * abs(output_header.width) + j], sizeof(sBmpPixel24), 1, out_bmp);
+                    for (int32_t j = 0; j < abs(output_header.width); j++)
+                    {
+                        fwrite(&out_img[i * abs(output_header.width) + j], sizeof(sBmpPixel24), 1, out_bmp);
+                    }
+                    write_edge_pixel(abs(output_header.width), out_bmp);
                 }
-                write_edge_pixel(abs(output_header.width), out_bmp);
+                free(out_img);
             }
-            free(out_img);
         }
     }
     fclose(out_bmp);
