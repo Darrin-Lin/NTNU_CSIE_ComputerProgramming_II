@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <getopt.h>
 
-// #define _DEBUG_
+#define _DEBUG_
 
 #define HELP_MSG "\
   -p, --pid=dosbox-staging_pid       Give program the dosbox-staging's pid.\n\
@@ -18,15 +18,14 @@
 Both -p and -m is necessory.\n\
 "
 
-// #if defined(_DEBUG_)
-// #define pterr(fmt, ...)                 \
-//     fprintf(stderr, "%s:%d:%s(): " fmt, \
-//             __FILE__, __LINE__, __func__, __VA_ARGS__)
-// #else
-// #define pterr(fmt, ...) \
-//     {                   \
-//     }
-// #endif
+#if defined(_DEBUG_)
+#define debug(fmt, ...) \
+    fprintf(stderr, "%s:%d:%s():\n" fmt, __FILE__, __LINE__, __func__)
+#else
+#define debug(fmt, ...) \
+    {                   \
+    }
+#endif
 
 enum option_index
 {
@@ -41,9 +40,13 @@ int8_t print_80_byte(int32_t file)
     read(file, buffer, 80);
     for (int i = 0; i < 80; i++)
     {
-        printf("%0x%d%d\n", buffer[i] / 16, buffer[i] % 16);
+        if (i % 16 == 0)
+            fprintf(stderr, "\n");
+        if (i % 16 == 8)
+            fprintf(stderr, "| ");
+        fprintf(stderr, "0x%hhx ", buffer[i]);
     }
-    printf("\n");
+    fprintf(stderr, "\n-----\n");
     return 0;
 }
 
@@ -58,7 +61,6 @@ int main(int argc, char *argv[])
     int32_t opt = 0;
     uint64_t adress_num = 0;
     char pid[1024] = {0};
-    // pterr("err123");
     while ((opt = getopt_long(argc, argv, "p:a:h", longopts, NULL)) != -1)
     {
         char *num_err = NULL;
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
             int64_t num = strtol(optarg, &num_err, 10);
             if (*num_err != '\0')
             {
-                fprintf(stdout, "Error: %s is not a decimal number.\n");
+                fprintf(stdout, "Error: %s is not a decimal number.\n", optarg);
                 goto err_arg;
             }
             if (num < 0)
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
             adress_num = strtol(optarg, &num_err, 16);
             if (*num_err != '\0')
             {
-                fprintf(stdout, "Error: %s is not a hex number.\n");
+                fprintf(stdout, "Error: %s is not a hex number.\n", optarg);
                 goto err_arg;
             }
             break;
@@ -144,8 +146,51 @@ int main(int argc, char *argv[])
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
-    lseek(game, adress_num, SEEK_SET);
-    print_80_byte(game);
+    lseek(game, 0, SEEK_SET);
+
+    char buffer[96] = {0};
+    // 16mb = 1<<24
+    printf("%lx\n", adress_num);
+    printf("%d\n", game);
+
+    int8_t *adress_map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);//No such device
+
+    if (adress_map == MAP_FAILED)
+    {
+        printf("map_error\n");
+        perror("");
+        return -1;
+    }
+    printf("%p\n", adress_map);
+    printf("%hhu\n", adress_map[2]);
+    uint16_t now_hp, now_mp, max_hp, max_mp;
+
+    printf("hp:");
+    scanf("%hu%hu", &now_hp, &max_hp);
+    printf("mp:");
+    scanf("%hu%hu", &now_mp, &max_mp);
+
+    int64_t idx = 0;
+    while (read(game, buffer, 16) > 0)
+    {
+        if (*((uint32_t *)(buffer + 8)) == now_hp && *((uint32_t *)(buffer + 10)) == max_hp && *((uint32_t *)(buffer + 12)) == now_mp && *((uint32_t *)(buffer + 14)) == max_mp)
+        {
+            fprintf(stderr, "%x:\n", idx);
+            for (int32_t i = 0; i < 16; i++)
+            {
+                if (i == 8)
+                    fprintf(stderr, "| ");
+                fprintf(stderr, "0x%hhx ", buffer[i]);
+            }
+            fprintf(stderr, "\n");
+        }
+        idx++;
+    }
+    // for(int32_t i =0;i<1<<20;i++)
+    // {
+    //     fprintf(stderr,"%d\n",i);
+    // print_80_byte(game);
+    // }
     close(game);
     return 0;
 
