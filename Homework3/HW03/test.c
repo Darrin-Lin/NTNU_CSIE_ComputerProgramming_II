@@ -12,13 +12,21 @@
 int main()
 {
     int32_t fd = open("a.in", O_RDWR);
-    int8_t *map = mmap(NULL, 2, PROT_READ | PROT_WRITE, MAP_SHARED, fd, (off_t)2);
+    printf("%ld\n",_SC_PAGESIZE);
+    for( int i =1;i<100;i++)
+    {
+    int8_t *map = mmap(NULL, 2, PROT_READ | PROT_WRITE, MAP_SHARED, fd, (off_t)i);
     if (map == MAP_FAILED)
     {
         perror("");
         printf("err\n");
+        // return 0;
+    }
+    else{
+        printf("i:%d\n",i);
         return 0;
     }
-    map[0]++;
+    }
+    // map[0]++;
     close(fd);
 }

@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     int8_t option[3] = {0};
     int32_t opt = 0;
     uint64_t adress_num = 0;
-    char pid[1024] = {0};
+    char pid[512] = {0};
     while ((opt = getopt_long(argc, argv, "p:a:h", longopts, NULL)) != -1)
     {
         char *num_err = NULL;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
-    uint64_t file_size = 0;
+    int64_t file_size = 0;
     struct stat st;
     if (fstat(game, &st) < 0)
     {
@@ -140,29 +140,29 @@ int main(int argc, char *argv[])
         close(game);
         return -1;
     }
+    perror("");
     file_size = st.st_size;
     if (game == -1)
     {
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
-    lseek(game, 0, SEEK_SET);
-
+    lseek(game, adress_num, SEEK_SET);
+    printf("size: %ld\n",_SC_PAGE_SIZE);
     char buffer[96] = {0};
     // 16mb = 1<<24
     printf("%lx\n", adress_num);
     printf("%d\n", game);
+    // int8_t *adress_map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, game, adress_num*_SC_PAGESIZE);//No such device
 
-    int8_t *adress_map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, game, 0);//No such device
-
-    if (adress_map == MAP_FAILED)
-    {
-        printf("map_error\n");
-        perror("");
-        return -1;
-    }
-    printf("%p\n", adress_map);
-    printf("%hhu\n", adress_map[2]);
+    // if (adress_map == MAP_FAILED)
+    // {
+    //     printf("map_error\n");
+    //     perror("");
+    //     return -1;
+    // }
+    // printf("%p\n", adress_map);
+    // printf("%hhu\n", adress_map[2]);
     uint16_t now_hp, now_mp, max_hp, max_mp;
 
     printf("hp:");
@@ -173,9 +173,21 @@ int main(int argc, char *argv[])
     int64_t idx = 0;
     while (read(game, buffer, 16) > 0)
     {
-        if (*((uint32_t *)(buffer + 8)) == now_hp && *((uint32_t *)(buffer + 10)) == max_hp && *((uint32_t *)(buffer + 12)) == now_mp && *((uint32_t *)(buffer + 14)) == max_mp)
+        // if(idx==0)
+        // {
+        //     printf("T?F%d",*((uint16_t *)(buffer + 2)) ==0xf000);
+        //     fprintf(stderr, "%lx:\n", idx);
+        //     for (int32_t i = 0; i < 16; i++)
+        //     {
+        //         if (i == 8)
+        //             fprintf(stderr, "| ");
+        //         fprintf(stderr, "0x%hhx ", buffer[i]);
+        //     }
+        //     fprintf(stderr, "\n");
+        // }
+        if (*((uint16_t *)(buffer + 8)) == now_hp && *((uint16_t *)(buffer + 10)) == max_hp && *((uint16_t *)(buffer + 12)) == now_mp && *((uint16_t *)(buffer + 14)) == max_mp)
         {
-            fprintf(stderr, "%x:\n", idx);
+            fprintf(stderr, "%lx:\n", idx);
             for (int32_t i = 0; i < 16; i++)
             {
                 if (i == 8)
