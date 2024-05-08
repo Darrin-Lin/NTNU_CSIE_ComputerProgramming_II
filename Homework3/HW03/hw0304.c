@@ -18,6 +18,8 @@
 Both -p and -m is necessory.\n\
 "
 
+#define GAME_MEM_SIZE (1 << 24)
+
 #if defined(_DEBUG_)
 #define debug(fmt, ...) \
     fprintf(stderr, "%s:%d:%s():\n" fmt, __FILE__, __LINE__, __func__)
@@ -33,6 +35,54 @@ enum option_index
     a_opt,
     h_opt,
 };
+
+struct _sCharacter_data
+{
+    uint8_t unused_0[8];
+    uint8_t x;
+    uint8_t y;
+    uint8_t cha_img;
+    uint8_t position;
+    uint8_t run;
+    uint8_t movement;
+    uint8_t camp;
+    uint8_t pic_id;
+
+    uint16_t name;
+    uint16_t item[8];
+    // next 2
+    uint8_t magic[5];
+    uint8_t race_id;
+    uint8_t job_id;
+    uint8_t level;
+    uint8_t ap_sta;
+    uint8_t dp_sta;
+    uint8_t hit_ev_sta;
+    uint8_t poison;
+    uint8_t paralysis;
+    uint8_t no_magic;
+
+    uint8_t unused_1[15];
+    uint16_t power;
+    // next 1
+    uint16_t defence;
+    uint8_t move_distance;
+    uint8_t exp;
+    uint8_t unused_2;
+    uint16_t speed;
+    uint16_t now_hp;
+    uint16_t max_hp;
+    uint16_t now_mp;
+    uint16_t max_mp;
+
+    uint16_t ap;
+    uint16_t dp;
+    uint16_t ht;
+    uint16_t ev;
+    int8_t unused_3[8];
+
+} __attribute__((__packed__));
+typedef struct _sCharacter_data sCharacter_data;
 
 int8_t print_80_byte(int32_t file)
 {
@@ -125,84 +175,131 @@ int main(int argc, char *argv[])
     }
     int32_t game = 0;
     char path[1024] = {0};
-    sprintf(path, "/proc/%s/mem", pid);
+    snprintf(path, 1024, "/proc/%s/mem", pid);
     game = open(path, O_RDWR);
     if (game == -1)
     {
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
-    int64_t file_size = 0;
-    struct stat st;
-    if (fstat(game, &st) < 0)
-    {
-        fprintf(stdout, "Error: state error\n");
-        close(game);
-        return -1;
-    }
-    perror("");
-    file_size = st.st_size;
+    // int64_t file_size = 0;
+    // struct stat st;
+    // if (fstat(game, &st) < 0)
+    // {
+    //     fprintf(stdout, "Error: state error\n");
+    //     close(game);
+    //     return -1;
+    // }
+    // perror("");
+    // file_size = st.st_size;
     if (game == -1)
     {
         fprintf(stdout, "Can't open %s", path);
         goto err_arg;
     }
+
+    // lseek(game, adress_num+11, SEEK_SET);
+    uint16_t now_hp, now_mp, max_hp, max_mp, x, y;
+
+    printf("main character's hp now:");
+    scanf("%hu", &now_hp);
+    printf("main character's max hp:");
+    scanf("%hu", &max_hp);
+    printf("main character's mp now:");
+    scanf("%hu", &now_mp);
+    printf("main character's max mp:");
+    scanf("%hu", &max_mp);
+    printf("main character's posion(x,y) (top-left is (0,0)):");
+    scanf("%hu%hu", &x, &y);
+
+    // printf("hp:%hu %hu %hu %hu\n",now_hp,now_mp,max_hp,max_mp);
+
+    // adress_num+=11; // by try
     lseek(game, adress_num, SEEK_SET);
-    printf("size: %ld\n",_SC_PAGE_SIZE);
+    printf("size: %d\n", _SC_PAGE_SIZE);
     char buffer[96] = {0};
     // 16mb = 1<<24
     printf("%lx\n", adress_num);
     printf("%d\n", game);
-    // int8_t *adress_map = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, game, adress_num*_SC_PAGESIZE);//No such device
-
-    // if (adress_map == MAP_FAILED)
-    // {
-    //     printf("map_error\n");
-    //     perror("");
-    //     return -1;
-    // }
-    // printf("%p\n", adress_map);
-    // printf("%hhu\n", adress_map[2]);
-    uint16_t now_hp, now_mp, max_hp, max_mp;
-
-    printf("hp:");
-    scanf("%hu%hu", &now_hp, &max_hp);
-    printf("mp:");
-    scanf("%hu%hu", &now_mp, &max_mp);
 
     int64_t idx = 0;
-    while (read(game, buffer, 16) > 0)
+    uint8_t *memory = calloc(GAME_MEM_SIZE, sizeof(int8_t));
+    if (memory == NULL)
     {
-        // if(idx==0)
-        // {
-        //     printf("T?F%d",*((uint16_t *)(buffer + 2)) ==0xf000);
-        //     fprintf(stderr, "%lx:\n", idx);
-        //     for (int32_t i = 0; i < 16; i++)
-        //     {
-        //         if (i == 8)
-        //             fprintf(stderr, "| ");
-        //         fprintf(stderr, "0x%hhx ", buffer[i]);
-        //     }
-        //     fprintf(stderr, "\n");
-        // }
-        if (*((uint16_t *)(buffer + 8)) == now_hp && *((uint16_t *)(buffer + 10)) == max_hp && *((uint16_t *)(buffer + 12)) == now_mp && *((uint16_t *)(buffer + 14)) == max_mp)
+        printf("Can't allocate.\n");
+        close(game);
+        return -1;
+    }
+    if (read(game, memory, GAME_MEM_SIZE) <= 0)
+    {
+        printf("read error.\n");
+        free(memory);
+        close(game);
+        return 0;
+    }
+    sCharacter_data characters_data[100];
+    sCharacter_data tmp_character[10];
+    int64_t offsets[10] = {0};
+    int32_t data_count = 0;
+    for (int32_t i = 72; i < (GAME_MEM_SIZE)-16; i++)
+    {
+        if (*((uint16_t *)(memory + i)) == now_hp && *((uint16_t *)(memory + i + 2)) == max_hp && *((uint16_t *)(memory + i + 4)) == now_mp && *((uint16_t *)(memory + i + 6)) == max_mp)
         {
-            fprintf(stderr, "%lx:\n", idx);
-            for (int32_t i = 0; i < 16; i++)
+            tmp_character[data_count] = *((sCharacter_data *)(memory - 72 + i));
+            if (tmp_character[data_count].x == x && tmp_character[data_count].y == y)
             {
-                if (i == 8)
-                    fprintf(stderr, "| ");
-                fprintf(stderr, "0x%hhx ", buffer[i]);
+                offsets[data_count] = i - 72;
+                data_count++;
             }
-            fprintf(stderr, "\n");
         }
-        idx++;
+    }
+    printf("data_caount: %d\n", data_count);
+    for (int32_t i = 0; i < data_count; i++)
+    {
+        printf("x:%hhu,y:%hhu id:%hhu\n", tmp_character[i].x, tmp_character[i].y, tmp_character[i].pic_id);
+        printf("level:%hhu\n",tmp_character[i].level);
+        printf("\n");
+    }
+    
+#if 0
+        while (read(game, buffer, 16) > 0)
+        {
+            // if(idx==0)
+            // {
+            //     printf("T?F%d",*((uint16_t *)(buffer + 2)) ==0xf000);
+            //     fprintf(stderr, "%lx:\n", idx);
+            //     for (int32_t i = 0; i < 16; i++)
+            //     {
+            //         if (i == 8)
+            //             fprintf(stderr, "| ");
+            //         fprintf(stderr, "0x%hhx ", buffer[i]);
+            //     }
+            //     fprintf(stderr, "\n");
+            // }
+            if (*((uint16_t *)(buffer + 8)) == now_hp && *((uint16_t *)(buffer + 10)) == max_hp && *((uint16_t *)(buffer + 12)) == now_mp && *((uint16_t *)(buffer + 14)) == max_mp)
+            {
+                printf("sucess\n");
+                fprintf(stderr, "%lx:\n", idx);
+                for (int32_t i = 0; i < 16; i++)
+                {
+                    if (i == 8)
+                        fprintf(stderr, "| ");
+                    fprintf(stderr, "0x%hhx ", buffer[i]);
+                }
+                fprintf(stderr, "\n");
+            }
+            idx++;
+            // fprintf(stderr,"idx:%x\n",idx);
+        }
+        fprintf(stderr, "final:%d %lx\n", offs, idx);
     }
     // for(int32_t i =0;i<1<<20;i++)
     // {
     //     fprintf(stderr,"%d\n",i);
     // print_80_byte(game);
     // }
+#endif
+    free(memory);
     close(game);
     return 0;
 
