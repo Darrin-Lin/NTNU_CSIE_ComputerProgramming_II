@@ -258,6 +258,65 @@ int main(int argc, char *argv[])
     {
         printf("x:%hhu,y:%hhu id:%hhu\n", tmp_character[i].x, tmp_character[i].y, tmp_character[i].pic_id);
         printf("level:%hhu\n",tmp_character[i].level);
+
+        // print each character's data
+        {
+            for(int32_t j = 0;j<sizeof(sCharacter_data);j++)
+            {
+                if(j%16==0)
+                    printf("\n");
+                if(j%16==8)
+                    printf("| ");
+                printf("0x%hhx ",*((uint8_t *)(&tmp_character[i])+j));
+
+            }
+            printf("\n");
+        }
+        {
+            fprintf(stderr,"x:%hhu y:%hhu\n",tmp_character[i].x,tmp_character[i].y);
+            fprintf(stderr,"cha_img:%hhu\n",tmp_character[i].cha_img);
+            fprintf(stderr,"position:%hhu\n",tmp_character[i].position);
+            fprintf(stderr,"run:%hhu\n",tmp_character[i].run);
+            fprintf(stderr,"movement:%hhu\n",tmp_character[i].movement);
+            fprintf(stderr,"camp:%hhu\n",tmp_character[i].camp);
+            fprintf(stderr,"pic_id:%hhu\n",tmp_character[i].pic_id);
+            fprintf(stderr,"name:%hu\n",tmp_character[i].name);
+            fprintf(stderr,"item: ");
+            for(int32_t j = 0;j<8;j++)
+            {
+                fprintf(stderr,"%hu ",tmp_character[i].item[j]);
+            }
+            fprintf(stderr,"\n");
+            fprintf(stderr,"magic:");
+            for(int32_t j = 0;j<5;j++)
+            {
+                fprintf(stderr,"%hhu ",tmp_character[i].magic[j]);
+            }
+            fprintf(stderr,"\n");
+            fprintf(stderr,"job_id:%hhu " ,tmp_character[i].job_id);
+            fprintf(stderr,"level:%hhu " ,tmp_character[i].level);
+            fprintf(stderr,"ap_sta:%hhu " ,tmp_character[i].ap_sta);
+            fprintf(stderr,"dp_sta:%hhu\n" ,tmp_character[i].dp_sta);
+            fprintf(stderr,"hit_ev_sta:%hhu " ,tmp_character[i].hit_ev_sta);
+            fprintf(stderr,"poison:%hhu " ,tmp_character[i].poison);
+            fprintf(stderr,"paralysis:%hhu " ,tmp_character[i].paralysis);
+            fprintf(stderr,"no_magic:%hhu\n" ,tmp_character[i].no_magic);
+            fprintf(stderr,"power:%hu " ,tmp_character[i].power);
+            fprintf(stderr,"defence:%hu " ,tmp_character[i].defence);
+            fprintf(stderr,"move_distance:%hhu"  ,tmp_character[i].move_distance);
+            fprintf(stderr,"exp:%hhu " ,tmp_character[i].exp);
+            fprintf(stderr,"speed:%hu\n" ,tmp_character[i].speed);
+            fprintf(stderr,"now_hp:%hu" ,tmp_character[i].now_hp);
+            fprintf(stderr,"max_hp:%hu " ,tmp_character[i].max_hp);
+            fprintf(stderr,"now_mp:%hu " ,tmp_character[i].now_mp);
+            fprintf(stderr,"max_mp:%hu\n" ,tmp_character[i].max_mp);
+            fprintf(stderr,"ap:%hu " ,tmp_character[i].ap);
+            fprintf(stderr,"dp:%hu " ,tmp_character[i].dp);
+            fprintf(stderr,"ht:%hu " ,tmp_character[i].ht);
+            fprintf(stderr,"ev:%hu " ,tmp_character[i].ev);
+            fprintf(stderr,"speed:%hu " ,tmp_character[i].speed);
+            
+        }
         printf("\n");
     }
     
