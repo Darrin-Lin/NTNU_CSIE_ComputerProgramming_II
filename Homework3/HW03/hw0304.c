@@ -46,11 +46,12 @@ detail: https://chiuinan.github.io/game/game/intro/ch/c31/fd2/\n\
     }
 #endif
 
-    enum option_index {
-        p_opt = 0,
-        a_opt,
-        h_opt,
-    };
+enum option_index
+{
+    p_opt = 0,
+    a_opt,
+    h_opt,
+};
 
 struct _sCharacter_data
 {
@@ -210,9 +211,14 @@ int main(int argc, char *argv[])
     scanf("%hu", &now_mp);
     printf("main character's max mp: ");
     scanf("%hu", &max_mp);
-    printf("main character's posion(x,y) (top-left is (0,0)): ");
-    scanf("%hu%hu", &x, &y);
-
+    int8_t have_xy = 0;
+    printf("Do you have main character's position?(1/0)");
+    scanf("%hhd", &have_xy);
+    if (have_xy)
+    {
+        printf("main character's posion(x,y) (top-left is (0,0)): ");
+        scanf("%hu%hu", &x, &y);
+    }
     // printf("hp: %hu %hu %hu %hu\n",now_hp,now_mp,max_hp,max_mp);
 
     // adress_num+=11; // by try
@@ -232,8 +238,7 @@ int main(int argc, char *argv[])
     if (read(game, memory, GAME_MEM_SIZE) <= 0)
     {
         printf("read error.\n");
-        free(memory);
-        close(game);
+        goto err_close;
         return 0;
     }
     sCharacter_data characters_data[100];
@@ -245,7 +250,7 @@ int main(int argc, char *argv[])
         if (*((uint16_t *)(memory + i)) == now_hp && *((uint16_t *)(memory + i + 2)) == max_hp && *((uint16_t *)(memory + i + 4)) == now_mp && *((uint16_t *)(memory + i + 6)) == max_mp)
         {
             tmp_character[data_count] = *((sCharacter_data *)(memory - 64 + i));
-            if (tmp_character[data_count].x == x && tmp_character[data_count].y == y)
+            if ((tmp_character[data_count].x == x && tmp_character[data_count].y == y)||!have_xy)
             {
                 offsets[data_count] = i - 64;
                 data_count++;
@@ -259,15 +264,13 @@ int main(int argc, char *argv[])
     if (data_count == 0)
     {
         printf("Can't find main character.\n");
-        free(memory);
-        close(game);
+        goto err_close;
         return -1;
-
     }
     printf("How many character? ");
     scanf("%hhu", &charater_num);
     int8_t show_detail = 0;
-    printf("Do you want to see the detail of each character? (1/0):");
+    printf("Do you want to see the detail of each candidate character? (1/0):");
     scanf("%hhd", &show_detail);
 
     for (int32_t i = 0; i < data_count; i++)
@@ -276,8 +279,9 @@ int main(int argc, char *argv[])
         printf("offset: %lx\n", offsets[i]);
         if (!show_detail)
         {
-            printf("x: %hhu,y: %hhu\njob_id: %hhu\n", tmp_character[i].x, tmp_character[i].y, tmp_character[i].job_id);
-            printf("level: %hhu\n", tmp_character[i].level);
+            if (!have_xy)
+                printf("x: %hhu,y: %hhu\n", tmp_character[i].x, tmp_character[i].y);
+            printf("job_id: %hhu\nlevel: %hhu\n", tmp_character[i].job_id, tmp_character[i].level);
         }
         // print each character's data
         if (DEBUG)
@@ -305,7 +309,7 @@ int main(int argc, char *argv[])
             printf("item: ");
             for (int32_t j = 0; j < 8; j++)
             {
-                printf("%hhu ", tmp_character[i].item[j][1]);
+                printf("0x%hhx ", tmp_character[i].item[j][1]);
             }
             printf("\n");
             printf("magic: ");
@@ -324,7 +328,7 @@ int main(int argc, char *argv[])
             printf("no_magic: %hhu\n", tmp_character[i].no_magic);
             printf("power: %hu ", tmp_character[i].power);
             printf("defence: %hu ", tmp_character[i].defence);
-            printf("move_distance: %hhu", tmp_character[i].move_distance);
+            printf("move_distance: %hhu ", tmp_character[i].move_distance);
             printf("exp: %hhu ", tmp_character[i].exp);
             printf("speed: %hu\n", tmp_character[i].speed);
             printf("now_hp: %hu ", tmp_character[i].now_hp);
@@ -342,7 +346,7 @@ int main(int argc, char *argv[])
     int64_t main_character_select = 0;
     while (1)
     {
-        printf("Please choose which is the main character (suggest: maybe is 1.)\n");
+        printf("Please choose which is the main character (suggestion: If you have x & y, it may be 1.)\n");
 
         scanf("%ld", &main_character_select);
         if (main_character_select > data_count || main_character_select < 1)
@@ -377,7 +381,7 @@ int main(int argc, char *argv[])
             printf("item: ");
             for (int32_t j = 0; j < 8; j++)
             {
-                printf("%hhu ", characters_data[i].item[j][1]);
+                printf("0x%hhx ", characters_data[i].item[j][1]);
             }
             printf("\n");
             printf("magic: ");
@@ -412,12 +416,17 @@ int main(int argc, char *argv[])
         printf("--------------------------------------------------\n");
     }
 
-    printf("Please choose the character you want to modify\n");
+    printf("Please choose the character you want to modify (0: wrong characters)\n");
     int64_t character_select = 0;
     while (1)
     {
         scanf("%ld", &character_select);
-        if (character_select > charater_num || character_select < 1)
+        if(!character_select)
+        {
+            printf("bye!\n");
+            goto err_close;
+        }
+        else if (character_select > charater_num || character_select < 1)
         {
             printf("Invalid input.\n");
         }
@@ -496,7 +505,7 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
-            printf("Please enter the new value of item\n");
+            printf("Please enter the new ID of item(DEC)\n");
             scanf("%hhu", &characters_data[character_select].item[item_select][1]);
             printf("Please enter the new status of item (1. equip 2.have 3. no item)(DEC)\n");
             int8_t item_status = 0;
@@ -554,16 +563,18 @@ int main(int argc, char *argv[])
         default:
             break;
         }
-    }
-    while (want_edit);
-    
-    lseek(game, adress_num + offsets[main_character_select]+80*character_select, SEEK_SET);
+    } while (want_edit);
+
+    lseek(game, adress_num + offsets[main_character_select] + 80 * character_select, SEEK_SET);
     write(game, &characters_data[character_select], sizeof(sCharacter_data));
 
     free(memory);
     close(game);
     return 0;
-
+err_close:
+    free(memory);
+    close(game);
+    return -1;
 err_arg:
     return -1;
 }
