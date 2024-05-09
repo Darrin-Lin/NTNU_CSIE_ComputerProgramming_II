@@ -18,6 +18,22 @@
   -h, --help                         Show help message.\n\
 Both -p and -m is necessory.\n\
 "
+#define CHEAT_MENU "\
+1. HP now\n\
+2. HP max\n\
+3. MP now\n\
+4. MP max\n\
+5. MT\n\
+6. DF\n\
+7. MV\n\
+8. EX\n\
+9. DX\n\
+10. item\n\
+11. magic\n\
+12. AA\n\
+0. quit\n\
+detail: https://chiuinan.github.io/game/game/intro/ch/c31/fd2/\n\
+"
 
 #define GAME_MEM_SIZE (1 << 24)
 
@@ -30,12 +46,11 @@ Both -p and -m is necessory.\n\
     }
 #endif
 
-enum option_index
-{
-    p_opt = 0,
-    a_opt,
-    h_opt,
-};
+    enum option_index {
+        p_opt = 0,
+        a_opt,
+        h_opt,
+    };
 
 struct _sCharacter_data
 {
@@ -85,7 +100,6 @@ struct _sCharacter_data
 } __attribute__((__packed__));
 typedef struct _sCharacter_data sCharacter_data;
 
-
 int main(int argc, char *argv[])
 {
     struct option longopts[] = {
@@ -96,7 +110,7 @@ int main(int argc, char *argv[])
     int8_t option[3] = {0};
     int32_t opt = 0;
     uint64_t adress_num = 0;
-    uint8_t charater_num=0;
+    uint8_t charater_num = 0;
     char pid[512] = {0};
     while ((opt = getopt_long(argc, argv, "p:a:h", longopts, NULL)) != -1)
     {
@@ -108,18 +122,18 @@ int main(int argc, char *argv[])
             option[p_opt]++;
             if (option[p_opt] > 1)
             {
-                printf( "Error: -p can only be used once.\n");
+                printf("Error: -p can only be used once.\n");
                 goto err_arg;
             }
             int64_t num = strtol(optarg, &num_err, 10);
             if (*num_err != '\0')
             {
-                printf( "Error: %s is not a decimal number.\n", optarg);
+                printf("Error: %s is not a decimal number.\n", optarg);
                 goto err_arg;
             }
             if (num < 0)
             {
-                printf( "Error: pid can't less than zero.");
+                printf("Error: pid can't less than zero.");
             }
             strcpy(pid, optarg);
             break;
@@ -129,35 +143,35 @@ int main(int argc, char *argv[])
             option[a_opt]++;
             if (option[a_opt] > 1)
             {
-                printf( "Error: -p can only be used once.\n");
+                printf("Error: -p can only be used once.\n");
                 goto err_arg;
             }
             if (strstr(optarg, "0x") != optarg)
             {
-                printf( "Error: Please enter the hex start with 0x.\n");
+                printf("Error: Please enter the hex start with 0x.\n");
                 goto err_arg;
             }
             adress_num = strtol(optarg, &num_err, 16);
             if (*num_err != '\0')
             {
-                printf( "Error: %s is not a hex number.\n", optarg);
+                printf("Error: %s is not a hex number.\n", optarg);
                 goto err_arg;
             }
             break;
 
         case 'h':
-            printf( HELP_MSG);
+            printf(HELP_MSG);
             return 0;
             break;
         default:
-            printf( "Error: Invalid argument.\n");
+            printf("Error: Invalid argument.\n");
             goto err_arg;
             break;
         }
     }
     if (!(option[p_opt] && option[a_opt]))
     {
-        printf( "Error: -p and -a is necessary.\n");
+        printf("Error: -p and -a is necessary.\n");
         goto err_arg;
     }
     int32_t game = 0;
@@ -166,7 +180,7 @@ int main(int argc, char *argv[])
     game = open(path, O_RDWR);
     if (game == -1)
     {
-        printf( "Can't open %s", path);
+        printf("Can't open %s", path);
         goto err_arg;
     }
     // int64_t file_size = 0;
@@ -181,7 +195,7 @@ int main(int argc, char *argv[])
     // file_size = st.st_size;
     if (game == -1)
     {
-        printf( "Can't open %s", path);
+        printf("Can't open %s", path);
         goto err_arg;
     }
 
@@ -242,12 +256,16 @@ int main(int argc, char *argv[])
     {
         printf("data_caount: %d\n", data_count);
     }
-    if(data_count==0)
+    if (data_count == 0)
     {
-        printf("Can't find main character.");
+        printf("Can't find main character.\n");
+        free(memory);
+        close(game);
+        return -1;
+
     }
     printf("How many character? ");
-    scanf("%hhu",&charater_num);
+    scanf("%hhu", &charater_num);
     int8_t show_detail = 0;
     printf("Do you want to see the detail of each character? (1/0):");
     scanf("%hhd", &show_detail);
@@ -267,57 +285,57 @@ int main(int argc, char *argv[])
             for (uint64_t j = 0; j < sizeof(sCharacter_data); j++)
             {
                 if (j % 16 == 0)
-                    fprintf(stderr,"\n");
+                    fprintf(stderr, "\n");
                 if (j % 16 == 8)
-                    fprintf(stderr,"| ");
-                fprintf(stderr,"0x%hhx ", *((uint8_t *)(&tmp_character[i]) + j));
+                    fprintf(stderr, "| ");
+                fprintf(stderr, "0x%hhx ", *((uint8_t *)(&tmp_character[i]) + j));
             }
-            fprintf(stderr,"\n");
+            fprintf(stderr, "\n");
         }
         if (show_detail)
         {
-            printf( "x: %hhu y: %hhu\n", tmp_character[i].x, tmp_character[i].y);
-            printf( "cha_img: %hhu\n", tmp_character[i].cha_img);
-            printf( "position: %hhu\n", tmp_character[i].position);
-            printf( "run: %hhu\n", tmp_character[i].run);
-            printf( "movement: %hhu\n", tmp_character[i].movement);
-            printf( "camp: %hhu\n", tmp_character[i].camp);
-            printf( "pic_id: %hhu\n", tmp_character[i].pic_id);
-            printf( "name: %hu\n", tmp_character[i].name);
-            printf( "item: ");
+            printf("x: %hhu y: %hhu\n", tmp_character[i].x, tmp_character[i].y);
+            printf("cha_img: %hhu\n", tmp_character[i].cha_img);
+            printf("position: %hhu\n", tmp_character[i].position);
+            printf("run: %hhu\n", tmp_character[i].run);
+            printf("movement: %hhu\n", tmp_character[i].movement);
+            printf("camp: %hhu\n", tmp_character[i].camp);
+            printf("pic_id: %hhu\n", tmp_character[i].pic_id);
+            printf("name: %hu\n", tmp_character[i].name);
+            printf("item: ");
             for (int32_t j = 0; j < 8; j++)
             {
-                printf( "%hhu ", tmp_character[i].item[j][1]);
+                printf("%hhu ", tmp_character[i].item[j][1]);
             }
-            printf( "\n");
-            printf( "magic: ");
+            printf("\n");
+            printf("magic: ");
             for (int32_t j = 0; j < 5; j++)
             {
-                printf( "%hhu ", tmp_character[i].magic[j]);
+                printf("%hhu ", tmp_character[i].magic[j]);
             }
-            printf( "\n");
-            printf( "job_id: %hhu\n", tmp_character[i].job_id);
-            printf( "level: %hhu\n", tmp_character[i].level);
-            printf( "ap_sta: %hhu ", tmp_character[i].ap_sta);
-            printf( "dp_sta: %hhu\n", tmp_character[i].dp_sta);
-            printf( "hit_ev_sta: %hhu ", tmp_character[i].hit_ev_sta);
-            printf( "poison: %hhu ", tmp_character[i].poison);
-            printf( "paralysis: %hhu ", tmp_character[i].paralysis);
-            printf( "no_magic: %hhu\n", tmp_character[i].no_magic);
-            printf( "power: %hu ", tmp_character[i].power);
-            printf( "defence: %hu ", tmp_character[i].defence);
-            printf( "move_distance: %hhu", tmp_character[i].move_distance);
-            printf( "exp: %hhu ", tmp_character[i].exp);
-            printf( "speed: %hu\n", tmp_character[i].speed);
-            printf( "now_hp: %hu ", tmp_character[i].now_hp);
-            printf( "max_hp: %hu ", tmp_character[i].max_hp);
-            printf( "now_mp: %hu ", tmp_character[i].now_mp);
-            printf( "max_mp: %hu\n", tmp_character[i].max_mp);
-            printf( "ap: %hu ", tmp_character[i].ap);
-            printf( "dp: %hu ", tmp_character[i].dp);
-            printf( "ht: %hu ", tmp_character[i].ht);
-            printf( "ev: %hu ", tmp_character[i].ev);
-            printf( "speed: %hu\n", tmp_character[i].speed);
+            printf("\n");
+            printf("job_id: %hhu\n", tmp_character[i].job_id);
+            printf("level: %hhu\n", tmp_character[i].level);
+            printf("ap_sta: %hhu ", tmp_character[i].ap_sta);
+            printf("dp_sta: %hhu\n", tmp_character[i].dp_sta);
+            printf("hit_ev_sta: %hhu ", tmp_character[i].hit_ev_sta);
+            printf("poison: %hhu ", tmp_character[i].poison);
+            printf("paralysis: %hhu ", tmp_character[i].paralysis);
+            printf("no_magic: %hhu\n", tmp_character[i].no_magic);
+            printf("power: %hu ", tmp_character[i].power);
+            printf("defence: %hu ", tmp_character[i].defence);
+            printf("move_distance: %hhu", tmp_character[i].move_distance);
+            printf("exp: %hhu ", tmp_character[i].exp);
+            printf("speed: %hu\n", tmp_character[i].speed);
+            printf("now_hp: %hu ", tmp_character[i].now_hp);
+            printf("max_hp: %hu ", tmp_character[i].max_hp);
+            printf("now_mp: %hu ", tmp_character[i].now_mp);
+            printf("max_mp: %hu\n", tmp_character[i].max_mp);
+            printf("ap: %hu ", tmp_character[i].ap);
+            printf("dp: %hu ", tmp_character[i].dp);
+            printf("ht: %hu ", tmp_character[i].ht);
+            printf("ev: %hu ", tmp_character[i].ev);
+            printf("speed: %hu\n", tmp_character[i].speed);
         }
         printf("--------------------------------------------------\n\n");
     }
@@ -346,50 +364,50 @@ int main(int argc, char *argv[])
     for (int32_t i = 0; i < charater_num; i++)
     {
         printf("%d.\n", i + 1);
-        printf( "x: %hhu y: %hhu\n", characters_data[i].x, characters_data[i].y);
-        printf( "cha_img: %hhu\n", characters_data[i].cha_img);
+        printf("x: %hhu y: %hhu\n", characters_data[i].x, characters_data[i].y);
+        printf("cha_img: %hhu\n", characters_data[i].cha_img);
         if (show_detail)
         {
-            printf( "position: %hhu\n", characters_data[i].position);
-            printf( "run: %hhu\n", characters_data[i].run);
-            printf( "movement: %hhu\n", characters_data[i].movement);
-            printf( "camp: %hhu\n", characters_data[i].camp);
-            printf( "pic_id: %hhu\n", characters_data[i].pic_id);
-            printf( "name: %hu\n", characters_data[i].name);
-            printf( "item: ");
+            printf("position: %hhu\n", characters_data[i].position);
+            printf("run: %hhu\n", characters_data[i].run);
+            printf("movement: %hhu\n", characters_data[i].movement);
+            printf("camp: %hhu\n", characters_data[i].camp);
+            printf("pic_id: %hhu\n", characters_data[i].pic_id);
+            printf("name: %hu\n", characters_data[i].name);
+            printf("item: ");
             for (int32_t j = 0; j < 8; j++)
             {
-                printf( "%hhu ", characters_data[i].item[j][1]);
+                printf("%hhu ", characters_data[i].item[j][1]);
             }
-            printf( "\n");
-            printf( "magic: ");
+            printf("\n");
+            printf("magic: ");
             for (int32_t j = 0; j < 5; j++)
             {
-                printf( "%hhu ", characters_data[i].magic[j]);
+                printf("%hhu ", characters_data[i].magic[j]);
             }
-            printf( "\n");
-            printf( "job_id: %hhu ", characters_data[i].job_id);
-            printf( "level: %hhu ", characters_data[i].level);
-            printf( "ap_sta: %hhu ", characters_data[i].ap_sta);
-            printf( "dp_sta: %hhu\n", characters_data[i].dp_sta);
-            printf( "hit_ev_sta: %hhu ", characters_data[i].hit_ev_sta);
-            printf( "poison: %hhu ", characters_data[i].poison);
-            printf( "paralysis: %hhu ", characters_data[i].paralysis);
-            printf( "no_magic: %hhu\n", characters_data[i].no_magic);
-            printf( "power: %hu ", characters_data[i].power);
-            printf( "defence: %hu ", characters_data[i].defence);
-            printf( "move_distance: %hhu", characters_data[i].move_distance);
-            printf( "exp: %hhu ", characters_data[i].exp);
-            printf( "speed: %hu\n", characters_data[i].speed);
-            printf( "now_hp: %hu ", characters_data[i].now_hp);
-            printf( "max_hp: %hu ", characters_data[i].max_hp);
-            printf( "now_mp: %hu ", characters_data[i].now_mp);
-            printf( "max_mp: %hu\n", characters_data[i].max_mp);
-            printf( "ap: %hu ", characters_data[i].ap);
-            printf( "dp: %hu ", characters_data[i].dp);
-            printf( "ht: %hu ", characters_data[i].ht);
-            printf( "ev: %hu ", characters_data[i].ev);
-            printf( "speed: %hu\n", characters_data[i].speed);
+            printf("\n");
+            printf("job_id: %hhu ", characters_data[i].job_id);
+            printf("level: %hhu ", characters_data[i].level);
+            printf("ap_sta: %hhu ", characters_data[i].ap_sta);
+            printf("dp_sta: %hhu\n", characters_data[i].dp_sta);
+            printf("hit_ev_sta: %hhu ", characters_data[i].hit_ev_sta);
+            printf("poison: %hhu ", characters_data[i].poison);
+            printf("paralysis: %hhu ", characters_data[i].paralysis);
+            printf("no_magic: %hhu\n", characters_data[i].no_magic);
+            printf("power: %hu ", characters_data[i].power);
+            printf("defence: %hu ", characters_data[i].defence);
+            printf("move_distance: %hhu", characters_data[i].move_distance);
+            printf("exp: %hhu ", characters_data[i].exp);
+            printf("speed: %hu\n", characters_data[i].speed);
+            printf("now_hp: %hu ", characters_data[i].now_hp);
+            printf("max_hp: %hu ", characters_data[i].max_hp);
+            printf("now_mp: %hu ", characters_data[i].now_mp);
+            printf("max_mp: %hu\n", characters_data[i].max_mp);
+            printf("ap: %hu ", characters_data[i].ap);
+            printf("dp: %hu ", characters_data[i].dp);
+            printf("ht: %hu ", characters_data[i].ht);
+            printf("ev: %hu ", characters_data[i].ev);
+            printf("speed: %hu\n", characters_data[i].speed);
         }
         printf("--------------------------------------------------\n");
     }
@@ -411,113 +429,135 @@ int main(int argc, char *argv[])
     }
     printf("Please enter the new value of the character\n");
     int8_t want_edit = 0;
-    printf("1. HP now\n");
-    printf("2. HP max\n");
-    printf("3. MP now\n");
-    printf("4. MP max\n");
-    printf("5. MT\n");
-    printf("6. DF\n");
-    printf("7. MV\n");
-    printf("8. EX\n");
-    printf("9. DX\n");
-    printf("10. item\n");
-
-    scanf("%hhd", &want_edit);
-    switch (want_edit)
+    do
     {
-    case 1:
-        printf("Please enter the new value of HP now\n");
-        printf("Warning! if the main character's HP value over 999 may not edit again.\n");
-        scanf("%hu", &characters_data[character_select].now_hp);
-        break;
-    case 2:
-        printf("Please enter the new value of HP max\n");
-        printf("Warning! if the main character's HP value over 999 may not edit again.\n");
+        printf(CHEAT_MENU);
+        scanf("%hhd", &want_edit);
+        switch (want_edit)
+        {
+        case 0:
+            printf("bye!\n");
+            break;
 
-        scanf("%hu", &characters_data[character_select].max_hp);
-        break;
-    case 3:
-        printf("Please enter the new value of MP now\n");
-        printf("Warning! if the main character's MP value over 999 may not edit again.\n");
-        scanf("%hu", &characters_data[character_select].now_mp);
-        break;
-    case 4:
-        printf("Please enter the new value of MP max\n");
-        printf("Warning! if the main character's MP value over 999 may not edit again.\n");
-        scanf("%hu", &characters_data[character_select].max_mp);
-        break;
-    case 5:
-        printf("Please enter the new value of MT\n");
-        scanf("%hu", &characters_data[character_select].power);
-        break;
-    case 6:
-        printf("Please enter the new value of DF\n");
-        scanf("%hu", &characters_data[character_select].defence);
-        break;
-    case 7:
-        printf("Please enter the new value of MV\n");
-        scanf("%hhu", &characters_data[character_select].move_distance);
-        break;
-    case 8:
-        printf("Please enter the new value of EX\n");
-        scanf("%hhu", &characters_data[character_select].exp);
-        break;
-    case 9:
-        printf("Please enter the new value of DX\n");
-        scanf("%hu", &characters_data[character_select].speed);
-        break;
-    case 10:
-        printf("Please choose which item you want to modify (1 ~ 8)\n");
-        int8_t item_select = 0;
-        while (1)
-        {
-            scanf("%hhd", &item_select);
-            if (item_select > 8 || item_select < 1)
+        case 1:
+            printf("Please enter the new value of HP now\n");
+            printf("Warning! if the main character's HP value over 999 may not edit again.\n");
+            scanf("%hu", &characters_data[character_select].now_hp);
+            break;
+        case 2:
+            printf("Please enter the new value of HP max\n");
+            printf("Warning! if the main character's HP value over 999 may not edit again.\n");
+
+            scanf("%hu", &characters_data[character_select].max_hp);
+            break;
+        case 3:
+            printf("Please enter the new value of MP now\n");
+            printf("Warning! if the main character's MP value over 999 may not edit again.\n");
+            scanf("%hu", &characters_data[character_select].now_mp);
+            break;
+        case 4:
+            printf("Please enter the new value of MP max\n");
+            printf("Warning! if the main character's MP value over 999 may not edit again.\n");
+            scanf("%hu", &characters_data[character_select].max_mp);
+            break;
+        case 5:
+            printf("Please enter the new value of MT\n");
+            scanf("%hu", &characters_data[character_select].power);
+            break;
+        case 6:
+            printf("Please enter the new value of DF\n");
+            scanf("%hu", &characters_data[character_select].defence);
+            break;
+        case 7:
+            printf("Please enter the new value of MV\n");
+            scanf("%hhu", &characters_data[character_select].move_distance);
+            break;
+        case 8:
+            printf("Please enter the new value of EX\n");
+            scanf("%hhu", &characters_data[character_select].exp);
+            break;
+        case 9:
+            printf("Please enter the new value of DX\n");
+            scanf("%hu", &characters_data[character_select].speed);
+            break;
+        case 10:
+            printf("Please choose which item you want to modify (1 ~ 8)\n");
+            int8_t item_select = 0;
+            while (1)
             {
-                printf("Invalid input.\n");
-            }
-            else
-            {
-                item_select--;
-                break;
-            }
-        }
-        printf("Please enter the new value of item\n");
-        scanf("%hhu", &characters_data[character_select].item[item_select][1]);
-        printf("Please enter the new status of item (1. equip 2.have 3. no item\n");
-        int8_t item_status = 0;
-        while (1)
-        {
-            scanf("%hhd", &item_status);
-            if (item_status > 3 || item_status < 1)
-            {
-                printf("Invalid input.\n");
-            }
-            else
-            {
-                switch (item_status)
+                scanf("%hhd", &item_select);
+                if (item_select > 8 || item_select < 1)
                 {
-                case 1:
-                    characters_data[character_select].item[item_select][0] = 0x40;
-                    break;
-
-                case 2:
-                    characters_data[character_select].item[item_select][0] = 0x00;
-                    break;
-                case 3:
-                    characters_data[character_select].item[item_select][0] = 0x80;
-                    break;
-                default:
+                    printf("Invalid input.\n");
+                }
+                else
+                {
+                    item_select--;
                     break;
                 }
-                break;
             }
+            printf("Please enter the new value of item\n");
+            scanf("%hhu", &characters_data[character_select].item[item_select][1]);
+            printf("Please enter the new status of item (1. equip 2.have 3. no item)(DEC)\n");
+            int8_t item_status = 0;
+            while (1)
+            {
+                scanf("%hhd", &item_status);
+                if (item_status > 3 || item_status < 1)
+                {
+                    printf("Invalid item input.\n");
+                }
+                else
+                {
+                    switch (item_status)
+                    {
+                    case 1:
+                        characters_data[character_select].item[item_select][0] = 0x40;
+                        break;
+
+                    case 2:
+                        characters_data[character_select].item[item_select][0] = 0x00;
+                        break;
+                    case 3:
+                        characters_data[character_select].item[item_select][0] = 0x80;
+                        break;
+                    default:
+                        break;
+                    }
+                    break;
+                }
+            }
+            break;
+        case 11:
+            printf("Please choose which magic you want to modify (1 ~ 5)\n");
+            int8_t magic_select = 0;
+            while (1)
+            {
+                scanf("%hhd", &magic_select);
+                if (magic_select > 5 || magic_select < 1)
+                {
+                    printf("Invalid magic input.\n");
+                }
+                else
+                {
+                    magic_select--;
+                    break;
+                }
+            }
+            printf("Please enter the new value of magic(DEC)\n");
+            scanf("%hhu", &characters_data[character_select].magic[magic_select]);
+            break;
+        case 12:
+            printf("Please enter the new value of AA\n");
+            scanf("%hhu", &characters_data[character_select].movement);
+            break;
+        default:
+            break;
         }
-        break;
-    default:
-        break;
     }
-    lseek(game, adress_num + offsets[main_character_select], SEEK_SET);
+    while (want_edit);
+    
+    lseek(game, adress_num + offsets[main_character_select]+80*character_select, SEEK_SET);
     write(game, &characters_data[character_select], sizeof(sCharacter_data));
 
     free(memory);
