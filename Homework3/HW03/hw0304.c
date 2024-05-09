@@ -13,6 +13,7 @@
 #define DEBUG 0
 
 #define HELP_MSG "\
+NEED SUDO!\n\
   -p, --pid=dosbox-staging_pid       Give program the dosbox-staging's pid.\n\
   -a, --adress=game_memory_adress    Give program the game's memory adress(Hex, start with 0x).\n\
   -h, --help                         Show help message.\n\
@@ -576,5 +577,6 @@ err_close:
     close(game);
     return -1;
 err_arg:
+    printf("Using --help to get help.\n");
     return -1;
 }

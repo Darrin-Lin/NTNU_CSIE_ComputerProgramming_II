@@ -10,6 +10,41 @@ hw03
 
 ---
 
+## How to use hw0304
+
+```
+sudo ./hw0304 -p <pid> -a <memory_adress> 
+```
+Need super user to run this program.
+Need PID of `DOSBOX-Staging`.
+You can get the PID using this command in GNU/Linux.
+```
+ps aux | grep dosbox
+```
+And you can get the memory adress of DOSBOX by looking line output by DOSBOX-Staging like this:
+> XXXX-XX-XX XX:XX:XX.XXX | MEMORY: Using 4096 DOS memory pages (16 MB) at address: 0xOOOOOOOOOOOO
+and the adress is 0xOOOOOOOOOOOO, just intput include 0x.
+then you can use this program.
+
+this program can edit:
+1. HP now
+2. HP max
+3. MP now
+4. MP max
+5. MT
+6. DF
+7. MV
+8. EX
+9. DX
+10. item
+11. magic
+12. AA
+
+you can find what they refer to in https://chiuinan.github.io/game/game/intro/ch/c31/fd2/
+
+
+---
+
 ## log
 
 ---
