@@ -558,8 +558,34 @@ int main(int argc, char *argv[])
             scanf("%hhu", &characters_data[character_select].magic[magic_select]);
             break;
         case 12:
-            printf("Please enter the new value of AA\n");
-            scanf("%hhu", &characters_data[character_select].movement);
+            printf("Please enter the new value of AA(1. not move yet 2. died 3. moved)(DEC)\n");
+            int8_t movement_select = 0;
+            while (1)
+            {
+                scanf("%hhd", &movement_select);
+                if (movement_select > 3 || movement_select < 1)
+                {
+                    printf("Invalid movement input.\n");
+                }
+                else
+                {
+                    switch (movement_select)
+                    {
+                    case 1:
+                        characters_data[character_select].movement = 0x00;
+                        break;
+                    case 2:
+                        characters_data[character_select].movement = 0x01;
+                        break;
+                    case 3:
+                        characters_data[character_select].movement = 0x80;
+                        break;
+                    default:
+                        break;
+                    }
+                    break;
+                }
+            }
             break;
         default:
             break;
