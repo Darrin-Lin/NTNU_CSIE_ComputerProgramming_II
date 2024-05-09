@@ -10,6 +10,7 @@
 #include <getopt.h>
 
 #define _DEBUG_
+#define DEBUG 1
 
 #define HELP_MSG "\
   -p, --pid=dosbox-staging_pid       Give program the dosbox-staging's pid.\n\
@@ -49,7 +50,7 @@ struct _sCharacter_data
     uint8_t pic_id;
 
     uint16_t name;
-    uint16_t item[8];
+    uint8_t item[8][2];
     // next 2
     uint8_t magic[5];
     uint8_t race_id;
@@ -253,111 +254,282 @@ int main(int argc, char *argv[])
             }
         }
     }
-    printf("data_caount: %d\n", data_count);
+    if (DEBUG)
+    {
+        printf("data_caount: %d\n", data_count);
+    }
+    int8_t show_detail = 0;
+    printf("Do you want to see the detail of each character? (1/0):");
+    scanf("%hhd", &show_detail);
+
     for (int32_t i = 0; i < data_count; i++)
     {
-        printf("x:%hhu,y:%hhu id:%hhu\n", tmp_character[i].x, tmp_character[i].y, tmp_character[i].pic_id);
-        printf("level:%hhu\n",tmp_character[i].level);
-
-        // print each character's data
+        printf("%d.\n\n", i + 1);
+        printf("offset:%ld\n", offsets[i]);
+        if (!show_detail)
         {
-            for(int32_t j = 0;j<sizeof(sCharacter_data);j++)
+            printf("x:%hhu,y:%hhu\npic_id:%hhu\n", tmp_character[i].x, tmp_character[i].y, tmp_character[i].pic_id);
+            printf("level:%hhu\n", tmp_character[i].level);
+        }
+        // print each character's data
+        if (DEBUG)
+        {
+            for (int32_t j = 0; j < sizeof(sCharacter_data); j++)
             {
-                if(j%16==0)
+                if (j % 16 == 0)
                     printf("\n");
-                if(j%16==8)
+                if (j % 16 == 8)
                     printf("| ");
-                printf("0x%hhx ",*((uint8_t *)(&tmp_character[i])+j));
-
+                printf("0x%hhx ", *((uint8_t *)(&tmp_character[i]) + j));
             }
             printf("\n");
         }
+        if (show_detail)
         {
-            fprintf(stderr,"x:%hhu y:%hhu\n",tmp_character[i].x,tmp_character[i].y);
-            fprintf(stderr,"cha_img:%hhu\n",tmp_character[i].cha_img);
-            fprintf(stderr,"position:%hhu\n",tmp_character[i].position);
-            fprintf(stderr,"run:%hhu\n",tmp_character[i].run);
-            fprintf(stderr,"movement:%hhu\n",tmp_character[i].movement);
-            fprintf(stderr,"camp:%hhu\n",tmp_character[i].camp);
-            fprintf(stderr,"pic_id:%hhu\n",tmp_character[i].pic_id);
-            fprintf(stderr,"name:%hu\n",tmp_character[i].name);
-            fprintf(stderr,"item: ");
-            for(int32_t j = 0;j<8;j++)
+            fprintf(stderr, "x:%hhu y:%hhu\n", tmp_character[i].x, tmp_character[i].y);
+            fprintf(stderr, "cha_img:%hhu\n", tmp_character[i].cha_img);
+            fprintf(stderr, "position:%hhu\n", tmp_character[i].position);
+            fprintf(stderr, "run:%hhu\n", tmp_character[i].run);
+            fprintf(stderr, "movement:%hhu\n", tmp_character[i].movement);
+            fprintf(stderr, "camp:%hhu\n", tmp_character[i].camp);
+            fprintf(stderr, "pic_id:%hhu\n", tmp_character[i].pic_id);
+            fprintf(stderr, "name:%hu\n", tmp_character[i].name);
+            fprintf(stderr, "item: ");
+            for (int32_t j = 0; j < 8; j++)
             {
-                fprintf(stderr,"%hu ",tmp_character[i].item[j]);
+                fprintf(stderr, "%hhu ", tmp_character[i].item[j][1]);
             }
-            fprintf(stderr,"\n");
-            fprintf(stderr,"magic:");
-            for(int32_t j = 0;j<5;j++)
+            fprintf(stderr, "\n");
+            fprintf(stderr, "magic:");
+            for (int32_t j = 0; j < 5; j++)
             {
-                fprintf(stderr,"%hhu ",tmp_character[i].magic[j]);
+                fprintf(stderr, "%hhu ", tmp_character[i].magic[j]);
             }
-            fprintf(stderr,"\n");
-            fprintf(stderr,"job_id:%hhu " ,tmp_character[i].job_id);
-            fprintf(stderr,"level:%hhu " ,tmp_character[i].level);
-            fprintf(stderr,"ap_sta:%hhu " ,tmp_character[i].ap_sta);
-            fprintf(stderr,"dp_sta:%hhu\n" ,tmp_character[i].dp_sta);
-            fprintf(stderr,"hit_ev_sta:%hhu " ,tmp_character[i].hit_ev_sta);
-            fprintf(stderr,"poison:%hhu " ,tmp_character[i].poison);
-            fprintf(stderr,"paralysis:%hhu " ,tmp_character[i].paralysis);
-            fprintf(stderr,"no_magic:%hhu\n" ,tmp_character[i].no_magic);
-            fprintf(stderr,"power:%hu " ,tmp_character[i].power);
-            fprintf(stderr,"defence:%hu " ,tmp_character[i].defence);
-            fprintf(stderr,"move_distance:%hhu"  ,tmp_character[i].move_distance);
-            fprintf(stderr,"exp:%hhu " ,tmp_character[i].exp);
-            fprintf(stderr,"speed:%hu\n" ,tmp_character[i].speed);
-            fprintf(stderr,"now_hp:%hu" ,tmp_character[i].now_hp);
-            fprintf(stderr,"max_hp:%hu " ,tmp_character[i].max_hp);
-            fprintf(stderr,"now_mp:%hu " ,tmp_character[i].now_mp);
-            fprintf(stderr,"max_mp:%hu\n" ,tmp_character[i].max_mp);
-            fprintf(stderr,"ap:%hu " ,tmp_character[i].ap);
-            fprintf(stderr,"dp:%hu " ,tmp_character[i].dp);
-            fprintf(stderr,"ht:%hu " ,tmp_character[i].ht);
-            fprintf(stderr,"ev:%hu " ,tmp_character[i].ev);
-            fprintf(stderr,"speed:%hu " ,tmp_character[i].speed);
-            
+            fprintf(stderr, "\n");
+            fprintf(stderr, "job_id:%hhu ", tmp_character[i].job_id);
+            fprintf(stderr, "level:%hhu ", tmp_character[i].level);
+            fprintf(stderr, "ap_sta:%hhu ", tmp_character[i].ap_sta);
+            fprintf(stderr, "dp_sta:%hhu\n", tmp_character[i].dp_sta);
+            fprintf(stderr, "hit_ev_sta:%hhu ", tmp_character[i].hit_ev_sta);
+            fprintf(stderr, "poison:%hhu ", tmp_character[i].poison);
+            fprintf(stderr, "paralysis:%hhu ", tmp_character[i].paralysis);
+            fprintf(stderr, "no_magic:%hhu\n", tmp_character[i].no_magic);
+            fprintf(stderr, "power:%hu ", tmp_character[i].power);
+            fprintf(stderr, "defence:%hu ", tmp_character[i].defence);
+            fprintf(stderr, "move_distance:%hhu", tmp_character[i].move_distance);
+            fprintf(stderr, "exp:%hhu ", tmp_character[i].exp);
+            fprintf(stderr, "speed:%hu\n", tmp_character[i].speed);
+            fprintf(stderr, "now_hp:%hu", tmp_character[i].now_hp);
+            fprintf(stderr, "max_hp:%hu ", tmp_character[i].max_hp);
+            fprintf(stderr, "now_mp:%hu ", tmp_character[i].now_mp);
+            fprintf(stderr, "max_mp:%hu\n", tmp_character[i].max_mp);
+            fprintf(stderr, "ap:%hu ", tmp_character[i].ap);
+            fprintf(stderr, "dp:%hu ", tmp_character[i].dp);
+            fprintf(stderr, "ht:%hu ", tmp_character[i].ht);
+            fprintf(stderr, "ev:%hu ", tmp_character[i].ev);
+            fprintf(stderr, "speed:%hu\n", tmp_character[i].speed);
         }
-        printf("\n");
+        printf("--------------------------------------------------\n");
     }
-    
-#if 0
-        while (read(game, buffer, 16) > 0)
+    int64_t main_character_select = 0;
+    while (1)
+    {
+        printf("Please choose which is the main character\n");
+
+        scanf("%ld", &main_character_select);
+        if (main_character_select > data_count || main_character_select < 1)
         {
-            // if(idx==0)
-            // {
-            //     printf("T?F%d",*((uint16_t *)(buffer + 2)) ==0xf000);
-            //     fprintf(stderr, "%lx:\n", idx);
-            //     for (int32_t i = 0; i < 16; i++)
-            //     {
-            //         if (i == 8)
-            //             fprintf(stderr, "| ");
-            //         fprintf(stderr, "0x%hhx ", buffer[i]);
-            //     }
-            //     fprintf(stderr, "\n");
-            // }
-            if (*((uint16_t *)(buffer + 8)) == now_hp && *((uint16_t *)(buffer + 10)) == max_hp && *((uint16_t *)(buffer + 12)) == now_mp && *((uint16_t *)(buffer + 14)) == max_mp)
+            printf("Invalid input.\n");
+        }
+        else
+        {
+            main_character_select--;
+            break;
+        }
+    }
+    for (int32_t i = 0; i < 33; i++)
+    {
+        characters_data[i] = *((sCharacter_data *)(memory + offsets[main_character_select] + 96 * i));
+    }
+    for (int32_t i = 0; i < 33; i++)
+    {
+        printf("character %d\n", i + 1);
+        printf("x:%hhu y:%hhu\n", characters_data[i].x, characters_data[i].y);
+        printf("cha_img:%hhu\n", characters_data[i].cha_img);
+    }
+    printf("Do you want to see the detail of each character? (1/0):");
+    scanf("%hhd", &show_detail);
+    for (int32_t i = 0; i < 33; i++)
+    {
+        printf("%d.\n\n", i + 1);
+        fprintf(stderr, "x:%hhu y:%hhu\n", characters_data[i].x, characters_data[i].y);
+        fprintf(stderr, "cha_img:%hhu\n", characters_data[i].cha_img);
+        if (show_detail)
+        {
+            fprintf(stderr, "position:%hhu\n", characters_data[i].position);
+            fprintf(stderr, "run:%hhu\n", characters_data[i].run);
+            fprintf(stderr, "movement:%hhu\n", characters_data[i].movement);
+            fprintf(stderr, "camp:%hhu\n", characters_data[i].camp);
+            fprintf(stderr, "pic_id:%hhu\n", characters_data[i].pic_id);
+            fprintf(stderr, "name:%hu\n", characters_data[i].name);
+            fprintf(stderr, "item: ");
+            for (int32_t j = 0; j < 8; j++)
             {
-                printf("sucess\n");
-                fprintf(stderr, "%lx:\n", idx);
-                for (int32_t i = 0; i < 16; i++)
+                fprintf(stderr, "%hhu ", characters_data[i].item[j][1]);
+            }
+            fprintf(stderr, "\n");
+            fprintf(stderr, "magic:");
+            for (int32_t j = 0; j < 5; j++)
+            {
+                fprintf(stderr, "%hhu ", characters_data[i].magic[j]);
+            }
+            fprintf(stderr, "\n");
+            fprintf(stderr, "job_id:%hhu ", characters_data[i].job_id);
+            fprintf(stderr, "level:%hhu ", characters_data[i].level);
+            fprintf(stderr, "ap_sta:%hhu ", characters_data[i].ap_sta);
+            fprintf(stderr, "dp_sta:%hhu\n", characters_data[i].dp_sta);
+            fprintf(stderr, "hit_ev_sta:%hhu ", characters_data[i].hit_ev_sta);
+            fprintf(stderr, "poison:%hhu ", characters_data[i].poison);
+            fprintf(stderr, "paralysis:%hhu ", characters_data[i].paralysis);
+            fprintf(stderr, "no_magic:%hhu\n", characters_data[i].no_magic);
+            fprintf(stderr, "power:%hu ", characters_data[i].power);
+            fprintf(stderr, "defence:%hu ", characters_data[i].defence);
+            fprintf(stderr, "move_distance:%hhu", characters_data[i].move_distance);
+            fprintf(stderr, "exp:%hhu ", characters_data[i].exp);
+            fprintf(stderr, "speed:%hu\n", characters_data[i].speed);
+            fprintf(stderr, "now_hp:%hu", characters_data[i].now_hp);
+            fprintf(stderr, "max_hp:%hu ", characters_data[i].max_hp);
+            fprintf(stderr, "now_mp:%hu ", characters_data[i].now_mp);
+            fprintf(stderr, "max_mp:%hu\n", characters_data[i].max_mp);
+            fprintf(stderr, "ap:%hu ", characters_data[i].ap);
+            fprintf(stderr, "dp:%hu ", characters_data[i].dp);
+            fprintf(stderr, "ht:%hu ", characters_data[i].ht);
+            fprintf(stderr, "ev:%hu ", characters_data[i].ev);
+            fprintf(stderr, "speed:%hu\n", characters_data[i].speed);
+        }
+    }
+
+    printf("Please choose the character you want to modify\n");
+    int64_t character_select = 0;
+    while (1)
+    {
+        scanf("%ld", &character_select);
+        if (character_select > 33 || character_select < 1)
+        {
+            printf("Invalid input.\n");
+        }
+        else
+        {
+            character_select--;
+            break;
+        }
+    }
+    printf("Please enter the new value of the character\n");
+    int8_t want_edit = 0;
+    printf("1. HP now\n");
+    printf("2. HP max\n");
+    printf("3. MP now\n");
+    printf("4. MP max\n");
+    printf("5. MT\n");
+    printf("6. DF\n");
+    printf("7. MV\n");
+    printf("8. EX\n");
+    printf("9. DX\n");
+    printf("10. item\n");
+
+    scanf("%hhd", &want_edit);
+    switch (want_edit)
+    {
+    case 1:
+        printf("Please enter the new value of HP now\n");
+        scanf("%hu", &characters_data[character_select].now_hp);
+        break;
+    case 2:
+        printf("Please enter the new value of HP max\n");
+        scanf("%hu", &characters_data[character_select].max_hp);
+        break;
+    case 3:
+        printf("Please enter the new value of MP now\n");
+        scanf("%hu", &characters_data[character_select].now_mp);
+        break;
+    case 4:
+        printf("Please enter the new value of MP max\n");
+        scanf("%hu", &characters_data[character_select].max_mp);
+        break;
+    case 5:
+        printf("Please enter the new value of MT\n");
+        scanf("%hu", &characters_data[character_select].power);
+        break;
+    case 6:
+        printf("Please enter the new value of DF\n");
+        scanf("%hu", &characters_data[character_select].defence);
+        break;
+    case 7:
+        printf("Please enter the new value of MV\n");
+        scanf("%hhu", &characters_data[character_select].move_distance);
+        break;
+    case 8:
+        printf("Please enter the new value of EX\n");
+        scanf("%hhu", &characters_data[character_select].exp);
+        break;
+    case 9:
+        printf("Please enter the new value of DX\n");
+        scanf("%hhu", &characters_data[character_select].speed);
+        break;
+    case 10:
+        printf("Please choose which item you want to modify (1 ~ 8)\n");
+        int8_t item_select = 0;
+        while (1)
+        {
+            scanf("%hhd", &item_select);
+            if (item_select > 8 || item_select < 1)
+            {
+                printf("Invalid input.\n");
+            }
+            else
+            {
+                item_select--;
+                break;
+            }
+        }
+        printf("Please enter the new value of item\n");
+        scanf("%hhu", &characters_data[character_select].item[item_select][1]);
+        printf("Please enter the new status of item (1. equip 2.have 3. no item\n");
+        int8_t item_status = 0;
+        while (1)
+        {
+            scanf("%hhd", &item_status);
+            if (item_status > 3 || item_status < 1)
+            {
+                printf("Invalid input.\n");
+            }
+            else
+            {
+                switch (item_status)
                 {
-                    if (i == 8)
-                        fprintf(stderr, "| ");
-                    fprintf(stderr, "0x%hhx ", buffer[i]);
+                case 1:
+                    characters_data[character_select].item[item_select][0] = 0x40;
+                    break;
+
+                case 2:
+                    characters_data[character_select].item[item_select][0] = 0x00;
+                    break;
+                case 3:
+                    characters_data[character_select].item[item_select][0] = 0x80;
+                    break;
+                default:
+                    break;
                 }
-                fprintf(stderr, "\n");
+                break;
             }
-            idx++;
-            // fprintf(stderr,"idx:%x\n",idx);
         }
-        fprintf(stderr, "final:%d %lx\n", offs, idx);
+        break;
+    default:
+        break;
     }
-    // for(int32_t i =0;i<1<<20;i++)
-    // {
-    //     fprintf(stderr,"%d\n",i);
-    // print_80_byte(game);
-    // }
-#endif
+    lseek(game, adress_num + offsets[main_character_select], SEEK_SET);
+    write(game, &characters_data[character_select], sizeof(sCharacter_data));
+
     free(memory);
     close(game);
     return 0;
