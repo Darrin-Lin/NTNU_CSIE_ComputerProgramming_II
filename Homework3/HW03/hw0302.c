@@ -357,7 +357,8 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                 *(end_ptr) = '\0';
             }
         }
-        if (strstr(line, func) != NULL)
+        char *pFunc = strstr(line, func);
+        if (pFunc != NULL && (pFunc==line|| !((*(pFunc-1)<='z'&&*(pFunc-1)>='a') || (*(pFunc-1)<='Z'&&*(pFunc-1)>='A') || *(pFunc-1)=='_' || (*(pFunc-1)<='9'&&*(pFunc-1)>='0') )))// FIXME: still need to check end of function name
         {
             count++;
             if (option[l_opt])
