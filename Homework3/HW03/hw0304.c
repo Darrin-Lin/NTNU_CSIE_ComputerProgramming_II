@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         if (*((uint16_t *)(memory + i)) == now_hp && *((uint16_t *)(memory + i + 2)) == max_hp && *((uint16_t *)(memory + i + 4)) == now_mp && *((uint16_t *)(memory + i + 6)) == max_mp)
         {
             tmp_character[data_count] = *((sCharacter_data *)(memory - 64 + i));
-            if ((tmp_character[data_count].x == x && tmp_character[data_count].y == y)||!have_xy)
+            if ((tmp_character[data_count].x == x && tmp_character[data_count].y == y) || !have_xy)
             {
                 offsets[data_count] = i - 64;
                 data_count++;
@@ -334,8 +334,7 @@ int main(int argc, char *argv[])
             printf("power: %hu ", tmp_character[i].power);
             printf("defence: %hu ", tmp_character[i].defence);
             printf("move_distance: %hhu ", tmp_character[i].move_distance);
-            printf("exp: %hhu ", tmp_character[i].exp);
-            printf("speed: %hu\n", tmp_character[i].speed);
+            printf("exp: %hhu\n", tmp_character[i].exp);
             printf("now_hp: %hu ", tmp_character[i].now_hp);
             printf("max_hp: %hu ", tmp_character[i].max_hp);
             printf("now_mp: %hu ", tmp_character[i].now_mp);
@@ -374,6 +373,10 @@ int main(int argc, char *argv[])
     {
         printf("%d.\n", i + 1);
         printf("x: %hhu y: %hhu\n", characters_data[i].x, characters_data[i].y);
+        printf("now_hp: %hu ", characters_data[i].now_hp);
+        printf("max_hp: %hu ", characters_data[i].max_hp);
+        printf("now_mp: %hu ", characters_data[i].now_mp);
+        printf("max_mp: %hu\n", characters_data[i].max_mp);
         printf("cha_img: %hhu\n", characters_data[i].cha_img);
         if (show_detail)
         {
@@ -395,7 +398,7 @@ int main(int argc, char *argv[])
                 printf("%hhu ", characters_data[i].magic[j]);
             }
             printf("\n");
-            printf("race_id: %hhu ",characters_data[i].race_id);
+            printf("race_id: %hhu ", characters_data[i].race_id);
             printf("job_id: %hhu ", characters_data[i].job_id);
             printf("level: %hhu ", characters_data[i].level);
             printf("ap_sta: %hhu ", characters_data[i].ap_sta);
@@ -406,13 +409,8 @@ int main(int argc, char *argv[])
             printf("no_magic: %hhu\n", characters_data[i].no_magic);
             printf("power: %hu ", characters_data[i].power);
             printf("defence: %hu ", characters_data[i].defence);
-            printf("move_distance: %hhu ", characters_data[i].move_distance);
+            printf("move_distance: %hhu\n", characters_data[i].move_distance);
             printf("exp: %hhu ", characters_data[i].exp);
-            printf("speed: %hu\n", characters_data[i].speed);
-            printf("now_hp: %hu ", characters_data[i].now_hp);
-            printf("max_hp: %hu ", characters_data[i].max_hp);
-            printf("now_mp: %hu ", characters_data[i].now_mp);
-            printf("max_mp: %hu\n", characters_data[i].max_mp);
             printf("ap: %hu ", characters_data[i].ap);
             printf("dp: %hu ", characters_data[i].dp);
             printf("ht: %hu ", characters_data[i].ht);
@@ -427,7 +425,7 @@ int main(int argc, char *argv[])
     while (1)
     {
         scanf("%ld", &character_select);
-        if(!character_select)
+        if (!character_select)
         {
             printf("bye!\n");
             goto err_close;
@@ -593,11 +591,11 @@ int main(int argc, char *argv[])
             }
             break;
         case 13:
-        printf("Please enter the new value of FA\n");
+            printf("Please enter the new value of FA\n");
             scanf("%hhu", &characters_data[character_select].pic_id);
-        
+
             break;
-            case 14:
+        case 14:
             printf("Please enter the new value of NN\n");
             scanf("%hu", &characters_data[character_select].name);
             break;
