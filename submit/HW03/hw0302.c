@@ -357,7 +357,9 @@ int32_t print_function_count(FILE *file, char *func, int8_t option[5])
                 *(end_ptr) = '\0';
             }
         }
-        if (strstr(line, func) != NULL)
+        char *pFunc = strstr(line, func);
+        size_t func_l = strlen(func);
+        if (pFunc != NULL && (pFunc==line|| !((*(pFunc-1)<='z'&&*(pFunc-1)>='a') || (*(pFunc-1)<='Z'&&*(pFunc-1)>='A') || *(pFunc-1)=='_' || (*(pFunc-1)<='9'&&*(pFunc-1)>='0') || (*(pFunc+func_l)>='a' && *(pFunc+func_l)<='z') || (*(pFunc+func_l)>='A' && *(pFunc+func_l)<='Z') || *(pFunc+func_l)=='_' || (*(pFunc+func_l)>='0' && *(pFunc+func_l)<='9')))) 
         {
             count++;
             if (option[l_opt])

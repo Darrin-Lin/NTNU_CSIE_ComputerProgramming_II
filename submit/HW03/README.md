@@ -93,6 +93,9 @@ you can find what they refer to in https://chiuinan.github.io/game/game/intro/ch
 #### 5/9 Finish
 今天把它完成了，記憶體原來一開始跟結尾的 8 byte 是跟前後的角色連在一起。然後發現現在的方法當主角血量或魔力超過 999 就不能再改了，因為顯示的會變 ??? 就找不到記憶體，但老師也用這個方法所以應該還好。
 
+#### 備註
+我發現主角使用破龍擊遊戲會 crash，以及法術有太多也會。
+
 ----
 
 ### hw0305
