@@ -20,6 +20,7 @@ NEED SUDO!\n\
 Both -p and -m is necessory.\n\
 "
 #define CHEAT_MENU "\
+Please choose wich value you want to edit.\n\
 1. HP now\n\
 2. HP max\n\
 3. MP now\n\
@@ -32,6 +33,9 @@ Both -p and -m is necessory.\n\
 10. item\n\
 11. magic\n\
 12. AA\n\
+13. FA\n\
+14. NN\n\
+15. Z1\n\
 0. quit\n\
 detail: https://chiuinan.github.io/game/game/intro/ch/c31/fd2/\n\
 "
@@ -391,6 +395,7 @@ int main(int argc, char *argv[])
                 printf("%hhu ", characters_data[i].magic[j]);
             }
             printf("\n");
+            printf("race_id: %hhu ",characters_data[i].race_id);
             printf("job_id: %hhu ", characters_data[i].job_id);
             printf("level: %hhu ", characters_data[i].level);
             printf("ap_sta: %hhu ", characters_data[i].ap_sta);
@@ -401,7 +406,7 @@ int main(int argc, char *argv[])
             printf("no_magic: %hhu\n", characters_data[i].no_magic);
             printf("power: %hu ", characters_data[i].power);
             printf("defence: %hu ", characters_data[i].defence);
-            printf("move_distance: %hhu", characters_data[i].move_distance);
+            printf("move_distance: %hhu ", characters_data[i].move_distance);
             printf("exp: %hhu ", characters_data[i].exp);
             printf("speed: %hu\n", characters_data[i].speed);
             printf("now_hp: %hu ", characters_data[i].now_hp);
@@ -586,6 +591,19 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
+            break;
+        case 13:
+        printf("Please enter the new value of FA\n");
+            scanf("%hhu", &characters_data[character_select].pic_id);
+        
+            break;
+            case 14:
+            printf("Please enter the new value of NN\n");
+            scanf("%hu", &characters_data[character_select].name);
+            break;
+        case 15:
+            printf("Please enter the new value of Z1\n");
+            scanf("%hhu", &characters_data[character_select].cha_img);
             break;
         default:
             break;
