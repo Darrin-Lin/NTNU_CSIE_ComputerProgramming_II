@@ -15,8 +15,9 @@ hw04
 ---
 
 ### hw0401
-#### 05/15 Start
-用了 top 跟 awk 以及 head 跟 tail 來取得資訊，剩下就只有排版了。
+
+#### 05/15 Finish
+用了 top 跟 awk 以及 head 跟 tail 來取得資訊。
 
 ----
 
