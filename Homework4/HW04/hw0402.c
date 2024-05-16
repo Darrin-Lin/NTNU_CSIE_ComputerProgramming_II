@@ -82,7 +82,7 @@ INPUT:
         search[strlen(search) - 1] = '\0';
         if (strlen(search) != 9)
         {
-            printf("輸入錯誤\n");
+            printf("請輸入完整 UID（9 碼）\n");
             goto INPUT;
         }
         strtol(search, &tmp_num, 10);
@@ -102,13 +102,13 @@ INPUT:
     FILE *pSys = NULL;
     if (mode == 'U' || mode == 'u')
     {
-        snprintf(command,1000,"wget -q -O - https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json | sed \"s/},/},\\n/g\" | sed \"s/YouBike2.0_//g\" | awk 'BEGIN {FS=\",\"}; {print $1 $2 $7 $12 $15 $18}' | awk 'BEGIN {FS=\"\\\"\"}; {print $4\"+\"$8\"+\"$12\"+\"$16\"+\"substr($19,2)\"+\"substr($21,2,length($21)-2) }' | grep -i %s | head -n 30 | awk 'BEGIN {FS=\"+\"}; {print \"UID：\"$1\"\\n中文名稱：\"$2\"\\n英文名稱：\"$3\"\\n更新時間：\"$4\"\\n可租借腳踏車數量：\"$5\"\\n可停放車柱數量：\"$6\"\\n\"}'",search);
+        snprintf(command,1000,"wget -q -O - https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json | sed \"s/},/},\\n/g\" | sed \"s/YouBike2.0_//g\" | awk 'BEGIN {FS=\",\"}; {print $1 $2 $7 $12 $15 $18}' | awk 'BEGIN {FS=\"\\\"\"}; {print $4\"+\"$8\"+\"$12\"+\"$16\"+\"substr($19,2)\"+\"substr($21,2,length($21)-2) }' | grep -i %s | head -n 5 | awk 'BEGIN {FS=\"+\"}; {print \"UID：\"$1\"\\n中文名稱：\"$2\"\\n英文名稱：\"$3\"\\n更新時間：\"$4\"\\n可租借腳踏車數量：\"$5\"\\n可停放車柱數量：\"$6\"\\n\"}'",search);
         // snprintf(command, 1000, "wget -q -O - https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json | sed \"s/},/},\\n/g\" | sed \"s/YouBike2.0_//g\" | awk 'BEGIN {FS=\",\"}; {print $1 $2 $7 $12 $15 $18}' | awk 'BEGIN {FS=\"\\\"\"}; { if (index($4,\"%s\") ) print $4\"+\"$8\"+\"$12\"+\"$16\"+\"substr($19,2)\"+\"substr($21,2,length($21)-2) }'| head -n 30 | awk 'BEGIN {FS=\"+\"}; {if(getline) print \"UID：\"$1\"\\n中文名稱：\"$2\"\\n英文名稱：\"$3\"\\n更新時間：\"$4\"\\n可租借腳踏車數量：\"$5\"\\n可停放車柱數量：\"$6\"\\n\"'", search);
     }
     else
     {
 
-        snprintf(command, 1000, "wget -q -O - https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json | sed \"s/},/},\\n/g\" | sed \"s/YouBike2.0_//g\" | awk 'BEGIN {FS=\",\"}; {print $1 $2 $7 $12 $15 $18}' | awk 'BEGIN {FS=\"\\\"\"}; { if (index(tolower($12),tolower(\"%s\")) || index($8,\"%s\") ) print $4\"+\"$8\"+\"$12\"+\"$16\"+\"substr($19,2)\"+\"substr($21,2,length($21)-2) }'| head -n 30 | awk 'BEGIN {FS=\"+\"}; {print \"UID：\"$1\"\\n中文名稱：\"$2\"\\n英文名稱：\"$3\"\\n更新時間：\"$4\"\\n可租借腳踏車數量：\"$5\"\\n可停放車柱數量：\"$6\"\\n\"}'", search);
+        snprintf(command, 1000, "wget -q -O - https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json | sed \"s/},/},\\n/g\" | sed \"s/YouBike2.0_//g\" | awk 'BEGIN {FS=\",\"}; {print $1 $2 $7 $12 $15 $18}' | awk 'BEGIN {FS=\"\\\"\"}; { if (index(tolower($12),tolower(\"%s\")) || index($8,\"%s\") ) print $4\"+\"$8\"+\"$12\"+\"$16\"+\"substr($19,2)\"+\"substr($21,2,length($21)-2) }'| head -n 5 | awk 'BEGIN {FS=\"+\"}; {print \"UID：\"$1\"\\n中文名稱：\"$2\"\\n英文名稱：\"$3\"\\n更新時間：\"$4\"\\n可租借腳踏車數量：\"$5\"\\n可停放車柱數量：\"$6\"\\n\"}'", search,search);
     }
     pSys = popen(command, "r");
     if (pSys == NULL)
