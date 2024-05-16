@@ -1,6 +1,6 @@
 hw_number = 4
 # example: 1
-all: hw0${hw_number}01 hw0${hw_number}02 hw0${hw_number}03 hw0${hw_number}04 hw0${hw_number}05
+all: hw0${hw_number}01 hw0${hw_number}02 hw0${hw_number}03
 
 CC=gcc
 CFLAGS= -g -Wall -Wextra -fsanitize=address -lubsan -lasan
