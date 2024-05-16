@@ -132,15 +132,15 @@ int main(int argc, char *argv[])
             }
             system("clear");
             char command[1000] = {0};
-            snprintf(command,1000,"top -o -PID -b -n 1 -p%ld | awk '{ printf \"%%-6s %%-15s %%5s %%5s%%%% %%-10s\\n\",$1,$12,$8,$9,$7*1024}' | tail -n +8",pid);
+            snprintf(command,1000,"top -o -PID -b -n 1 -p%ld | awk '{ printf \"%%-6s %%-15s %%5s %%5s%%%%   %%-10s\\n\",$1,$12,$8,$9,$7*1024}' | tail -n +8",pid);
             printf("PID    NAME              state CPU  MEM\n");
             system(command);
         }
         else
         {
             system("clear");
-            printf("PID    NAME              state CPU  MEM\n");
-            system("top -o -PID -b -n 1 | awk '{ printf \"%-6s %-15s %5s %5s%% %-10s\\n\",$1,$12,$8,$9,$7*1024}' | head -n -4 | tail -n +8");
+            printf("PID    NAME              state CPU    MEM\n");
+            system("top -o -PID -b -n 1 | awk '{ printf \"%-6s %-15s %5s %5s%%   %-10s\\n\",$1,$12,$8,$9,$7*1024}' | head -n -4 | tail -n +8");
         }
         sleep(time_interval);
     }
