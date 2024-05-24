@@ -97,6 +97,11 @@ INPUT:
         goto INPUT;
         break;
     }
+    if(strchr(search,'"')||strchr(search,'\'')||strchr(search,';')||strchr(search,'}')||strchr(search,'{')||strchr(search,'\\'))
+    {
+        printf("ARE YOU TRYING COMMAND INJECTION???\n");
+        return -1;
+    }
     printf("搜尋中...\n\n");
     char command[1000];
     FILE *pSys = NULL;
