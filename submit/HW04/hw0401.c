@@ -21,7 +21,7 @@
 #define HELP_MSG "\
 Usage: hw0401 [options]\n\
   -t, --time-interval=time Update the information every [time] seconds. Default: 5 seconds.\n\
-  -c, --count Update the information [count] times. Default: infinite.\n\
+  -c, --count=count Update the information [count] times. Default: infinite.\n\
   -p, --pid=pid Only display the given process information.\n\
   -h, --help Display this information and exit.\n\
 "
