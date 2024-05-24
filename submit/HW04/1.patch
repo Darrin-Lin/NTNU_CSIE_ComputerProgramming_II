@@ -1,0 +1,123 @@
+diff --git a/parse.c b/parse.c
+index 6acaeb8..d6c8560 100644
+--- a/parse.c
++++ b/parse.c
+@@ -908,6 +908,74 @@ static Node *declaration(Token **rest, Token *tok, Type *basety, VarAttr *attr)
+   return node;
+ }
+ 
++static Node *declaration_rb(Token **rest, Token *tok, Type *basety, VarAttr *attr) {
++  Node head = {};
++  Node *cur = &head;
++  int i = 0;
++
++  while (!equal(tok, ")")) {
++    if (i++ > 0)
++      tok = skip(tok, "2,");
++
++    Type *ty = declarator(&tok, tok, basety);
++    if (ty->kind == TY_VOID)
++      error_tok(tok, "variable declared void");
++    if (!ty->name)
++      error_tok(ty->name_pos, "variable name omitted");
++
++    if (attr && attr->is_static) {
++      // static local variable
++      Obj *var = new_anon_gvar(ty);
++      push_scope(get_ident(ty->name))->var = var;
++      if (equal(tok, ":"))
++        gvar_initializer(&tok, tok->next, var);
++      continue;
++    }
++
++    // Generate code for computing a VLA size. We need to do this
++    // even if ty is not VLA because ty may be a pointer to VLA
++    // (e.g. int (*foo)[n][m] where n and m are variables.)
++    cur = cur->next = new_unary(ND_EXPR_STMT, compute_vla_size(ty, tok), tok);
++
++    if (ty->kind == TY_VLA) {
++      if (equal(tok, ":"))
++        error_tok(tok, "variable-sized object may not be initialized");
++
++      // Variable length arrays (VLAs) are translated to alloca() calls.
++      // For example, `int x[n+2]` is translated to `tmp = n + 2,
++      // x = alloca(tmp)`.
++      Obj *var = new_lvar(get_ident(ty->name), ty);
++      Token *tok = ty->name;
++      Node *expr = new_binary(ND_ASSIGN, new_vla_ptr(var, tok),
++                              new_alloca(new_var_node(ty->vla_size, tok)),
++                              tok);
++
++      cur = cur->next = new_unary(ND_EXPR_STMT, expr, tok);
++      continue;
++    }
++
++    Obj *var = new_lvar(get_ident(ty->name), ty);
++    if (attr && attr->align)
++      var->align = attr->align;
++
++    if (equal(tok, ":")) {
++      Node *expr = lvar_initializer(&tok, tok->next, var);
++      cur = cur->next = new_unary(ND_EXPR_STMT, expr, tok);
++    }
++
++    if (var->ty->size < 0)
++      error_tok(ty->name, "variable has incomplete type");
++    if (var->ty->kind == TY_VOID)
++      error_tok(ty->name, "variable declared void");
++  }
++
++  Node *node = new_node(ND_BLOCK, tok);
++  node->body = head.next;
++  *rest = tok->next;
++  return node;
++}
++
++
+ static Token *skip_excess_element(Token *tok) {
+   if (equal(tok, "{")) {
+     tok = skip_excess_element(tok->next);
+@@ -1632,7 +1700,7 @@ static Node *stmt(Token **rest, Token *tok) {
+     return node;
+   }
+ 
+-  if (equal(tok, "for")) {
++  if (equal(tok, "for")) { // make for(type var : array) work
+     Node *node = new_node(ND_FOR, tok);
+     tok = skip(tok->next, "(");
+ 
+@@ -1644,19 +1712,23 @@ static Node *stmt(Token **rest, Token *tok) {
+     cont_label = node->cont_label = new_unique_name();
+ 
+     if (is_typename(tok)) {
++      
++      printf("tok->loc: %s\n", tok->loc);
+       Type *basety = declspec(&tok, tok, NULL);
+-      node->init = declaration(&tok, tok, basety, NULL);
++      // node->init = declaration(&tok, tok, basety, NULL);
++      // declare a variable without ;
++      
++      node->init = declaration_rb(&tok, tok, basety, NULL);
+     } else {
+-      node->init = expr_stmt(&tok, tok);
+-    }
+-
+-    if (!equal(tok, ";"))
+-      node->cond = expr(&tok, tok);
+-    tok = skip(tok, ";");
+-
+-    if (!equal(tok, ")"))
+-      node->inc = expr(&tok, tok);
+-    tok = skip(tok, ")");
++      // node->init = expr_stmt(&tok, tok);
++    }
++    fprintf(stderr,"tok->loc: %s\n", tok->loc);
++    // if (!equal(tok, ":"))
++    //   node->cond = expr(&tok, tok);
++    // tok = skip(tok, ":");
++    // if (!equal(tok, ")"))
++    //   node->inc = expr(&tok, tok);
++    // tok = skip(tok, ")");
+ 
+     node->then = stmt(rest, tok);
+ 
