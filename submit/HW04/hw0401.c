@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
         if(pid!=-1)
         {
             char path[100];
-            sprintf(path,"/proc/%ld",pid);
+            snprintf(path,100,"/proc/%ld",pid);
             if(access(path,F_OK)==-1)
             {
                 fprintf(stdout,"No such process.\n");
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
             }
             system("clear");
             char command[1000] = {0};
-            snprintf(command,1000,"top -o -PID -b -n 1 -p%ld | awk '{ printf \"%%-6s %%-15s %%5s %%5s%%%%   %%-10s\\n\",$1,$12,$8,$9,$7*1024}' | tail -n +8",pid);
+            snprintf(command,1000,"top -o -PID -b -n 1 -p%ld | awk '{ printf \"%%-6s %%-15s %%5s %%5s%%%%   %%-10s\\n\",$1,$12,$8,$9,$5*1024}' | tail -n +8",pid);
             printf("PID    NAME              state CPU  MEM\n");
             system(command);
         }
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
         {
             system("clear");
             printf("PID    NAME              state CPU    MEM\n");
-            system("top -o -PID -b -n 1 | awk '{ printf \"%-6s %-15s %5s %5s%%   %-10s\\n\",$1,$12,$8,$9,$7*1024}' | head -n -4 | tail -n +8");
+            system("top -o -PID -b -n 1 | awk '{ printf \"%-6s %-15s %5s %5s%%   %-10s\\n\",$1,$12,$8,$9,$5*1024}' | head -n -4 | tail -n +8");
         }
         sleep(time_interval);
     }

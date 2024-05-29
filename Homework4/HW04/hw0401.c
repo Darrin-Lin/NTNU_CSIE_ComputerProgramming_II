@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
         if(pid!=-1)
         {
             char path[100];
-            sprintf(path,"/proc/%ld",pid);
+            snprintf(path,100,"/proc/%ld",pid);
             if(access(path,F_OK)==-1)
             {
                 fprintf(stdout,"No such process.\n");
