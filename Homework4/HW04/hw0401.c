@@ -50,73 +50,146 @@ int main(int argc, char *argv[])
     while ((opt = getopt_long(argc, argv, "t:c:p:h", longopts, NULL)) != -1)
     {
         char *err_num = NULL;
-        switch (opt)
+        // switch (opt)
+        // {
+        //     case 't':
+        //         option[t_opt]++;
+        //         time_interval = strtol(optarg,&err_num,10);
+        //         if(*err_num!='\0')
+        //         {
+        //             fprintf(stdout,"Invalid time interval.\n");
+        //             return -1;
+        //         }
+        //         if(time_interval<=0)
+        //         {
+        //             fprintf(stdout,"Invalid time interval.\n");
+        //             return -1;
+        //         }
+        //         if(option[t_opt]>1)
+        //         {
+        //             fprintf(stdout,"Duplicate option.\n");
+        //             return -1;
+        //         }
+        //         break;
+        //     case 'c':
+        //         option[c_opt]++;
+        //         count = strtol(optarg,&err_num,10);
+        //         if(*err_num!='\0')
+        //         {
+        //             fprintf(stdout,"Invalid count.\n");
+        //             return -1;
+        //         }
+        //         if(count<=0)
+        //         {
+        //             fprintf(stdout,"Invalid count.\n");
+        //             return -1;
+        //         }
+        //         if(option[c_opt]>1)
+        //         {
+        //             fprintf(stdout,"Duplicate option.\n");
+        //             return -1;
+        //         }
+        //         break;
+        //     case 'p':
+        //         option[p_opt]++;
+        //         pid = strtol(optarg,&err_num,10);
+        //         if(*err_num!='\0')
+        //         {
+        //             fprintf(stdout,"Invalid pid.\n");
+        //             return -1;
+        //         }
+        //         if(pid<=0)
+        //         {
+        //             fprintf(stdout,"Invalid pid.\n");
+        //             return -1;
+        //         }
+        //         if(option[p_opt]>1)
+        //         {
+        //             fprintf(stdout,"Duplicate option.\n");
+        //             return -1;
+        //         }
+        //         break;
+        //     case 'h':
+        //         option[h_opt]++;
+        //         printf("%s",HELP_MSG);
+        //         return 0;
+        //     default:
+        //         fprintf(stdout,"Invalid option.\n");
+        //         fprintf(stdout,"%s",HELP_MSG);
+        //         return -1;
+        // }
+        // change to if else
+        if(opt == 't')
         {
-            case 't':
-                option[t_opt]++;
-                time_interval = strtol(optarg,&err_num,10);
-                if(*err_num!='\0')
-                {
-                    fprintf(stdout,"Invalid time interval.\n");
-                    return -1;
-                }
-                if(time_interval<=0)
-                {
-                    fprintf(stdout,"Invalid time interval.\n");
-                    return -1;
-                }
-                if(option[t_opt]>1)
-                {
-                    fprintf(stdout,"Duplicate option.\n");
-                    return -1;
-                }
-                break;
-            case 'c':
-                option[c_opt]++;
-                count = strtol(optarg,&err_num,10);
-                if(*err_num!='\0')
-                {
-                    fprintf(stdout,"Invalid count.\n");
-                    return -1;
-                }
-                if(count<=0)
-                {
-                    fprintf(stdout,"Invalid count.\n");
-                    return -1;
-                }
-                if(option[c_opt]>1)
-                {
-                    fprintf(stdout,"Duplicate option.\n");
-                    return -1;
-                }
-                break;
-            case 'p':
-                option[p_opt]++;
-                pid = strtol(optarg,&err_num,10);
-                if(*err_num!='\0')
-                {
-                    fprintf(stdout,"Invalid pid.\n");
-                    return -1;
-                }
-                if(pid<=0)
-                {
-                    fprintf(stdout,"Invalid pid.\n");
-                    return -1;
-                }
-                if(option[p_opt]>1)
-                {
-                    fprintf(stdout,"Duplicate option.\n");
-                    return -1;
-                }
-                break;
-            case 'h':
-                option[h_opt]++;
-                printf("%s",HELP_MSG);
-                return 0;
-            default:
-                fprintf(stdout,"Invalid option.\n");
-                fprintf(stdout,"%s",HELP_MSG);
+            option[t_opt]++;
+            time_interval = strtol(optarg,&err_num,10);
+            if(*err_num!='\0')
+            {
+                fprintf(stdout,"Invalid time interval.\n");
                 return -1;
+            }
+            if(time_interval<=0)
+            {
+                fprintf(stdout,"Invalid time interval.\n");
+                return -1;
+            }
+            if(option[t_opt]>1)
+            {
+                fprintf(stdout,"Duplicate option.\n");
+                return -1;
+            }
+        }
+        else if(opt == 'c')
+        {
+            option[c_opt]++;
+            count = strtol(optarg,&err_num,10);
+            if(*err_num!='\0')
+            {
+                fprintf(stdout,"Invalid count.\n");
+                return -1;
+            }
+            if(count<=0)
+            {
+                fprintf(stdout,"Invalid count.\n");
+                return -1;
+            }
+            if(option[c_opt]>1)
+            {
+                fprintf(stdout,"Duplicate option.\n");
+                return -1;
+            }
+        }
+        else if(opt == 'p')
+        {
+            option[p_opt]++;
+            pid = strtol(optarg,&err_num,10);
+            if(*err_num!='\0')
+            {
+                fprintf(stdout,"Invalid pid.\n");
+                return -1;
+            }
+            if(pid<=0)
+            {
+                fprintf(stdout,"Invalid pid.\n");
+                return -1;
+            }
+            if(option[p_opt]>1)
+            {
+                fprintf(stdout,"Duplicate option.\n");
+                return -1;
+            }
+        }
+        else if(opt == 'h')
+        {
+            option[h_opt]++;
+            printf("%s",HELP_MSG);
+            return 0;
+        }
+        else
+        {
+            fprintf(stdout,"Invalid option.\n");
+            fprintf(stdout,"%s",HELP_MSG);
+            return -1;
         }
     }
     for(int32_t i = 0; count==-1?1:i<count;i++)

@@ -66,17 +66,47 @@ INPUT:
         goto INPUT;
     }
     char *tmp_num = NULL;
-    switch (mode)
+    // switch (mode)
+    // {
+    // case 'N':
+    // case 'n':
+    //     printf("請輸入地點名稱：");
+    //     fgets(search, 1024, stdin);
+    //     search[strlen(search) - 1] = '\0';
+    //     strtol(search, &tmp_num, 10);
+    //     break;
+    // case 'U':
+    // case 'u':
+    //     printf("請輸入 YouBike 站代號：");
+    //     fgets(search, 1024, stdin);
+    //     search[strlen(search) - 1] = '\0';
+    //     if (strlen(search) != 9)
+    //     {
+    //         printf("請輸入完整 UID（9 碼）\n");
+    //         goto INPUT;
+    //     }
+    //     strtol(search, &tmp_num, 10);
+    //     if (*tmp_num != '\0')
+    //     {
+    //         printf("輸入錯誤\n");
+    //         goto INPUT;
+    //     }
+    //     break;
+    // default:
+    //     printf("輸入錯誤\n");
+    //     goto INPUT;
+    //     break;
+    // }
+    // change to if else
+    if(mode == 'N' || mode == 'n')
     {
-    case 'N':
-    case 'n':
         printf("請輸入地點名稱：");
         fgets(search, 1024, stdin);
         search[strlen(search) - 1] = '\0';
         strtol(search, &tmp_num, 10);
-        break;
-    case 'U':
-    case 'u':
+    }
+    else if(mode == 'U' || mode == 'u')
+    {
         printf("請輸入 YouBike 站代號：");
         fgets(search, 1024, stdin);
         search[strlen(search) - 1] = '\0';
@@ -91,11 +121,11 @@ INPUT:
             printf("輸入錯誤\n");
             goto INPUT;
         }
-        break;
-    default:
+    }
+    else
+    {
         printf("輸入錯誤\n");
         goto INPUT;
-        break;
     }
     if(strchr(search,'"')||strchr(search,'\'')||strchr(search,';')||strchr(search,'}')||strchr(search,'{')||strchr(search,'\\')||strchr(search,'$')||strchr(search,'*')||strchr(search,'%'))
     {
