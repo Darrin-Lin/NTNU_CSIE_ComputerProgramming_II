@@ -1,123 +1,126 @@
 diff --git a/parse.c b/parse.c
-index 6acaeb8..d6c8560 100644
+index 6acaeb8..0f9d703 100644
 --- a/parse.c
 +++ b/parse.c
-@@ -908,6 +908,74 @@ static Node *declaration(Token **rest, Token *tok, Type *basety, VarAttr *attr)
-   return node;
- }
- 
-+static Node *declaration_rb(Token **rest, Token *tok, Type *basety, VarAttr *attr) {
-+  Node head = {};
-+  Node *cur = &head;
-+  int i = 0;
-+
-+  while (!equal(tok, ")")) {
-+    if (i++ > 0)
-+      tok = skip(tok, "2,");
-+
-+    Type *ty = declarator(&tok, tok, basety);
-+    if (ty->kind == TY_VOID)
-+      error_tok(tok, "variable declared void");
-+    if (!ty->name)
-+      error_tok(ty->name_pos, "variable name omitted");
-+
-+    if (attr && attr->is_static) {
-+      // static local variable
-+      Obj *var = new_anon_gvar(ty);
-+      push_scope(get_ident(ty->name))->var = var;
-+      if (equal(tok, ":"))
-+        gvar_initializer(&tok, tok->next, var);
-+      continue;
-+    }
-+
-+    // Generate code for computing a VLA size. We need to do this
-+    // even if ty is not VLA because ty may be a pointer to VLA
-+    // (e.g. int (*foo)[n][m] where n and m are variables.)
-+    cur = cur->next = new_unary(ND_EXPR_STMT, compute_vla_size(ty, tok), tok);
-+
-+    if (ty->kind == TY_VLA) {
-+      if (equal(tok, ":"))
-+        error_tok(tok, "variable-sized object may not be initialized");
-+
-+      // Variable length arrays (VLAs) are translated to alloca() calls.
-+      // For example, `int x[n+2]` is translated to `tmp = n + 2,
-+      // x = alloca(tmp)`.
-+      Obj *var = new_lvar(get_ident(ty->name), ty);
-+      Token *tok = ty->name;
-+      Node *expr = new_binary(ND_ASSIGN, new_vla_ptr(var, tok),
-+                              new_alloca(new_var_node(ty->vla_size, tok)),
-+                              tok);
-+
-+      cur = cur->next = new_unary(ND_EXPR_STMT, expr, tok);
-+      continue;
-+    }
-+
-+    Obj *var = new_lvar(get_ident(ty->name), ty);
-+    if (attr && attr->align)
-+      var->align = attr->align;
-+
-+    if (equal(tok, ":")) {
-+      Node *expr = lvar_initializer(&tok, tok->next, var);
-+      cur = cur->next = new_unary(ND_EXPR_STMT, expr, tok);
-+    }
-+
-+    if (var->ty->size < 0)
-+      error_tok(ty->name, "variable has incomplete type");
-+    if (var->ty->kind == TY_VOID)
-+      error_tok(ty->name, "variable declared void");
-+  }
-+
-+  Node *node = new_node(ND_BLOCK, tok);
-+  node->body = head.next;
-+  *rest = tok->next;
-+  return node;
-+}
-+
-+
- static Token *skip_excess_element(Token *tok) {
-   if (equal(tok, "{")) {
-     tok = skip_excess_element(tok->next);
-@@ -1632,7 +1700,7 @@ static Node *stmt(Token **rest, Token *tok) {
+@@ -1632,7 +1632,8 @@ static Node *stmt(Token **rest, Token *tok) {
      return node;
    }
  
 -  if (equal(tok, "for")) {
-+  if (equal(tok, "for")) { // make for(type var : array) work
++    if (equal(tok, "for"))
++  {
      Node *node = new_node(ND_FOR, tok);
      tok = skip(tok->next, "(");
  
-@@ -1644,19 +1712,23 @@ static Node *stmt(Token **rest, Token *tok) {
+@@ -1642,11 +1643,99 @@ static Node *stmt(Token **rest, Token *tok) {
+     char *cont = cont_label;
+     brk_label = node->brk_label = new_unique_name();
      cont_label = node->cont_label = new_unique_name();
- 
-     if (is_typename(tok)) {
-+      
+-
+-    if (is_typename(tok)) {
++    fprintf(stderr, "tok->loc: %s\n", tok->loc);
++    char change_result[4096] = {0};
++    int8_t is_rb = 0;
++    if (strchr(tok->loc, ':') != NULL)
++    {
++
++      strncpy(change_result, tok->loc, 4096);
++      char *end_for_loop = strchr(change_result, '}') + 1;
++      *end_for_loop = '\0';
++      static char tok_change[32768] = {0};
++
++      if (strchr(change_result, ':') != NULL)
++      {
++        is_rb = 1;
++        char *variable_type = strtok(change_result, " ");
++        char *variable_get = strtok(NULL, ":");
++        char *variable_value = strtok(NULL, ")");
++        strtok(variable_get, " ");
++        strtok(variable_value, " ");
++        strtok(variable_type, " ");
++        char *variable_name = strrchr(variable_get, '*') == NULL ? variable_get : strrchr(variable_get, '*') + 1;
++        char tmp_for_loop[1024] = {0};
++        snprintf(tmp_for_loop, 1024, "%s *%s = %s;%s < %s+(sizeof(%s)/sizeof(*%s));%s++)", variable_type, variable_get, variable_value, variable_name, variable_value, variable_value, variable_value, variable_name);
++        char inside_for_loop[4096] = {0};
++        strncpy(inside_for_loop, strchr(tok->loc, '{'), 4096);
++        end_for_loop = strchr(inside_for_loop, '}') + 1;
++        *end_for_loop = '\0';
++        printf("inside_for_loop: --%s--\n", inside_for_loop);
++        char result[4096] = {0};
++        strncpy(result, tmp_for_loop, 4096);
++        char *tmp_inside_for_loop = inside_for_loop;
++        char *tmp_var = strstr(tmp_inside_for_loop, variable_name);
++        while (*tmp_inside_for_loop)
++        {
++          // replace all occurences of variable_name to *variable_name
++          if (tmp_inside_for_loop == tmp_var)
++          {
++            if (!((*(tmp_var - 1) <= 'z' && *(tmp_var - 1) >= 'a') || (*(tmp_var - 1) <= 'Z' && *(tmp_var - 1) >= 'A') || *(tmp_var - 1) == '_' || (*(tmp_var + 1) <= 'z' && *(tmp_var + 1) >= 'a') || (*(tmp_var + 1) <= 'Z' && *(tmp_var + 1) >= 'A') || *(tmp_var + 1) == '_'))
++            {
++              strncat(result, tmp_inside_for_loop, tmp_var - tmp_inside_for_loop);
++              strncat(result, "*", 1);
++              strncat(result, variable_name, strlen(variable_name));
++              tmp_inside_for_loop += strlen(variable_name);
++              tmp_var = strstr(tmp_inside_for_loop, variable_name);
++            }
++            else
++            {
++              strncat(result, tmp_inside_for_loop, 1);
++              tmp_inside_for_loop++;
++              tmp_var = strstr(tmp_inside_for_loop, variable_name);
++            }
++          }
++          else
++          {
++            strncat(result, tmp_inside_for_loop, 1);
++            tmp_inside_for_loop++;
++          }
++        }
++        char remain[16384] = {0};
++        char *p_remain = strchr(tok->loc, '}');
++        printf("p_remain: --%s--\n", p_remain);
++        if (p_remain != NULL)
++        {
++          p_remain++;
++          strncpy(remain, p_remain, 16384);
++        }
++
++        snprintf(tok_change, 32768, "%s%s", result, remain);
++
++        printf("tmp_for_loop: --%s--\n", tmp_for_loop);
++        printf("result: --%s--\n", result);
++        printf("tok_change: --%s--\n", tok_change);
++        // strncpy(tok->loc, tok_change, 32768);
++        tok->loc = tok_change;
++        int32_t lenoftok = strlen(tok->loc);
++        for(int32_t i = 0; i < lenoftok; i++){
++          tok->loc[i] = tok_change[i];
++        }
++        printf("tok->loc: --%s--\n", tok->loc);
++        printf("tok->str: --%s--\n", tok->str);
++        // tok->str = tok_change;
++      } 
++    }
++    printf("tok->loc: %s\n", tok->loc);
++    if (is_typename(tok))
++    {
 +      printf("tok->loc: %s\n", tok->loc);
        Type *basety = declspec(&tok, tok, NULL);
--      node->init = declaration(&tok, tok, basety, NULL);
-+      // node->init = declaration(&tok, tok, basety, NULL);
-+      // declare a variable without ;
-+      
-+      node->init = declaration_rb(&tok, tok, basety, NULL);
-     } else {
--      node->init = expr_stmt(&tok, tok);
--    }
--
--    if (!equal(tok, ";"))
--      node->cond = expr(&tok, tok);
--    tok = skip(tok, ";");
--
--    if (!equal(tok, ")"))
--      node->inc = expr(&tok, tok);
--    tok = skip(tok, ")");
-+      // node->init = expr_stmt(&tok, tok);
++      printf("tok->loc: %s\n", tok->loc);
+       node->init = declaration(&tok, tok, basety, NULL);
+-    } else {
 +    }
-+    fprintf(stderr,"tok->loc: %s\n", tok->loc);
-+    // if (!equal(tok, ":"))
-+    //   node->cond = expr(&tok, tok);
-+    // tok = skip(tok, ":");
-+    // if (!equal(tok, ")"))
-+    //   node->inc = expr(&tok, tok);
-+    // tok = skip(tok, ")");
++    else
++    {
+       node->init = expr_stmt(&tok, tok);
+     }
  
+@@ -1657,7 +1746,7 @@ static Node *stmt(Token **rest, Token *tok) {
+     if (!equal(tok, ")"))
+       node->inc = expr(&tok, tok);
+     tok = skip(tok, ")");
+-
++    printf("tok->loc: %s\n", tok->str);
      node->then = stmt(rest, tok);
  
+     leave_scope();
