@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "linuxlist.h"
 
 typedef struct _sLabel
